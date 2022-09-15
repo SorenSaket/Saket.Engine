@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<!-- Settings -->
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<TargetFramework>net6.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<Platforms>AnyCPU</Platforms>
+	</PropertyGroup>
+	
+	<!-- References -->
+	<ItemGroup>
+		<ProjectReference Include="..\..\Saket.ECS\Saket.ECS\Saket.ECS.csproj" />
+		<ProjectReference Include="..\..\Saket.UI\Saket.UI\Saket.UI.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="ImGui.NET" Version="1.87.3" />
+		<PackageReference Include="OpenTK" Version="4.7.4" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+			<_Parameter1>Saket.Engine.Tests</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="IMGUI\" />
+	</ItemGroup>
+</Project>
