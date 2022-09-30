@@ -23,11 +23,8 @@ namespace Saket.Engine.Resources.Loaders
                 // Load fragment shader code
                 if (resourceManager.TryGetStream(path_fragment, out Stream? stream))
                 {
-                    if (stream != null)
-                    {
-                        StreamReader reader = new StreamReader(stream);
-                        code_fragment = reader.ReadToEnd();
-                    }
+                    StreamReader reader = new StreamReader(stream);
+                    code_fragment = reader.ReadToEnd();
                 }
             }
 
@@ -35,11 +32,8 @@ namespace Saket.Engine.Resources.Loaders
                 // Load vertex shader code
                 if (resourceManager.TryGetStream(path_vertex, out Stream? stream))
                 {
-                    if (stream != null)
-                    {
-                        StreamReader reader = new StreamReader(stream);
-                        code_vertex = reader.ReadToEnd();
-                    }
+                    StreamReader reader = new StreamReader(stream);
+                    code_vertex = reader.ReadToEnd();
                 }
             }
             if (code_fragment == null || code_vertex == null)

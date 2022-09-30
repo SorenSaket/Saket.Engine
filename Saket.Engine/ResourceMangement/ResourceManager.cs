@@ -33,7 +33,6 @@ namespace Saket.Engine
         private Dictionary<string, object> resources = new Dictionary<string, object>();
 
 
-
         public void RegisterLoader<T>(ResourceLoader<T> loader)
         {
             if (loaders.ContainsKey(typeof(T)))
@@ -44,13 +43,13 @@ namespace Saket.Engine
 
 
         // Single entry point for loading assets
-        public T Load<T>(string asset_name) where T : IResource
+        public T Load<T>(string asset_name)
         {
             string name = asset_name;
 
             if(typeof(T) == typeof(Shader))
                 name = "shader_" + asset_name;
-            else if (typeof(T) == typeof(TextureSheet))
+            else if (typeof(T) == typeof(Texture))
                 name = "sheet_" + asset_name;
 
             // if the asset already exists
@@ -77,14 +76,15 @@ namespace Saket.Engine
 
 
 
-        public bool TryGetStream(string name, out Stream? stream)
+        public bool TryGetStream(string name, out Stream stream)
         {
             for (int i = 0; i < databases.Count; i++)
             {
                 if (databases[i].AvaliableResources.Contains(name))
                 {
                     stream = databases[i].LoadResource(name);
-                    return true;
+                    if(stream != null)
+                        return true;
                 }
             }
             stream = null;
@@ -99,8 +99,5 @@ namespace Saket.Engine
         {
             return Assembly.GetEntryAssembly()?.GetManifestResourceNames() ?? new string[0];
         }
-
-
-
     }
 }

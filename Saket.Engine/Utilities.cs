@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Data.SqlTypes;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace Saket.Engine
 {
@@ -23,14 +25,32 @@ namespace Saket.Engine
             }
         }
 
-		public static T? FirstOrNull<T>(this IEnumerable<T> enumerable, Predicate<T> predicate)
-		{
+		public static Nullable<T> FirstOrNull<T>(this IEnumerable<T> enumerable, Predicate<T> predicate) where T : struct
+        {
 			foreach (var item in enumerable)
 			{
 				if(predicate(item))
 					return item;
 			}
-			return default(T);
+			return null;
 		}
+
+
+        public static bool IndexOf<T>(this IEnumerable<T> enumerable, Predicate<T> predicate, out int index) where T : struct
+        {
+            int i = 0;
+            foreach (var item in enumerable)
+            {
+                if (predicate(item))
+                {
+                    index = i;
+                    return true;
+                }
+                i++;
+            }
+            index = -1;
+            return false;
+        }
+
     }
 }

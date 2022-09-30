@@ -38,7 +38,7 @@ namespace Saket.Engine
                 var transform = entity.Get<Transform2D>();
                 var camera = entity.Get<CameraOrthographic>();
 
-                camera.viewMatrix = Matrix4x4.CreateTranslation(transform.x, transform.y, 0);
+                camera.viewMatrix = Matrix4x4.CreateTranslation(transform.position.X, transform.position.Y, 0);
 
                 entity.Set(camera);
             }

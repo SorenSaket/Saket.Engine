@@ -15,7 +15,7 @@ namespace Saket.Engine.Networking
 		/// The difference/distance between the two ticks
 		/// </summary>
 		/// <param name="a">Newer tick</param>
-		/// <param name="b">Later tick</param>
+		/// <param name="b">Older tick</param>
 		/// <param name="halfMax">The difference/distance between the two ticks</param>
 		/// <returns></returns>
 		public static int SeqDiff(int a, int b)

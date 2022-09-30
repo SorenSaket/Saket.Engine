@@ -7,7 +7,7 @@ using System.Numerics;
 namespace Saket.Engine
 {
     // A simple class meant to help create shaders.
-    public class Shader : IResource
+    public class Shader 
     {
         public readonly int Handle;
 
@@ -184,9 +184,5 @@ namespace Saket.Engine
             GL.DeleteProgram(Handle);
         }
 
-        public void Load()
-        {
-            throw new NotImplementedException();
-        }
     }
 }

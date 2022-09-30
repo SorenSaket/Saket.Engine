@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Saket.Engine
+namespace Saket.Engine.Networking
 {
-    internal class TextureSheet
+    internal interface IInterpolatable<T>
     {
-
+        public void Interpolate(T a, T b, float t);
     }
 }

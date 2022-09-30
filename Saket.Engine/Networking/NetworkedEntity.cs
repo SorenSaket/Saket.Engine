@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TechWars.Shared
+namespace Saket.Engine.Networking
 {
-    public partial class Systems
+    public struct NetworkedEntity
     {
-
+        public ushort id_network;
     }
 }
