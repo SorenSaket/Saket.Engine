@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Saket.Engine.Networking
+namespace Saket.Engine.Net
 {
-    internal interface IInterpolatable<T>
+    public interface IInterpolatable<T>
     {
         public void Interpolate(T a, T b, float t);
     }

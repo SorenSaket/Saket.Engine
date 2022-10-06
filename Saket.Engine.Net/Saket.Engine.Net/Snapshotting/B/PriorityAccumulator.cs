@@ -4,10 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Saket.Engine.Networking
+namespace Saket.Engine.Net.Snapshotting
 {
-    public struct NetworkedEntity
+    public class PriorityAccumulator
     {
-        public ushort id_network;
+
+
+
+
     }
 }

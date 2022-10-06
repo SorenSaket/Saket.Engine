@@ -27,9 +27,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Glfw", "..\Saket.GLFW\Glfw\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saket.UI", "..\Saket.UI\Saket.UI\Saket.UI.csproj", "{2F7BDF08-99DF-4772-9C21-B50D6E6CAC1E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Saket.Engine.Tests", "Saket.Engine.Tests\Saket.Engine.Tests.csproj", "{7BB83F5A-F38C-439C-A80F-17D96F3297FC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saket.Engine.Tests", "Saket.Engine.Tests\Saket.Engine.Tests.csproj", "{7BB83F5A-F38C-439C-A80F-17D96F3297FC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LiteNetLib", "..\..\..\repos\LiteNetLib\LiteNetLib\LiteNetLib.csproj", "{72B50979-3CE4-4CDC-8A76-F152B3A59373}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saket.Engine.Net", "Saket.Engine.Net\Saket.Engine.Net\Saket.Engine.Net.csproj", "{94683A19-ADD2-4BB0-8376-AB1EA9C44BBE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saket.Engine.Net.Litenetlib", "Saket.Engine.Net\Saket.Engine.Net.Litenetlib\Saket.Engine.Net.Litenetlib.csproj", "{D72BDEC2-4261-4C10-8E9C-F3C40902D458}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -142,6 +146,22 @@ Global
 		{72B50979-3CE4-4CDC-8A76-F152B3A59373}.Release|Any CPU.Build.0 = Release|Any CPU
 		{72B50979-3CE4-4CDC-8A76-F152B3A59373}.Release|x64.ActiveCfg = Release|Any CPU
 		{72B50979-3CE4-4CDC-8A76-F152B3A59373}.Release|x64.Build.0 = Release|Any CPU
+		{94683A19-ADD2-4BB0-8376-AB1EA9C44BBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94683A19-ADD2-4BB0-8376-AB1EA9C44BBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94683A19-ADD2-4BB0-8376-AB1EA9C44BBE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{94683A19-ADD2-4BB0-8376-AB1EA9C44BBE}.Debug|x64.Build.0 = Debug|Any CPU
+		{94683A19-ADD2-4BB0-8376-AB1EA9C44BBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94683A19-ADD2-4BB0-8376-AB1EA9C44BBE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94683A19-ADD2-4BB0-8376-AB1EA9C44BBE}.Release|x64.ActiveCfg = Release|Any CPU
+		{94683A19-ADD2-4BB0-8376-AB1EA9C44BBE}.Release|x64.Build.0 = Release|Any CPU
+		{D72BDEC2-4261-4C10-8E9C-F3C40902D458}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D72BDEC2-4261-4C10-8E9C-F3C40902D458}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D72BDEC2-4261-4C10-8E9C-F3C40902D458}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D72BDEC2-4261-4C10-8E9C-F3C40902D458}.Debug|x64.Build.0 = Debug|Any CPU
+		{D72BDEC2-4261-4C10-8E9C-F3C40902D458}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D72BDEC2-4261-4C10-8E9C-F3C40902D458}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D72BDEC2-4261-4C10-8E9C-F3C40902D458}.Release|x64.ActiveCfg = Release|Any CPU
+		{D72BDEC2-4261-4C10-8E9C-F3C40902D458}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

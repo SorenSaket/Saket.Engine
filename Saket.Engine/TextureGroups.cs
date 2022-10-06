@@ -8,9 +8,6 @@ namespace Saket.Engine
 {
     // workaround. TODO deltete shit 
 
-
-
-
     public class TextureGroups
     {
         public List<TextureGroup> groups = new();

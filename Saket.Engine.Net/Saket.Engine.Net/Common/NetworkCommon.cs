@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Saket.Engine.Networking
+namespace Saket.Engine.Net
 {
 	public static class NetworkCommon
 	{

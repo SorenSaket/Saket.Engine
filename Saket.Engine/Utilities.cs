@@ -25,7 +25,23 @@ namespace Saket.Engine
             }
         }
 
-		public static Nullable<T> FirstOrNull<T>(this IEnumerable<T> enumerable, Predicate<T> predicate) where T : struct
+        public static bool Unwrap<T>(this T nullable, out T value) where T : class
+        {
+            if (nullable == null)
+            {
+                value = null;
+                return false;
+            }
+            else
+            {
+                value = nullable;
+                return true;
+            }
+        }
+
+
+
+        public static Nullable<T> FirstOrNull<T>(this IEnumerable<T> enumerable, Predicate<T> predicate) where T : struct
         {
 			foreach (var item in enumerable)
 			{
@@ -34,6 +50,22 @@ namespace Saket.Engine
 			}
 			return null;
 		}
+
+
+        public static bool FirstOrFalse<T>(this IEnumerable<T> enumerable, Predicate<T> predicate, out T value)
+        {
+            foreach (var item in enumerable)
+            {
+                if (predicate(item))
+                {
+                    value = item;
+                    return true;
+                }
+
+            }
+            value = default(T)!;
+            return false;
+        }
 
 
         public static bool IndexOf<T>(this IEnumerable<T> enumerable, Predicate<T> predicate, out int index) where T : struct

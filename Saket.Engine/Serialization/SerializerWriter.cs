@@ -4,32 +4,90 @@ using System.Runtime.InteropServices;
 
 namespace Saket.Engine.Serialization
 {
+    /// <summary>
+    /// Writer struct able to serialize primities and ISerializables to byte array
+    /// </summary>
     public unsafe ref struct SerializerWriter
     {
+        /// <summary> The number of bytes avaliable to the writer </summary>
         public int Capacity
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => data.Length;
         }
-        public byte[] Data
+        /// <summary> The absolute position of writer in bytes based on underlying array</summary>
+        public int AbsolutePosition {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get =>absolutePosition;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set => absolutePosition = value; 
+        }
+        /// <summary> How many bytes the writer has written. </summary>
+        public int Count
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => count;
+        }
+        /// <summary> The data that has been written to the underlying array </summary>
+        public ArraySegment<byte> Data
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => new ArraySegment<byte>(data, offset, count);
+        }
+
+        public byte[] DataRaw 
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => data;
         }
-        public int Length
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => position;
-        }
 
+
+
+        /// <summary> 
+        /// Underlying array 
+        /// </summary>
         byte[] data;
-        int position;
+        
+        /// <summary> 
+        /// The current writer position relative to underlying array 
+        /// </summary>
+        int absolutePosition;
+
+        /// <summary>
+        /// The length of bytes written
+        /// In effect this is the furthest (absolutePosition-offset) written to
+        /// </summary>
+        int count;
+
+        /// <summary>
+        /// The starting point for the writer. 
+        /// The writer should not be able to write to bytes before this index
+        /// </summary>
+        readonly int offset;
+
+        readonly int capacity;
+
+        /// <summary>
+        /// Create Writer from Array Segment. The writer can 
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="offset"></param>
+        public SerializerWriter(ArraySegment<byte> target, int offset = 0)
+        {
+            this.data = target.Array!;
+            this.offset = this.absolutePosition = offset + target.Offset;
+            this.count = 0;
+            this.capacity = target.Count;
+        }
 
         public SerializerWriter(byte[] target, int offset = 0)
         {
             this.data = target;
-            this.position = offset;
+            this.offset = this.absolutePosition = offset;
+            this.count = 0;
+            this.capacity = target.Length;
         }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void EnsureCapacity(int requiredCapacity)
@@ -45,7 +103,7 @@ namespace Saket.Engine.Serialization
         }
 
         // ---- Primitive Serialization ----
-        public void Serialize<T>(in T value, ForPrimitives unused = default) 
+        public void Write<T>(in T value, ForPrimitives unused = default) 
             where T : unmanaged
         {
             fixed (T* ptr = &value)
@@ -53,24 +111,33 @@ namespace Saket.Engine.Serialization
                 Write(ptr, sizeof(T));
             }
         }
-        public void Serialize<T>(in T[] value, ForPrimitives unused = default) 
+        public void Write<T>(in T[] value, ForPrimitives unused = default) 
             where T : unmanaged
         {
-            Serialize(value.Length);
+            Write(value.Length);
             fixed (T* ptr = value)
             {
                 Write(ptr, sizeof(T) * value.Length);
             }
         }
+        public void Write<T>(in ArraySegment<T> value, ForPrimitives unused = default)
+            where T : unmanaged
+        {
+            Write(value.Count);
+            fixed (T* ptr = value.Array)
+            {
+                Write(ptr + value.Offset * sizeof(T), sizeof(T) * value.Count);
+            }
+        }
 
         // ---- Serializable Serialization ----
-        public void Serialize<T>(ref T value, ForSerializable unused = default) where T : ISerializable, new() 
+        public void Write<T>(ref T value, ForSerializable unused = default) where T : ISerializable, new() 
         {
             value.Serialize(this);
         }
-        public void Serialize<T>(ref T[] value, ForSerializable unused = default) where T : ISerializable, new() 
+        public void Write<T>(ref T[] value, ForSerializable unused = default) where T : ISerializable, new() 
         {
-            Serialize(value.Length);
+            Write(value.Length);
             for (int i = 0; i < value.Length; i++)
             {
                 value[i].Serialize(this);
@@ -78,9 +145,9 @@ namespace Saket.Engine.Serialization
         }
 
         // ---- String Serialization ----
-        public void Serialize(ref string s, bool oneByteChars = false) 
+        public void Write(ref string s, bool oneByteChars = false) 
         {
-            Serialize((uint)s.Length);
+            Write((uint)s.Length);
             fixed (char* native = s)
             {
                 Write((byte*)native, s.Length * sizeof(char));
@@ -90,10 +157,12 @@ namespace Saket.Engine.Serialization
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(void* value, int length)
         {
-            EnsureCapacity(position + length);
-            Marshal.Copy(new IntPtr(value), data, position, length);
-            position += length;
+            EnsureCapacity(absolutePosition + length);
+            Marshal.Copy(new IntPtr(value), data, absolutePosition, length);
+            absolutePosition += length;
+            this.count = Math.Max(this.count, absolutePosition-offset);
         }
+
 
         #region Contraint Tags
 
