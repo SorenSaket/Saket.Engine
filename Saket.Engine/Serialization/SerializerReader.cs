@@ -1,8 +1,10 @@
 using System;
+using System.Drawing;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Saket.Engine.Serialization
 {
@@ -68,7 +70,7 @@ namespace Saket.Engine.Serialization
         }
 
         // ---- Primitive Serialization ---- 
-        public T Read<T>(SerializerWriter.ForPrimitives unused = default) where T : unmanaged
+        public T Read<T>() where T : unmanaged
         {
             unsafe
             {
@@ -80,12 +82,14 @@ namespace Saket.Engine.Serialization
                 }
             }
         }
-
-        public T[] ReadArray<T>(SerializerWriter.ForPrimitives unused = default)
+        public T[] ReadArray<T>()
             where T : unmanaged
         {
             int length = Read<int>();
+            if (length == 0)
+                return Array.Empty<T>();
             // Allocate new array
+            // Todo make heap allocation free
             T[] result = new T[length];
             int byteCount = length * Marshal.SizeOf<T>();
             Buffer.BlockCopy(data, absolutePosition, result, 0, byteCount);
@@ -94,30 +98,35 @@ namespace Saket.Engine.Serialization
         }
 
         // ---- Serializable Serialization ----
-        public T Read<T>(SerializerWriter.ForSerializable unused = default) where T : ISerializable, new()
+        public T ReadSerializable<T>() where T : ISerializable, new()
         {
             var obj = new T();
             obj.Deserialize(this);
             return obj;
         }
-        public T[] ReadArray<T>(SerializerWriter.ForSerializable unused = default) where T : ISerializable, new()
+        public T[] ReadSerializableArray<T>() where T : ISerializable, new()
         {
             int length = Read<int>();
             // Allocate new array
+            // Todo make heap allocation free
             T[] result = new T[length];
 
             for (int i = 0; i < length; i++)
             {
-                result[i] = Read<T>();
+                result[i] = ReadSerializable<T>();
             }
             return result;
         }
 
 
         // ---- String Serialization ----
-        public string Read(ref string s, bool oneByteChars = false)
+        public string ReadString()
         {
-            throw new NotImplementedException();
+            int length = Read<int>();
+            if (length == 0)
+                return string.Empty;
+            var segment = Read(length);
+            return UTF8Encoding.UTF8.GetString(segment.Array, segment.Offset, segment.Count);
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

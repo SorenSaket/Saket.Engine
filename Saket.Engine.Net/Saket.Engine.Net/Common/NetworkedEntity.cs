@@ -11,13 +11,13 @@ namespace Saket.Engine.Net
     public struct NetworkedEntity
     {
         public ushort id_network;
-        public ushort type_object;
+        public ushort id_objectType;
         public unsafe fixed int interestGroups[16];
 
         public NetworkedEntity(ushort id_network, ushort type_object) : this()
         {
             this.id_network = id_network;
-            this.type_object = type_object;
+            this.id_objectType = type_object;
         }
     }
 }

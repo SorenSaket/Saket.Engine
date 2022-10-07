@@ -4,7 +4,7 @@ using Saket.Engine.Serialization;
 
 namespace Saket.Engine.Net.Snapshotting.A
 {
-    public static class Server_Snatshot_A
+    public static class Snapshot_A_Server
     {
         public static void WriteSnapShot(
             SerializerWriter writer,
@@ -35,7 +35,7 @@ namespace Saket.Engine.Net.Snapshotting.A
                     // Get the entity
                     NetworkedEntity networkedEntity = archetype.Get<NetworkedEntity>(row);
                     ushort id_networkedEntity = networkedEntity.id_network;
-                    ushort id_objectType = networkedEntity.type_object;
+                    ushort id_objectType = networkedEntity.id_objectType;
 
                     if(!schema.networkedObjects.FirstOrFalse(x => x.id_object == id_objectType, out var schema_object))
                     {

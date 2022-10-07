@@ -15,7 +15,7 @@ namespace Saket.Engine.Net.Transport
         /// A constant `clientId` that represents the server
         /// When this value is found in methods such as `Send`, it should be treated as a placeholder that means "the server"
         /// </summary>
-        public abstract uint ServerClientId { get; }
+        public abstract IDNet ServerClientId { get; }
 
         /// <summary>
         /// Delegate for transport network events
@@ -48,7 +48,7 @@ namespace Saket.Engine.Net.Transport
         /// <param name="clientId">The clientId to send to</param>
         /// <param name="payload">The data to send</param>
         /// <param name="networkDelivery">The delivery type (QoS) to send data with</param>
-        public abstract void Send(uint clientId, ArraySegment<byte> payload, NetworkDelivery networkDelivery);
+        public abstract void Send(IDNet clientId, ArraySegment<byte> payload, NetworkDelivery networkDelivery);
 
         /// <summary>
         /// Polls for incoming events, with an extra output parameter to report the precise time the event was received.
@@ -75,7 +75,7 @@ namespace Saket.Engine.Net.Transport
         /// Disconnects a client from the server
         /// </summary>
         /// <param name="clientId">The clientId to disconnect</param>
-        public abstract void DisconnectRemoteClient(uint clientId);
+        public abstract void DisconnectRemoteClient(IDNet clientId);
 
         /// <summary>
         /// Disconnects the local client from the server
@@ -87,7 +87,7 @@ namespace Saket.Engine.Net.Transport
         /// </summary>
         /// <param name="clientId">The clientId to get the RTT from</param>
         /// <returns>Returns the round trip time in milliseconds </returns>
-        public abstract ulong GetCurrentRTT(uint clientId);
+        public abstract ulong GetCurrentRTT(IDNet clientId);
 
         /// <summary>
         /// Shuts down the transport

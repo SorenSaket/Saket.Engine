@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Saket.Engine.Net.Realtime
 {
-    class RTInputClient<ClientInput>
+    public class RTInputSender<ClientInput>
     {
         /// <summary> The last recived tick of the client </summary>
         public ushort tick_remote;
@@ -28,11 +28,18 @@ namespace Saket.Engine.Net.Realtime
         public float packetloss_avg = 0;
     }
 
-    internal class Service_RTInput<ClientInput>
+    public class RTInput_Server<ClientInput>
     {
-        public Dictionary<int, RTInputClient<ClientInput>> clients = new();
+        public Dictionary<IDNet, RTInputSender<ClientInput>> clients = new();
 
-        public void OnInputRecived(int id_network, ClientInput input, ushort tick_client)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id_network"></param>
+        /// <param name="tick_client"></param>
+        /// <param name="inputs"></param>
+        /// <exception cref="Exception"></exception>
+        public void OnInputRecived(IDNet id_network, ushort tick_client, ClientInput[] inputs)
         {
 #if DEBUG
             //
@@ -42,23 +49,21 @@ namespace Saket.Engine.Net.Realtime
             }
 #endif
             // throw old state out
+            // This is possible since a newer packet would already contain inputs for this tick
             if (NetworkCommon.SeqDiff(tick_client, clients[id_network].tick_remote) < 0)
                 return;
 
             // Todo implement abort
-            // if client is too behind reset input buffer & last ick proccsed
+            // if client is too behind reset input buffer & last tick proccsed
             //
+            //if(NetworkCommon.SeqDiff(player.tick_remote, player.tick_lastSim ) < 20)
+            //{
+            //    Debug.WriteLine($"[S] skipping");
+            //   player.inputs.Clear();
+            //
+            //}
 
-
-            /*
-            if(NetworkCommon.SeqDiff(player.tick_remote, player.tick_lastSim ) < 20)
-            {
-                Debug.WriteLine($"[S] skipping");
-                player.inputs.Clear();
-
-            }*/
-
-
+            // Update the remote tick
             clients[id_network].tick_remote = tick_client;
             /*
             if (player.firstInput)
@@ -70,13 +75,15 @@ namespace Saket.Engine.Net.Realtime
             // Maintain buffer of inputs
             // 0 = oldest
             // (inputs.Length-1) = newest
-            for (int i = 0; i < packet.inputs.Length; i++)
+            for (int i = 0; i < inputs.Length; i++)
             {
                 // The client tick the input command was issued
-                ushort t = NetworkCommon.TickAdvance(packet.tick_player, -(packet.inputs.Length - 1) + i);
+                ushort t = NetworkCommon.TickAdvance(tick_client, -(inputs.Length - 1) + i);
 
-                if (!player.inputs.ContainsKey(t) && NetworkCommon.SeqDiff(t, player.tick_lastSim) > 0)
-                    player.inputs.Add(t, packet.inputs[i]);
+                if (!clients[id_network].inputs.ContainsKey(t) // If we don't already have the input buffered
+                    && NetworkCommon.SeqDiff(t, clients[id_network].tick_lastSim) > 0 // If we haven't simulated the tick yet
+                    )
+                    clients[id_network].inputs.Add(t, inputs[i]);
             }
         }
     }

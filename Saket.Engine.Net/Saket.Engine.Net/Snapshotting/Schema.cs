@@ -13,9 +13,12 @@ namespace Saket.Engine.Net.Snapshotting
         public NetworkedComponent[] networkedComponents;
         public NetworkedObject[] networkedObjects;
 
-        public Schema(Type[][] networkedObjects)
+        public Schema(Type[][] networkedObjects, NetworkedComponent[] networkedComponents = null)
         {
             List<NetworkedComponent> components = new();
+            if (networkedComponents != null)
+                components.AddRange(networkedComponents);
+
             List<NetworkedObject> objs = new();
             for (int id_object = 0; id_object < networkedObjects.Length; id_object++)
             {
@@ -34,8 +37,7 @@ namespace Saket.Engine.Net.Snapshotting
                         componentsInObject[j] = (uint)components.Count;
                         int size = Marshal.SizeOf(networkedObjects[id_object][j]);
                         totalSize += size;
-                        components.Add(new NetworkedComponent((uint)components.Count, networkedObjects[id_object][j], size));
-                        
+                        components.Add(new NetworkedComponent((uint)components.Count, networkedObjects[id_object][j], null));
                     }
                     else
                     {
@@ -46,25 +48,26 @@ namespace Saket.Engine.Net.Snapshotting
 
                 objs.Add(new NetworkedObject((uint)id_object, componentsInObject, offsets, totalSize));
             }
-            networkedComponents = components.ToArray();
+            this.networkedComponents = components.ToArray();
             this.networkedObjects = objs.ToArray();
         }
 
 
-
-
+        public delegate void InterpolationFunction(byte[] destination, ArraySegment<byte> A, ArraySegment<byte> B, float t);
 
         public struct NetworkedComponent
         {
             public uint id_component;
             public Type type_component;
             public int sizeInBytes;
+            public InterpolationFunction? interpolationFunction;
 
-            public NetworkedComponent(uint id_component, Type type_component, int sizeInBytes)
+            public NetworkedComponent(uint id_component, Type type_component, InterpolationFunction interpolationFunction)
             {
                 this.id_component = id_component;
                 this.type_component = type_component;
-                this.sizeInBytes = sizeInBytes;
+                this.sizeInBytes = Marshal.SizeOf(type_component);
+                this.interpolationFunction = interpolationFunction;
             }
         }
 

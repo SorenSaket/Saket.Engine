@@ -30,7 +30,7 @@ namespace Saket.Engine.Net.Transport.Litenetlib
             netmanager = new NetManager(this);
         }
 
-        public override uint ServerClientId => (uint)server.Id;
+        public override IDNet ServerClientId => (uint)server.Id;
         protected NetPeer server;
 
         public override void DisconnectLocalClient()
@@ -38,12 +38,12 @@ namespace Saket.Engine.Net.Transport.Litenetlib
             throw new NotImplementedException();
         }
 
-        public override void DisconnectRemoteClient(uint clientId)
+        public override void DisconnectRemoteClient(IDNet clientId)
         {
             throw new NotImplementedException();
         }
 
-        public override ulong GetCurrentRTT(uint clientId)
+        public override ulong GetCurrentRTT(IDNet clientId)
         {
             throw new NotImplementedException();
         }
@@ -58,7 +58,7 @@ namespace Saket.Engine.Net.Transport.Litenetlib
             return new Event_Transport(NetworkEvent.Nothing, 0, ArraySegment<byte>.Empty, 0);
         }
 
-        public override void Send(uint clientId, ArraySegment<byte> payload, NetworkDelivery networkDelivery)
+        public override void Send(IDNet clientId, ArraySegment<byte> payload, NetworkDelivery networkDelivery)
         {
             writer.Reset();
             writer.Put(payload.Array, payload.Offset, payload.Count);

@@ -39,9 +39,9 @@ namespace Saket.Engine
         }
         public static float LerpAngleRad(float a, float b, float t)
         {
-            float delta = Repeat((b - a), MathF.PI*2);
+            float delta = Repeat((b - a), MathF.PI*2f);
             if (delta > MathF.PI)
-                delta -= MathF.PI*2;
+                delta -= MathF.PI*2f;
             return a + delta * Clamp01(t);
         }
         public static float Clamp01(float value)

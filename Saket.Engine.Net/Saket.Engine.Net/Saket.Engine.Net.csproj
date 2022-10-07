@@ -7,13 +7,21 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <LangVersion>preview</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <LangVersion>preview</LangVersion>
+  </PropertyGroup>
+
   <ItemGroup>
     <Folder Include="Asyc\" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Saket.ECS\Saket.ECS\Saket.ECS.csproj" />
-    <ProjectReference Include="..\..\Saket.Engine\Saket.Engine\Saket.Engine.csproj" />
+    <ProjectReference Include="..\..\..\Saket.ECS\Saket.ECS\Saket.ECS.csproj" />
+    <ProjectReference Include="..\..\Saket.Engine\Saket.Engine.csproj" />
   </ItemGroup>
 
 </Project>
