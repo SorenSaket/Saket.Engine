@@ -14,7 +14,13 @@ namespace Saket.Engine.Serialization
         public int Capacity
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => capacity;
+            get
+            {
+                if (maxAbsolutePosition > 0)
+                    return maxAbsolutePosition - offset;
+                else
+                    return data.Length - offset;
+            }
         }
 
         /// <summary> The data that has been read by the reader </summary>
@@ -29,8 +35,22 @@ namespace Saket.Engine.Serialization
             get => data;
         }
 
+        public int RelativePosition
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => absolutePosition - offset;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set => absolutePosition = value + offset;
+        }
         /// <summary> The absolute position of reader in bytes based on underlying array</summary>
-        public int AbsolutePosition { get => absolutePosition; set => absolutePosition = value; }
+        public int AbsolutePosition
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => absolutePosition;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set => absolutePosition = value;
+        }
+
 
         /// <summary> 
         /// Underlying array 
@@ -51,22 +71,22 @@ namespace Saket.Engine.Serialization
         /// </summary>
         readonly int offset;
 
-        readonly int capacity;
+        readonly int maxAbsolutePosition;
 
-        public SerializerReader(ArraySegment<byte> target, int offset = 0)
+        public SerializerReader(ArraySegment<byte> target)
         {
             this.data = target.Array;
-            this.offset = this.absolutePosition = offset + target.Offset;
+            this.offset = this.absolutePosition = target.Offset;
             this.count = 0;
-            this.capacity = target.Count;
+            this.maxAbsolutePosition = this.offset+target.Count;
         }
 
-        public SerializerReader(byte[] target, int offset = 0)
+        public SerializerReader(ref byte[] target, int offset = 0)
         {
             this.data = target;
             this.offset = this.absolutePosition = offset;
             this.count = 0;
-            this.capacity = target.Length;
+            this.maxAbsolutePosition = -1;
         }
 
         // ---- Primitive Serialization ---- 
@@ -77,8 +97,19 @@ namespace Saket.Engine.Serialization
                 fixed (byte* p = data)
                 {
                     int position = absolutePosition;
-                    absolutePosition += Marshal.SizeOf<T>();
-                    return (T)Marshal.PtrToStructure(new IntPtr(p + position), typeof(T))!;
+                    // This is nessary for enum support. One option is to remove direct enum support directly
+                    // On the other hand supporting enums increases ease of use
+                    if (typeof(T).IsEnum)
+                    {
+                        Type t = Enum.GetUnderlyingType(typeof(T));
+                        Advance(Marshal.SizeOf(t));
+                        return (T)Marshal.PtrToStructure(new IntPtr(p + position), t)!;
+                    }
+                    else
+                    {
+                        Advance(Marshal.SizeOf<T>());
+                        return (T)Marshal.PtrToStructure(new IntPtr(p + position), typeof(T))!;
+                    }
                 }
             }
         }
@@ -86,14 +117,16 @@ namespace Saket.Engine.Serialization
             where T : unmanaged
         {
             int length = Read<int>();
-            if (length == 0)
+            if (length <= 0)
                 return Array.Empty<T>();
+
             // Allocate new array
             // Todo make heap allocation free
             T[] result = new T[length];
-            int byteCount = length * Marshal.SizeOf<T>();
-            Buffer.BlockCopy(data, absolutePosition, result, 0, byteCount);
-            absolutePosition += byteCount;
+            for (int i = 0; i < length; i++)
+            {
+                result[i] = Read<T>();
+            }
             return result;
         }
 
@@ -101,12 +134,16 @@ namespace Saket.Engine.Serialization
         public T ReadSerializable<T>() where T : ISerializable, new()
         {
             var obj = new T();
-            obj.Deserialize(this);
+            obj.Deserialize(ref this);
             return obj;
         }
         public T[] ReadSerializableArray<T>() where T : ISerializable, new()
         {
             int length = Read<int>();
+
+            if (length <= 0)
+                return Array.Empty<T>();
+
             // Allocate new array
             // Todo make heap allocation free
             T[] result = new T[length];
@@ -128,13 +165,43 @@ namespace Saket.Engine.Serialization
             var segment = Read(length);
             return UTF8Encoding.UTF8.GetString(segment.Array, segment.Offset, segment.Count);
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ArraySegment<byte> Read(int length)
         {
             var p = absolutePosition;
-            absolutePosition += length;
+            Advance(length);
             return new ArraySegment<byte>(data, p, length);
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void Advance(int length)
+        {
+            absolutePosition += length;
+#if DEBUG
+            if(maxAbsolutePosition > 0)
+            {
+                if (absolutePosition > maxAbsolutePosition)
+                {
+                    throw new IndexOutOfRangeException($"Read {absolutePosition - maxAbsolutePosition} bytes past underlying buffer");
+                }
+            }
+            else
+            {
+                if (absolutePosition > data.Length)
+                {
+                    throw new IndexOutOfRangeException($"Read {absolutePosition - data.Length} bytes past underlying buffer");
+                }
+            }
+#endif
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private int SizeOf<T>()
+        {
+            Type outputType = typeof(T).IsEnum ? Enum.GetUnderlyingType(typeof(T)) : typeof(T);
+            return Marshal.SizeOf(outputType);
         }
 
     }

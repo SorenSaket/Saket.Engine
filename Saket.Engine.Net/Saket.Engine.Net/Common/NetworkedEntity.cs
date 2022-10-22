@@ -10,11 +10,11 @@ namespace Saket.Engine.Net
     [StructLayout(LayoutKind.Sequential)]
     public struct NetworkedEntity
     {
-        public ushort id_network;
+        public IDNet id_network;
         public ushort id_objectType;
         public unsafe fixed int interestGroups[16];
 
-        public NetworkedEntity(ushort id_network, ushort type_object) : this()
+        public NetworkedEntity(IDNet id_network, ushort type_object) : this()
         {
             this.id_network = id_network;
             this.id_objectType = type_object;

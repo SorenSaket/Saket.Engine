@@ -9,5 +9,8 @@ layout(location = 0) out vec4 outputColor;
 
 void main()
 {
-    outputColor = texture(texture0, fsin_TexCoords) * fsin_Tint;
+	vec4 col = texture(texture0, fsin_TexCoords) * fsin_Tint;
+	if (col.w <= 0.1)
+		discard;
+	outputColor = col;
 }

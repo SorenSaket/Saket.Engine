@@ -150,7 +150,7 @@ namespace Saket.Engine.Net.Snapshotting
                 {
                     // Get the entity
                     NetworkedEntity networkedEntity = archetype.Get<NetworkedEntity>(row);
-                    ushort id_networkedEntity = networkedEntity.id_network;
+                    IDNet id_networkedEntity = networkedEntity.id_network;
                     ushort type_networkedEntity = networkedEntity.id_objectType;
 
                     List<UInt16> componentsToUpdate = new();
@@ -196,7 +196,7 @@ namespace Saket.Engine.Net.Snapshotting
                         componentsToUpdate.Add((ushort)id_component);
                     }
 
-                    snapshot_base.Updates.Add(new Snapshot.Update(id_networkedEntity, componentsToUpdate.ToArray()));
+                    //snapshot_base.Updates.Add(new Snapshot.Update(id_networkedEntity, componentsToUpdate.ToArray()));
                 }
             }
 

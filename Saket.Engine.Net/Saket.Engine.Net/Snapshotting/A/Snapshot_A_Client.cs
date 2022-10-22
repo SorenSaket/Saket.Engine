@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Saket.Engine.Serialization;
 using System.Security.AccessControl;
 using Saket.Engine.Net.Rollback;
+using Saket.Engine.Collections;
 
 namespace Saket.Engine.Net.Snapshotting.A
 {
@@ -28,27 +29,71 @@ namespace Saket.Engine.Net.Snapshotting.A
         }
 
         /// <summary>
-        /// Applies snapshot to world
+        /// Applies snapshot to world. This is only nessesary to call after a new recived snapshot
+        /// Spawns and destroys objects
         /// </summary>
         /// <param name="world"></param>
-        public void System_ApplySnapshot(World world)
+        public void ApplySnapshot(World world)
         {
-            timer_lerp_state += world.Delta;
-            float t = timer_lerp_state / (1f/30f);
-            // Go trough all the objects that aren't in snapshot next but in snapshot previous. Destroy all of them. invoke destroy callback for the destroyed object type
+            var entities = world.Query(networkedEntities);
+            
+            // Temporary stack allocated stack
+            SpanStack<IDNet> snapshotObjectsToNotSpawn = new SpanStack<IDNet>(stackalloc IDNet[entities.Count]);
 
-            // Go trough all objects that are in snapshot next but not in snapshot previous. Spawn them.invoke spawn  callback for the spawned object type
+            foreach (var entity in entities)
+            {
+                var net = entity.Get<NetworkedEntity>();
+                var schema_object = schema.networkedObjects[net.id_objectType];
+                // -- Destroy --
+                // Go trough all the objects that aren't in snapshot next
+                // but in snapshot previous. Destroy all of them.
+                // invoke destroy callback for the destroyed object type
+                if (!snapshot_next.objects.ContainsKey(net.id_network))
+                {
+                    schema_object.destroyFunction?.Invoke(entity);
+                }
+                else
+                {
+                    // register that the object exsits and doesn't need to be spawned in the next step
+                    snapshotObjectsToNotSpawn.Push(net.id_network);
+                }
+            }
 
+            // Go trough all objects that are in snapshot next but not in snapshot previous.
+            // Spawn them. invoke spawn  callback for the spawned object type
+            foreach (var obj in snapshot_next.objects)
+            {
+                if (!snapshotObjectsToNotSpawn.Contains(obj.Value.id_network))
+                {
+                    var schema_object = schema.networkedObjects[obj.Value.id_objectType];
+                    var entity = world.CreateEntity();
+                    entity.Add(new NetworkedEntity(obj.Value.id_network, obj.Value.id_objectType));
+                    schema_object.spawnFunction?.Invoke(entity);
+                }
+            }
+        }
 
+        /// <summary>
+        /// Sets/Interpolates/Extrapolates component values from data avaliable in snapshot_prevoius and snapshot_next.
+        /// Is a system since interpolation/extrapolation should happen every frame.
+        /// uses unsafe code
+        /// </summary>
+        /// <param name="world"></param>
+        public void System_InterpolateEntities(World world)
+        {
+            // -- Interpolate/Set component Values --
             // Get the current time between snapshot this and next
             // Interpolate between values that implements IInterpolatable
             // All other values are just set to snapshot next values
             // Apply to world
-
-            var entities = world.Query(networkedEntities);
-
             // Comment( Soren ): This code is becoming obscure at best
             // Should uninterpolated values be based off previous or next snapshot?
+
+            timer_lerp_state += world.Delta;
+            float t = timer_lerp_state / (1f / 30f);
+            
+            var entities = world.Query(networkedEntities);
+            
             foreach (var entity in entities)
             {
                 var net = entity.Get<NetworkedEntity>();
@@ -65,22 +110,24 @@ namespace Saket.Engine.Net.Snapshotting.A
                         if (snapshot_previous.objects.ContainsKey(net.id_network) && schema_component.interpolationFunction != null)
                         {
                             var obj_prev = snapshot_previous.objects[net.id_network];
-
+                            
+                            // invoke interpolation function on the componet schema
                             unsafe
                             {
                                 fixed (byte* ptr_prev = snapshot_previous.data_components)
                                 {
                                     fixed (byte* ptr_next = snapshot_next.data_components)
                                     {
-                                        schema_component.interpolationFunction.Invoke(buffer,
-                                            new ArraySegment<byte>(snapshot_previous.data_components, obj_prev.relativeDataPtr + schema_object.componentOffsets[i], schema_component.sizeInBytes),
+                                        schema_component.interpolationFunction.Invoke(ref buffer,
+                                            new ArraySegment<byte>(snapshot_previous.data_components,  obj_prev.relativeDataPtr + schema_object.componentOffsets[i], schema_component.sizeInBytes),
                                             new ArraySegment<byte>(snapshot_next.data_components, obj_next.relativeDataPtr + schema_object.componentOffsets[i], schema_component.sizeInBytes),
                                             t
                                             );
                                     }
                                 }
                             }
-                        }
+                        } 
+                        // If the previous snapshot doesn't contain data about the snapshot just set it directly
                         else
                         {
                             unsafe
@@ -89,8 +136,7 @@ namespace Saket.Engine.Net.Snapshotting.A
                                 {
                                     entity.Set(
                                         schema_component.type_component,
-                                        entity.EntityPointer.index_row,
-                                        (void*)ptr[obj_next.relativeDataPtr + schema_object.componentOffsets[i]]);
+                                        (void*)(ptr + obj_next.relativeDataPtr + schema_object.componentOffsets[i]));
                                 }
                             }
                         }
@@ -98,6 +144,7 @@ namespace Saket.Engine.Net.Snapshotting.A
                 }
             }
         }
+
 
         
         public void ReciveSnapshot(byte[] data)
@@ -124,7 +171,7 @@ namespace Saket.Engine.Net.Snapshotting.A
         /// <param name="actions"></param>
         /// <param name="networkedEntities"></param>
         /// <exception cref="Exception"></exception>
-        public static void ApplySnapshot(byte[] snapshot, World world, Schema schema, Dictionary<int, SpawnDesrtroyCallBack> actions, Dictionary<ushort, int> networkedEntities)
+        /*public static void ApplySnapshot(byte[] snapshot, World world, Schema schema, Dictionary<int, SpawnDesrtroyCallBack> actions, Dictionary<ushort, int> networkedEntities)
         {
             SerializerReader reader = new SerializerReader(snapshot);
 
@@ -181,12 +228,18 @@ namespace Saket.Engine.Net.Snapshotting.A
                     world.DestroyEntity(entity.Value);
                 }
             }
-        }
-    
-    
+        }*/
+
+        /// <summary>
+        /// Converts a series of bytes into a snapshot_A and overrides snapshot
+        /// </summary>
+        /// <param name="snapshot"></param>
+        /// <param name="data"></param>
+        /// <param name="schema"></param>
+        /// <exception cref="Exception"></exception>
         public static void ReadSnapShotA(Snapshot_A snapshot, ArraySegment<byte> data, Schema schema)
         {
-            SerializerReader reader = new SerializerReader(data.Array);
+            SerializerReader reader = new SerializerReader(data);
             snapshot.numberOfEntities = reader.Read<uint>();
             snapshot.objects.Clear();
             snapshot.objects.EnsureCapacity((int)snapshot.numberOfEntities);

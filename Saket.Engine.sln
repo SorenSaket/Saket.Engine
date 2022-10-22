@@ -35,6 +35,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saket.Engine.Net", "Saket.E
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saket.Engine.Net.Litenetlib", "Saket.Engine.Net\Saket.Engine.Net.Litenetlib\Saket.Engine.Net.Litenetlib.csproj", "{D72BDEC2-4261-4C10-8E9C-F3C40902D458}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saket.Engine.Net.Dual", "Saket.Engine.Net\Saket.Engine.Net.Dual\Saket.Engine.Net.Dual.csproj", "{C2C481BE-B577-4ECB-B4E3-868E5C8E6F4F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -162,6 +164,14 @@ Global
 		{D72BDEC2-4261-4C10-8E9C-F3C40902D458}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D72BDEC2-4261-4C10-8E9C-F3C40902D458}.Release|x64.ActiveCfg = Release|Any CPU
 		{D72BDEC2-4261-4C10-8E9C-F3C40902D458}.Release|x64.Build.0 = Release|Any CPU
+		{C2C481BE-B577-4ECB-B4E3-868E5C8E6F4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2C481BE-B577-4ECB-B4E3-868E5C8E6F4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2C481BE-B577-4ECB-B4E3-868E5C8E6F4F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C2C481BE-B577-4ECB-B4E3-868E5C8E6F4F}.Debug|x64.Build.0 = Debug|Any CPU
+		{C2C481BE-B577-4ECB-B4E3-868E5C8E6F4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2C481BE-B577-4ECB-B4E3-868E5C8E6F4F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2C481BE-B577-4ECB-B4E3-868E5C8E6F4F}.Release|x64.ActiveCfg = Release|Any CPU
+		{C2C481BE-B577-4ECB-B4E3-868E5C8E6F4F}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

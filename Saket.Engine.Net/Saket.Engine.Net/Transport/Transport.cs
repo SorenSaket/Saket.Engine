@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 namespace Saket.Engine.Net.Transport
 {
     /// <summary>
-    /// The generic transport class all Netcode for GameObjects network transport implementations derive from. Use this class to add a custom transport.
+    /// Polling based transport abstraction.
+    /// Use this to create your own transports
     /// </summary>
     public abstract class NetworkTransport
     {
@@ -27,8 +28,6 @@ namespace Saket.Engine.Net.Transport
         /// Can be used to make an event based transport instead of a poll based.
         /// </summary>
         public event TransportEventDelegate OnTransportEvent;
-
-
 
         /// <summary>
         /// Invokes the <see cref="OnTransportEvent"/>. Invokation has to occur on the Unity thread in the Update loop.
@@ -51,12 +50,9 @@ namespace Saket.Engine.Net.Transport
         public abstract void Send(IDNet clientId, ArraySegment<byte> payload, NetworkDelivery networkDelivery);
 
         /// <summary>
-        /// Polls for incoming events, with an extra output parameter to report the precise time the event was received.
+        /// Polls for incoming events. Theres no guarantee that returned data will not mutate next time PollEvent is called.
+        /// Copy data that is to be stored
         /// </summary>
-        /// <param name="clientId">The clientId this event is for</param>
-        /// <param name="payload">The incoming data payload</param>
-        /// <param name="receiveTime">The time the event was received, as reported by Time.realtimeSinceStartup.</param>
-        /// <returns>Returns the event type</returns>
         public abstract Event_Transport PollEvent();
 
         /// <summary>
@@ -93,6 +89,5 @@ namespace Saket.Engine.Net.Transport
         /// Shuts down the transport
         /// </summary>
         public abstract void Shutdown();
-
     }
 }

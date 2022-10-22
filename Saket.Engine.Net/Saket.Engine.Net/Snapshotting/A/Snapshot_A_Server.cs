@@ -8,9 +8,9 @@ namespace Saket.Engine.Net.Snapshotting.A
     {
         public static void WriteSnapShot(
             SerializerWriter writer,
-            byte[] snapshot_base,
             World state_base,
             Schema schema,
+            out int sizeInBytes,
             int group = 0)
         {
             int startingOffset = writer.AbsolutePosition;
@@ -34,7 +34,7 @@ namespace Saket.Engine.Net.Snapshotting.A
                 {
                     // Get the entity
                     NetworkedEntity networkedEntity = archetype.Get<NetworkedEntity>(row);
-                    ushort id_networkedEntity = networkedEntity.id_network;
+                    IDNet id_networkedEntity = networkedEntity.id_network;
                     ushort id_objectType = networkedEntity.id_objectType;
 
                     if(!schema.networkedObjects.FirstOrFalse(x => x.id_object == id_objectType, out var schema_object))
@@ -44,11 +44,11 @@ namespace Saket.Engine.Net.Snapshotting.A
 
                     // Only add component if they're in the same interestGroup
                     // check if object left the group and call destroy for entity
-                    unsafe
+                   /* unsafe
                     {
                         if (!Utilities.IsInGroup(networkedEntity.interestGroups, group, 16))
                             continue;
-                    }
+                    }*/
 
                     numberOfEntities++;
                     writer.Write(id_networkedEntity);
@@ -93,6 +93,7 @@ namespace Saket.Engine.Net.Snapshotting.A
 
             // Restore writer position to continue
             writer.AbsolutePosition = endPosition;
+            sizeInBytes = endPosition - startingOffset;
         }
 
     }

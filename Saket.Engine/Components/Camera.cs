@@ -38,7 +38,7 @@ namespace Saket.Engine
                 var transform = entity.Get<Transform2D>();
                 var camera = entity.Get<CameraOrthographic>();
 
-                camera.viewMatrix = Matrix4x4.CreateTranslation(transform.position.X, transform.position.Y, 0);
+                camera.viewMatrix = Matrix4x4.CreateTranslation(transform.Position.X, transform.Position.Y, 0);
 
                 entity.Set(camera);
             }
@@ -72,11 +72,22 @@ namespace Saket.Engine
         public Vector3 ScreenToWorldPoint(Vector3 position)
         {
             throw new NotImplementedException();
+            /*
+            Matrix4x4.Invert(projectionMatrix, out var invproj);
+            Matrix4x4.Invert(projectionMatrix, out var invView);
+
+            Vector4 transformedWorldPosition = Vector4.Transform(new Vector4(position, 1f), invView);
+
+            //Divide by w 
+            transformedWorldPosition /= -transformedWorldPosition.W;
+
+            return transformedWorldPosition.XYZ();*/
         }
 
         public Vector3 WorldToScreenPoint(Vector3 position)
         {
-            return Vector4.Transform(new Vector4(position, 1f), viewMatrix * projectionMatrix).XYZ();
+           throw new NotImplementedException();
+            /*return Vector4.Transform(new Vector4(position, 1f), viewMatrix * projectionMatrix).XYZ();*/
         }
 
     }

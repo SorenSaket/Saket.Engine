@@ -14,7 +14,7 @@ layout(std430, binding = 0) buffer boxBuffer
 };
 
 // Instance Data
-layout(location = 2) in vec2 pos;
+layout(location = 2) in vec3 pos;
 layout(location = 3) in float rotation;
 layout(location = 4) in vec2 size;
 layout(location = 5) in int	box;
@@ -31,7 +31,7 @@ void main()
         quad.x * cos(rotation) - quad.y * sin(rotation),
         quad.x * sin(rotation) + quad.y * cos(rotation));
 
-    gl_Position = projection * view * vec4(pos + srcQuad * size, 0, 1);
+    gl_Position = projection * view * vec4(pos.xy + srcQuad * size, pos.z, 1);
 	fsin_Tint = color;
 	fsin_TexCoords = (UV * boxes[box].zw) + boxes[box].xy;
 }

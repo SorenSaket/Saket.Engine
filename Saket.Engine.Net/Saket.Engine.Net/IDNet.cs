@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -23,5 +24,22 @@ namespace Saket.Engine.Net
 
         public static implicit operator UInt32(IDNet d) => d.ID;
         public static implicit operator IDNet(UInt32 b) => new IDNet(b);
+
+        public override bool Equals([NotNullWhen(true)] object? obj)
+        {
+            return base.Equals(obj);
+        }
+
+        public bool Equals(IDNet other)
+        {
+            if (other.ID == ID)
+                return true;
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(ID);
+        }
     }
 }

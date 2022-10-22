@@ -6,6 +6,16 @@
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<Platforms>AnyCPU</Platforms>
+		<Configurations>Debug;Release;Publish</Configurations>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	  <LangVersion>preview</LangVersion>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	  <LangVersion>preview</LangVersion>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Publish|AnyCPU'">
+	  <LangVersion>preview</LangVersion>
 	</PropertyGroup>
 	
 	<!-- References -->
@@ -30,5 +40,6 @@
 
 	<ItemGroup>
 	  <Folder Include="IMGUI\" />
+	  <Folder Include="Platform\Windows\" />
 	</ItemGroup>
 </Project>

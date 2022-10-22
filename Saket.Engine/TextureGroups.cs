@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Saket.Engine
 {
-    // workaround. TODO deltete shit 
+    // workaround. TODO delete shit 
 
     public class TextureGroups
     {

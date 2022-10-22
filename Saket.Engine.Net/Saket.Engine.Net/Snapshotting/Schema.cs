@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Saket.ECS;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -13,7 +14,12 @@ namespace Saket.Engine.Net.Snapshotting
         public NetworkedComponent[] networkedComponents;
         public NetworkedObject[] networkedObjects;
 
-        public Schema(Type[][] networkedObjects, NetworkedComponent[] networkedComponents = null)
+        /// <summary>
+        /// Converts Userspace networked object into NetworkedObject
+        /// </summary>
+        /// <param name="networkedObjects"></param>
+        /// <param name="networkedComponents"></param>
+        public Schema(UserNetworkedObject[] networkedObjects, NetworkedComponent[] networkedComponents = null)
         {
             List<NetworkedComponent> components = new();
             if (networkedComponents != null)
@@ -23,21 +29,21 @@ namespace Saket.Engine.Net.Snapshotting
             for (int id_object = 0; id_object < networkedObjects.Length; id_object++)
             {
                 // 
-                uint[] componentsInObject = new uint[networkedObjects[id_object].Length];
-                int[] offsets = new int[networkedObjects[id_object].Length];
+                uint[] componentsInObject = new uint[networkedObjects[id_object].componentTypes.Length];
+                int[] offsets = new int[networkedObjects[id_object].componentTypes.Length];
                 int totalSize = 0; 
 
-                for (int j = 0; j < networkedObjects[id_object].Length; j++)
+                for (int j = 0; j < networkedObjects[id_object].componentTypes.Length; j++)
                 {
                     offsets[j] = totalSize;
-                    int id_component = components.FindIndex(x => x.type_component == networkedObjects[id_object][j]);
+                    int id_component = components.FindIndex(x => x.type_component == networkedObjects[id_object].componentTypes[j]);
 
                     if (id_component == -1)
                     {
                         componentsInObject[j] = (uint)components.Count;
-                        int size = Marshal.SizeOf(networkedObjects[id_object][j]);
+                        int size = Marshal.SizeOf(networkedObjects[id_object].componentTypes[j]);
                         totalSize += size;
-                        components.Add(new NetworkedComponent((uint)components.Count, networkedObjects[id_object][j], null));
+                        components.Add(new NetworkedComponent((uint)components.Count, networkedObjects[id_object].componentTypes[j], null));
                     }
                     else
                     {
@@ -46,14 +52,17 @@ namespace Saket.Engine.Net.Snapshotting
                     }
                 }
 
-                objs.Add(new NetworkedObject((uint)id_object, componentsInObject, offsets, totalSize));
+                objs.Add(new NetworkedObject((uint)id_object, componentsInObject, offsets, totalSize, networkedObjects[id_object].spawnFunction, networkedObjects[id_object].destroyFunction));
             }
             this.networkedComponents = components.ToArray();
             this.networkedObjects = objs.ToArray();
         }
 
 
-        public delegate void InterpolationFunction(byte[] destination, ArraySegment<byte> A, ArraySegment<byte> B, float t);
+        public delegate void InterpolationFunction(ref byte[] destination, ArraySegment<byte> A, ArraySegment<byte> B, float t);
+
+        public delegate void DestroyFunction(Entity entity);
+        public delegate void SpawnFunction(Entity entity);
 
         public struct NetworkedComponent
         {
@@ -62,7 +71,7 @@ namespace Saket.Engine.Net.Snapshotting
             public int sizeInBytes;
             public InterpolationFunction? interpolationFunction;
 
-            public NetworkedComponent(uint id_component, Type type_component, InterpolationFunction interpolationFunction)
+            public NetworkedComponent(uint id_component, Type type_component, InterpolationFunction? interpolationFunction)
             {
                 this.id_component = id_component;
                 this.type_component = type_component;
@@ -70,21 +79,40 @@ namespace Saket.Engine.Net.Snapshotting
                 this.interpolationFunction = interpolationFunction;
             }
         }
-
         public struct NetworkedObject
         {
             public uint id_object;
             public uint[] componentTypes;
             public int[] componentOffsets;
             public int sizeInBytes;
-
-            public NetworkedObject(uint id_object, uint[] componentTypes, int[] componentOffsets, int sizeInBytes)
+            public SpawnFunction? spawnFunction;
+            public DestroyFunction? destroyFunction;
+            
+            public NetworkedObject(uint id_object, uint[] componentTypes, int[] componentOffsets, int sizeInBytes, SpawnFunction? spawnFunction = null, DestroyFunction? destroyFunction = null)
             {
                 this.id_object = id_object;
                 this.componentTypes = componentTypes;
                 this.componentOffsets = componentOffsets;
                 this.sizeInBytes = sizeInBytes;
+                this.spawnFunction = spawnFunction;
+                this.destroyFunction = destroyFunction;
             }
         }
+
+
+        public struct UserNetworkedObject
+        {
+            public Type[] componentTypes;
+            public SpawnFunction? spawnFunction;
+            public DestroyFunction? destroyFunction;
+
+            public UserNetworkedObject(Type[] componentTypes, SpawnFunction? spawnFunction = null, DestroyFunction? destroyFunction = null)
+            {
+                this.componentTypes = componentTypes;
+                this.spawnFunction = spawnFunction;
+                this.destroyFunction = destroyFunction;
+            }
+        }
+
     }
 }

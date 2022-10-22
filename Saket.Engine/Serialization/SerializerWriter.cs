@@ -7,7 +7,7 @@ namespace Saket.Engine.Serialization
     /// <summary>
     /// Writer struct able to serialize primities and ISerializables to byte array
     /// </summary>
-    public unsafe ref struct SerializerWriter
+    public unsafe class SerializerWriter
     {
         /// <summary> The number of bytes avaliable to the writer </summary>
         public int Capacity
@@ -22,15 +22,6 @@ namespace Saket.Engine.Serialization
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => absolutePosition = value; 
         }
-
-        public int RelativePosition
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => absolutePosition-offset;
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => absolutePosition = value+offset;
-        }
-
         /// <summary> How many bytes the writer has written. </summary>
         public int Count
         {
@@ -41,16 +32,14 @@ namespace Saket.Engine.Serialization
         public ArraySegment<byte> Data
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => new ArraySegment<byte>(data, offset, count);
+            get => new ArraySegment<byte>(data, 0, count);
         }
-
+        /// <summary>  </summary>
         public byte[] DataRaw 
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => data;
         }
-
-
 
         /// <summary> 
         /// Underlying array 
@@ -68,33 +57,11 @@ namespace Saket.Engine.Serialization
         /// </summary>
         int count;
 
-        /// <summary>
-        /// The starting point for the writer. 
-        /// The writer should not be able to write to bytes before this index
-        /// </summary>
-        readonly int offset;
 
-        readonly int capacity;
-
-        /// <summary>
-        /// Create Writer from Array Segment. The writer can 
-        /// </summary>
-        /// <param name="target"></param>
-        /// <param name="offset"></param>
-        public SerializerWriter(ArraySegment<byte> target, int offset = 0)
+        public SerializerWriter(int intialCapacity = 64)
         {
-            this.data = target.Array!;
-            this.offset = this.absolutePosition = offset + target.Offset;
+            this.data = new byte[intialCapacity];
             this.count = 0;
-            this.capacity = target.Count;
-        }
-
-        public SerializerWriter(byte[] target, int offset = 0)
-        {
-            this.data = target;
-            this.offset = this.absolutePosition = offset;
-            this.count = 0;
-            this.capacity = target.Length;
         }
 
 
@@ -102,13 +69,14 @@ namespace Saket.Engine.Serialization
         public void EnsureCapacity(int requiredCapacity)
         {
             // Double in size every time
-            int newCapacity = Capacity;
+            int newCapacity = data.Length;
             // Double the capacity until theres enough
-            while (requiredCapacity >= newCapacity)
+            while (requiredCapacity > newCapacity)
             {
                 newCapacity *= 2;
             }
-            Array.Resize(ref data, newCapacity);
+            if(newCapacity != data.Length)
+                Array.Resize(ref data, newCapacity);
         }
 
         // ---- Primitive Serialization ----
@@ -117,16 +85,22 @@ namespace Saket.Engine.Serialization
         {
             fixed (T* ptr = &value)
             {
-                Write(ptr, sizeof(T));
+                Write(ptr, SizeOf<T>());
             }
         }
         public void Write<T>(in T[] value) 
             where T : unmanaged
         {
+            if (value == null || value.Length <= 0)
+            {
+                Write(0);
+                return;
+            }
+               
             Write(value.Length);
             fixed (T* ptr = value)
             {
-                Write(ptr, sizeof(T) * value.Length);
+                Write(ptr, SizeOf<T>() * value.Length);
             }
         }
         public void Write<T>(in ArraySegment<T> value)
@@ -135,7 +109,7 @@ namespace Saket.Engine.Serialization
             Write(value.Count);
             fixed (T* ptr = value.Array)
             {
-                Write(ptr + value.Offset * sizeof(T), sizeof(T) * value.Count);
+                Write(ptr + value.Offset * SizeOf<T>(), SizeOf<T>() * value.Count);
             }
         }
 
@@ -167,10 +141,25 @@ namespace Saket.Engine.Serialization
         public void Write(void* value, int length)
         {
             EnsureCapacity(absolutePosition + length);
+
             Marshal.Copy(new IntPtr(value), data, absolutePosition, length);
             absolutePosition += length;
-            this.count = Math.Max(this.count, absolutePosition-offset);
+            // 
+            this.count = Math.Max(this.count, absolutePosition);
         }
 
+        public void Reset()
+        {
+            absolutePosition = 0;
+            count = 0;
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private int SizeOf<T>()
+        {
+            Type outputType = typeof(T).IsEnum ? Enum.GetUnderlyingType(typeof(T)) : typeof(T);
+            return Marshal.SizeOf(outputType);
+        }
     }
 }

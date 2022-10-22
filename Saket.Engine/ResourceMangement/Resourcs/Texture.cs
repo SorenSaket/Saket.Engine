@@ -20,14 +20,19 @@ namespace Saket.Engine
     public class Texture 
     {
         public int handle = -1;
+
         public bool IsLoadedOnGPU;
+        public bool IsLoadedOnCPU => image != null;
 
         public ImageResult image;
 
         public void LoadToGPU()
         {
+            if (!IsLoadedOnCPU)
+                throw new Exception("Texture is not loaded");
             if (IsLoadedOnGPU)
                 throw new Exception("Texture is already loaded");
+           
             IsLoadedOnGPU = true;
 
             GL.Enable(EnableCap.Texture2D);
@@ -62,6 +67,12 @@ namespace Saket.Engine
             GL.DeleteTexture(handle);
             handle = -1;
         }
+
+        public void UnloadFromCPU()
+        {
+            image = null;
+        }
+
 
         public Texture(ImageResult image)
         {

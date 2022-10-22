@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Saket.Engine.Tests
+namespace Saket.Engine
 {
-    internal class Test_Serialization
+    public class Animations
     {
+        public List<int[]> animations = new List<int[]>();
     }
 }

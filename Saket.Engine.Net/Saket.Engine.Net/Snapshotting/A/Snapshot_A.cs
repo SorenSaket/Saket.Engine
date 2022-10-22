@@ -23,7 +23,7 @@ namespace Saket.Engine.Net.Snapshotting.A
     public class Snapshot_A
     {
         public uint numberOfEntities;
-        public Dictionary<UInt16, NetworkedObject> objects;
+        public Dictionary<IDNet, NetworkedObject> objects;
 
         public byte[] data_components;
 
@@ -36,7 +36,7 @@ namespace Saket.Engine.Net.Snapshotting.A
 
         public struct NetworkedObject
         {
-            public UInt16 id_network;
+            public IDNet id_network;
             public UInt16 id_objectType;
             public int relativeDataPtr;
         }

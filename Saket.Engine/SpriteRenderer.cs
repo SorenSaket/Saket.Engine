@@ -1,6 +1,7 @@
 ﻿using OpenTK.Graphics.OpenGL4;
 using Saket.ECS;
 using Saket.Engine.Collections;
+using Saket.Engine.Components;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,7 +18,9 @@ namespace Saket.Engine
     // Spritesheet support
     // Sprite Flipping
 
+    // TODO manual sprite rendering without the need of entities
     // 
+
     public class SpriteRenderer
     {
         public Shader shader;
@@ -56,8 +59,15 @@ namespace Saket.Engine
         /// <summary>
         /// Query all entities with Sprite and Transform
         /// </summary>
-        static readonly Query query = new Query().With<(Sprite, Transform2D)>();
+        static readonly Query query_spriteTransform = new Query().With<(Sprite, Transform2D)>();
 
+        /// <summary>
+        /// Query all entities with Sprite and Transform
+        /// </summary>
+        static readonly Query query_spriteAnimator = new Query().With<(Sprite, SpriteAnimator)>();
+
+
+        public SpriteElement[] Elements => elements;
         /// <summary>
         /// Array of elements in batch to be dispatched to gpu
         /// </summary>
@@ -76,6 +86,7 @@ namespace Saket.Engine
 
 
         private Queue<int> nextGroups = new();
+        private Stack<int> renderedGroups = new();
 
         public SpriteRenderer(int batchCount, Entity camera, Shader shader)
         {
@@ -120,7 +131,7 @@ namespace Saket.Engine
 
             // POSITIONS
             layoutLocation++;
-            GL.VertexAttribPointer(layoutLocation, 2, VertexAttribPointerType.Float, false, SpriteElement.size, 0);
+            GL.VertexAttribPointer(layoutLocation, 3, VertexAttribPointerType.Float, false, SpriteElement.size, 0);
             GL.EnableVertexAttribArray(layoutLocation);
             GL.VertexAttribDivisor(layoutLocation, 1);
 
@@ -154,6 +165,31 @@ namespace Saket.Engine
         }
 
 
+        public void SystemSpriteAnimation(World world)
+        {
+
+            Animations animations = world.GetResource<Animations>();
+            if (animations == null)
+                return;
+
+            var entities = world.Query(query_spriteAnimator);
+
+            foreach (var entity in entities)
+            {
+                var animator = entity.Get<SpriteAnimator>();
+                var sprite = entity.Get<Sprite>();
+
+                animator.timer += animator.speed * world.Delta;
+
+                sprite.spr = animations.animations[animator.animation][(int)(animator.timer % animations.animations[animator.animation].Length)];
+
+                entity.Set(sprite);
+                entity.Set(animator);
+            }
+        }
+
+
+
         /// <summary>
         ///  
         /// </summary>
@@ -168,52 +204,38 @@ namespace Saket.Engine
             // Use the current shader
             shader.Use();
 
+            //GL.Enable(EnableCap.Blend);
+            //GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+            //GL.BlendEquation(BlendEquationMode.);
+            //GL.BlendFuncSeparate(BlendingFactorSrc.One, BlendingFactorDest.Zero, BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+            
+            // Enable depth testing
+            GL.DepthMask(true);
+            GL.Enable(EnableCap.DepthTest);
+            GL.ColorMask(true, true, true, true);
             // Todo. Camera based rendering
             var cam = entity_camera.Get<CameraOrthographic>();
             shader.SetMatrix4("view", cam.viewMatrix);
             shader.SetMatrix4("projection", cam.projectionMatrix);
 
             // Query the world for matching enetities
-            QueryResult entities = world.Query(query);
+            QueryResult entities = world.Query(query_spriteTransform);
             
             nextGroups.Clear();
-
+            renderedGroups.Clear();
             ///<summary>The current number of elements in batch</summary> 
             int i = 0;
             ///<summary>The current texture group target</summary> 
             int targetTG = -1;
 
-            void DispatchDrawCall()
-            {
-                if (i == 0 || targetTG == -1)
-                    return;
-                // Bind the element buffer
-                GL.BindBuffer(BufferTarget.ArrayBuffer, buffer_elements);
-                GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)0, i * SpriteElement.size, elements);
-
-                // Create or Bind Box buffer
-                if (!buffer_boxes.ContainsKey(targetTG))
-                {
-                    int nb = GL.GenBuffer();
-                    GL.BindBuffer(BufferTarget.ShaderStorageBuffer, nb);
-                    GL.BufferData(BufferTarget.ShaderStorageBuffer, textureGroups.groups[targetTG].sheet.rects.Length * Marshal.SizeOf<SheetElement>(), textureGroups.groups[targetTG].sheet.rects, BufferUsageHint.DynamicDraw);
-                    GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 0, nb);
-                    buffer_boxes.Add(targetTG, nb);
-                }
-                else
-                {
-                    GL.BindBuffer(BufferTarget.ShaderStorageBuffer, buffer_boxes[targetTG]);
-                    GL.BufferSubData(BufferTarget.ShaderStorageBuffer, (IntPtr)0, textureGroups.groups[targetTG].sheet.rects.Length * Marshal.SizeOf<SheetElement>(), textureGroups.groups[targetTG].sheet.rects);
-                    GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 0, buffer_boxes[targetTG]);
-                }
-
-                GL.DrawArraysInstanced(PrimitiveType.Triangles, 0, 6, i);
-            }
-
             // Loops through all sprites as many times that there different textures
             // Each loop only draws one texture
             do
             {
+                i = 0;
+                if (nextGroups.TryDequeue(out var nextGroup))
+                    targetTG = nextGroup;
+
                 foreach (var entity in entities)
                 {
                     elements[i].sprite = entity.Get<Sprite>();
@@ -225,32 +247,69 @@ namespace Saket.Engine
                     }
                     else if (targetTG != elements[i].sprite.tex)
                     {
-                        if (!nextGroups.Contains(elements[i].sprite.tex))
+                        if (!nextGroups.Contains(elements[i].sprite.tex) && !renderedGroups.Contains(elements[i].sprite.tex))
                             nextGroups.Enqueue(elements[i].sprite.tex);
                         continue;
                     }
 
                     elements[i].transform = entity.Get<Transform2D>();
 
+                    // TODO: do this in shader
+                    elements[i].transform.Scale *= textureGroups.groups[targetTG].sheet.scale;
+
                     i++;
 
                     if (i == batchCount)
                     {
                         // Dispatch draw call
-                        DispatchDrawCall();
+                        renderedGroups.Push(targetTG);
+                        DrawBatch(targetTG, textureGroups.groups[targetTG].tex, textureGroups.groups[targetTG].sheet, i);
                         i = 0;
                     }
                 }
                 // Dispatch draw call for the remaining elements
-                DispatchDrawCall();
+                renderedGroups.Push(targetTG);
+                DrawBatch(targetTG, textureGroups.groups[targetTG].tex, textureGroups.groups[targetTG].sheet, i);
             } while (nextGroups.Count > 0);
-
-
-
         }
 
+
+
+        public void DrawBatch(int targetTG, Texture texture, Sheet sheet, int count)
+        {
+            if (count == 0 || texture == null || sheet == null || targetTG < 0)
+                throw new ArgumentException();
+
+            // Bind the element buffer
+            GL.BindBuffer(BufferTarget.ArrayBuffer, buffer_elements);
+            GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)0, count * SpriteElement.size, elements);
+
+            // Create or Bind Box buffer
+            if (!buffer_boxes.ContainsKey(targetTG))
+            {
+                int nb = GL.GenBuffer();
+                GL.BindBuffer(BufferTarget.ShaderStorageBuffer, nb);
+                GL.BufferData(BufferTarget.ShaderStorageBuffer, sheet.rects.Length * Marshal.SizeOf<SheetElement>(), sheet.rects, BufferUsageHint.DynamicDraw);
+                GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 0, nb);
+                buffer_boxes.Add(targetTG, nb);
+            }
+            else
+            {
+                GL.BindBuffer(BufferTarget.ShaderStorageBuffer, buffer_boxes[targetTG]);
+                GL.BufferSubData(BufferTarget.ShaderStorageBuffer, (IntPtr)0, sheet.rects.Length * Marshal.SizeOf<SheetElement>(), sheet.rects);
+                GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 0, buffer_boxes[targetTG]);
+            }
+
+            GL.BindTexture(TextureTarget.Texture2D, texture.handle);
+
+            GL.DrawArraysInstanced(PrimitiveType.Triangles, 0, 6, count);
+        }
+
+
+
+
         [StructLayout(LayoutKind.Sequential)]
-        private struct SpriteElement
+        public struct SpriteElement
         {
             public static readonly int size = 36; // this is prone to error. Just do marshal.sizeof(), sizeof()
             // Size = 32*6 + 32*3

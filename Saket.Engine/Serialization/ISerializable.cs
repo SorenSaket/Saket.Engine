@@ -13,6 +13,6 @@ namespace Saket.Engine.Serialization
     public interface ISerializable
     {
         void Serialize(SerializerWriter writer);
-        void Deserialize(SerializerReader reader);
+        void Deserialize(ref SerializerReader reader);
     }
 }

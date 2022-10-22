@@ -21,8 +21,6 @@ namespace Saket.Engine.Net.Transport.Litenetlib
         NetDataWriter writer = new();
         private NetPacketProcessor packetProcessor;
 
-        public IPEndPoint IP = new(IPAddress.Loopback, 6969);
-
         private bool isClient;
         
         public Transport_Litenetlib()
@@ -60,9 +58,11 @@ namespace Saket.Engine.Net.Transport.Litenetlib
 
         public override void Send(IDNet clientId, ArraySegment<byte> payload, NetworkDelivery networkDelivery)
         {
+            if (netmanager.GetPeerById((int)clientId.ID) == null)
+                throw new Exception($"Client With id {clientId.ID} does not exist");
             writer.Reset();
             writer.Put(payload.Array, payload.Offset, payload.Count);
-            server.Send(writer, DeliveryMethodConversion(networkDelivery));
+            netmanager.GetPeerById((int)clientId.ID).Send(writer, DeliveryMethodConversion(networkDelivery));
         }
 
         public override void Shutdown()
