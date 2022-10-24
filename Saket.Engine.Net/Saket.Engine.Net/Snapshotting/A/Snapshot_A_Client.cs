@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Saket.Engine.Serialization;
 using System.Security.AccessControl;
 using Saket.Engine.Net.Rollback;
 using Saket.Engine.Collections;
+using Saket.Serialization;
 
 namespace Saket.Engine.Net.Snapshotting.A
 {
@@ -29,8 +29,8 @@ namespace Saket.Engine.Net.Snapshotting.A
         }
 
         /// <summary>
-        /// Applies snapshot to world. This is only nessesary to call after a new recived snapshot
-        /// Spawns and destroys objects
+        /// Applies snapshot to world. This is only nessesary to call after a new recived snapshot.
+        /// Spawns and destroys objects.
         /// </summary>
         /// <param name="world"></param>
         public void ApplySnapshot(World world)

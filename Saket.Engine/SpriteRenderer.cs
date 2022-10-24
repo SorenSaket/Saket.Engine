@@ -267,9 +267,13 @@ namespace Saket.Engine
                         i = 0;
                     }
                 }
-                // Dispatch draw call for the remaining elements
-                renderedGroups.Push(targetTG);
-                DrawBatch(targetTG, textureGroups.groups[targetTG].tex, textureGroups.groups[targetTG].sheet, i);
+                if(i > 0)
+                { 
+                    // Dispatch draw call for the remaining elements
+                    renderedGroups.Push(targetTG);
+                    DrawBatch(targetTG, textureGroups.groups[targetTG].tex, textureGroups.groups[targetTG].sheet, i);
+                }
+               
             } while (nextGroups.Count > 0);
         }
 

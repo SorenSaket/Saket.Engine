@@ -21,6 +21,7 @@
 	<!-- References -->
 	<ItemGroup>
 		<ProjectReference Include="..\..\Saket.ECS\Saket.ECS\Saket.ECS.csproj" />
+		<ProjectReference Include="..\..\Saket.Serialization\Saket.Serialization\Saket.Serialization.csproj" />
 		<ProjectReference Include="..\..\Saket.UI\Saket.UI\Saket.UI.csproj" />
 	</ItemGroup>
 
