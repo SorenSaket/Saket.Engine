@@ -12,7 +12,14 @@ namespace Saket.Engine
     {
         public string[] names;
         public SheetElement[] rects;
-        public float scale;
+        public float scale = 1f;
+
+        public Sheet()
+        {
+            names = Array.Empty<string>();
+            rects = Array.Empty<SheetElement>();    
+            scale = 1f;
+        }
 
         public Sheet(int columns, int rows, float scale = 1)
         {

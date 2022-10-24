@@ -1,4 +1,5 @@
 ﻿using Saket.ECS;
+using Saket.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -59,7 +60,7 @@ namespace Saket.Engine.Net.Snapshotting
         }
 
 
-        public delegate void InterpolationFunction(ref byte[] destination, ArraySegment<byte> A, ArraySegment<byte> B, float t);
+        public delegate void InterpolationFunction(SerializerWriter dest, SerializerReader from, SerializerReader to, float t);
 
         public delegate void DestroyFunction(Entity entity);
         public delegate void SpawnFunction(Entity entity);

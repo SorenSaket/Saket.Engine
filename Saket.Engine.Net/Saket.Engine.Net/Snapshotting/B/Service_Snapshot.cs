@@ -77,10 +77,10 @@ namespace Saket.Engine.Net.Snapshotting
         public int id_entity;
 
         /// <summary> Last Acknowledged Snapshot. Used to delta compress against</summary>
-        public Snapshot snapshot_previous = new();
+        public Snapshot_B snapshot_previous = new();
 
         /// <summary>  </summary>
-        public Snapshot snapshot_next = new();
+        public Snapshot_B snapshot_next = new();
 
         /// <summary>  </summary>
         public PriorityAccumulator accumulator = new();
@@ -127,8 +127,8 @@ namespace Saket.Engine.Net.Snapshotting
         /// <param name="id_network_reciver">id_network of the reciver client. Used to calculate priorities</param>
         /// <param name="group"> The group to filer against </param>
         public void UpdateSnapshot(  
-            Snapshot snapshot_base, 
-            Snapshot snapshot_delta,
+            Snapshot_B snapshot_base, 
+            Snapshot_B snapshot_delta,
             GameState state_base, 
             GameState state_delta,
             int id_network_reciver, int group = 0)

@@ -1,3 +1,8 @@
+Example game:
+
+<img src="https://media2.giphy.com/media/5Gfa671zLUKmZwBmTw/giphy.gif"/>
+
+
 
 ### Priorities:
 #### Must haves:

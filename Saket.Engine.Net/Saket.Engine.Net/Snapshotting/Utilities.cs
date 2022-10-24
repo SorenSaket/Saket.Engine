@@ -10,7 +10,7 @@ namespace Saket.Engine.Net.Snapshotting
     public static class Utilities
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool SnapshotContainsEntity(Snapshot snapshot, int id_NetworkEntity)
+        public static bool SnapshotContainsEntity(Snapshot_B snapshot, int id_NetworkEntity)
         {
             // If the delta doesn't contain item in update then the networkentity is new
             if (snapshot.Updates.Any(x => x.id_network == id_NetworkEntity))

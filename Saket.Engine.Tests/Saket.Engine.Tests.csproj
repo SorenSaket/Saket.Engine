@@ -24,6 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Saket.Engine.Net\Saket.Engine.Net\Saket.Engine.Net.csproj" />
     <ProjectReference Include="..\Saket.Engine\Saket.Engine.csproj" />
   </ItemGroup>
 

@@ -41,12 +41,12 @@ namespace Saket.Engine.Net
         /// <summary>
         /// Last acknowledged Snapshot
         /// </summary>
-        public Snapshot snapshot_previous = new();
+        public Snapshot_B snapshot_previous = new();
 
         /// <summary>
         /// 
         /// </summary>
-        public Snapshot snapshot_next = new();
+        public Snapshot_B snapshot_next = new();
 
         public Client(int network_id, int entityID)
 		{

@@ -35,9 +35,9 @@ namespace Saket.Engine.Net.Snapshotting
     /// 
     /// 
     /// </summary>
-    public class Snapshot
+    public class Snapshot_B
     {
-        public Snapshot()
+        public Snapshot_B()
         {
             Spawns = new();
             Updates = new();
@@ -93,7 +93,7 @@ namespace Saket.Engine.Net.Snapshotting
         }
 
 
-        public void DeepCopyTo(Snapshot other)
+        public void DeepCopyTo(Snapshot_B other)
         {
             other.Clear();
 

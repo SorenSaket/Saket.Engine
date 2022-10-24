@@ -14,7 +14,7 @@ namespace Saket.Engine.Net.Snapshotting
         /// </summary>
         /// <param name="world"></param>
         /// <param name="snapshot"></param>
-        public void ApplySnapShot(World world, Snapshot snapshot)
+        public void ApplySnapShot(World world, Snapshot_B snapshot)
         {
             // For each id_network
 

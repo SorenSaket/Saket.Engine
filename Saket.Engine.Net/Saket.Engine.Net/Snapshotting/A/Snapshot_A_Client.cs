@@ -16,10 +16,10 @@ namespace Saket.Engine.Net.Snapshotting.A
         //
         private static readonly Query networkedEntities = new Query().With<NetworkedEntity>();
 
-        private Snapshot_A snapshot_previous = new();
-        private Snapshot_A snapshot_next = new();
-        private Schema schema;
-        private byte[] buffer = new byte[64];
+        public Snapshot_A snapshot_previous = new();
+        public Snapshot_A snapshot_next = new();
+        public Schema schema;
+        private SerializerWriter buffer = new();
 
         private float timer_lerp_state = 0;
 
@@ -28,55 +28,12 @@ namespace Saket.Engine.Net.Snapshotting.A
             this.schema = schema;
         }
 
-        /// <summary>
-        /// Applies snapshot to world. This is only nessesary to call after a new recived snapshot.
-        /// Spawns and destroys objects.
-        /// </summary>
-        /// <param name="world"></param>
-        public void ApplySnapshot(World world)
-        {
-            var entities = world.Query(networkedEntities);
-            
-            // Temporary stack allocated stack
-            SpanStack<IDNet> snapshotObjectsToNotSpawn = new SpanStack<IDNet>(stackalloc IDNet[entities.Count]);
-
-            foreach (var entity in entities)
-            {
-                var net = entity.Get<NetworkedEntity>();
-                var schema_object = schema.networkedObjects[net.id_objectType];
-                // -- Destroy --
-                // Go trough all the objects that aren't in snapshot next
-                // but in snapshot previous. Destroy all of them.
-                // invoke destroy callback for the destroyed object type
-                if (!snapshot_next.objects.ContainsKey(net.id_network))
-                {
-                    schema_object.destroyFunction?.Invoke(entity);
-                }
-                else
-                {
-                    // register that the object exsits and doesn't need to be spawned in the next step
-                    snapshotObjectsToNotSpawn.Push(net.id_network);
-                }
-            }
-
-            // Go trough all objects that are in snapshot next but not in snapshot previous.
-            // Spawn them. invoke spawn  callback for the spawned object type
-            foreach (var obj in snapshot_next.objects)
-            {
-                if (!snapshotObjectsToNotSpawn.Contains(obj.Value.id_network))
-                {
-                    var schema_object = schema.networkedObjects[obj.Value.id_objectType];
-                    var entity = world.CreateEntity();
-                    entity.Add(new NetworkedEntity(obj.Value.id_network, obj.Value.id_objectType));
-                    schema_object.spawnFunction?.Invoke(entity);
-                }
-            }
-        }
 
         /// <summary>
         /// Sets/Interpolates/Extrapolates component values from data avaliable in snapshot_prevoius and snapshot_next.
         /// Is a system since interpolation/extrapolation should happen every frame.
         /// uses unsafe code
+        /// TODO: Support for ISerializable
         /// </summary>
         /// <param name="world"></param>
         public void System_InterpolateEntities(World world)
@@ -91,61 +48,8 @@ namespace Saket.Engine.Net.Snapshotting.A
 
             timer_lerp_state += world.Delta;
             float t = timer_lerp_state / (1f / 30f);
-            
-            var entities = world.Query(networkedEntities);
-            
-            foreach (var entity in entities)
-            {
-                var net = entity.Get<NetworkedEntity>();
-                var schema_object = schema.networkedObjects[net.id_objectType];
-
-                if (snapshot_next.objects.ContainsKey(net.id_network))
-                {
-                    var obj_next = snapshot_next.objects[net.id_network];
-
-                    for (int i = 0; i < schema_object.componentTypes.Length; i++)
-                    {
-                        var schema_component = schema.networkedComponents[schema_object.componentTypes[i]];
-                        // If the previous snapshot also contains
-                        if (snapshot_previous.objects.ContainsKey(net.id_network) && schema_component.interpolationFunction != null)
-                        {
-                            var obj_prev = snapshot_previous.objects[net.id_network];
-                            
-                            // invoke interpolation function on the componet schema
-                            unsafe
-                            {
-                                fixed (byte* ptr_prev = snapshot_previous.data_components)
-                                {
-                                    fixed (byte* ptr_next = snapshot_next.data_components)
-                                    {
-                                        schema_component.interpolationFunction.Invoke(ref buffer,
-                                            new ArraySegment<byte>(snapshot_previous.data_components,  obj_prev.relativeDataPtr + schema_object.componentOffsets[i], schema_component.sizeInBytes),
-                                            new ArraySegment<byte>(snapshot_next.data_components, obj_next.relativeDataPtr + schema_object.componentOffsets[i], schema_component.sizeInBytes),
-                                            t
-                                            );
-                                    }
-                                }
-                            }
-                        } 
-                        // If the previous snapshot doesn't contain data about the snapshot just set it directly
-                        else
-                        {
-                            unsafe
-                            {
-                                fixed (byte* ptr = snapshot_next.data_components)
-                                {
-                                    entity.Set(
-                                        schema_component.type_component,
-                                        (void*)(ptr + obj_next.relativeDataPtr + schema_object.componentOffsets[i]));
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            InterpolateSnapshot(world, t, schema, snapshot_next, snapshot_previous, buffer);
         }
-
-
         
         public void ReciveSnapshot(byte[] data)
         {
@@ -253,7 +157,7 @@ namespace Saket.Engine.Net.Snapshotting.A
             for (int i = 0; i < snapshot.numberOfEntities; i++)
             {
                 Snapshot_A.NetworkedObject obj = new Snapshot_A.NetworkedObject();
-                obj.id_network = reader.Read<ushort>();
+                obj.id_network = reader.Read<IDNet>();
                 obj.id_objectType = reader.Read<ushort>();
                 obj.relativeDataPtr = reader.AbsolutePosition;
                 
@@ -267,6 +171,113 @@ namespace Saket.Engine.Net.Snapshotting.A
                 snapshot.objects.Add(obj.id_network, obj);
             }
         }
+        
+        /// <summary>
+        /// Applies snapshot to world. This is only nessesary to call after a new recived snapshot.
+        /// Spawns and destroys objects.
+        /// </summary>
+        /// <param name="world"></param>
+        public static void ApplySnapshot(World world, Snapshot_A snapshot, Schema schema)
+        {
+            var entities = world.Query(networkedEntities);
+
+            // Temporary stack allocated stack
+            SpanStack<IDNet> snapshotObjectsToNotSpawn = new SpanStack<IDNet>(stackalloc IDNet[entities.Count]);
+
+            foreach (var entity in entities)
+            {
+                var net = entity.Get<NetworkedEntity>();
+                var schema_object = schema.networkedObjects[net.id_objectType];
+                // -- Destroy --
+                // Go trough all the objects that aren't in snapshot next
+                // but in snapshot previous. Destroy all of them.
+                // invoke destroy callback for the destroyed object type
+                if (!snapshot.objects.ContainsKey(net.id_network))
+                {
+                    schema_object.destroyFunction?.Invoke(entity);
+                }
+                else
+                {
+                    // register that the object exsits and doesn't need to be spawned in the next step
+                    snapshotObjectsToNotSpawn.Push(net.id_network);
+                }
+            }
+
+            // Go trough all objects that are in snapshot next but not in snapshot previous.
+            // Spawn them. invoke spawn  callback for the spawned object type
+            foreach (var obj in snapshot.objects)
+            {
+                if (!snapshotObjectsToNotSpawn.Contains(obj.Value.id_network))
+                {
+                    var schema_object = schema.networkedObjects[obj.Value.id_objectType];
+                    var entity = world.CreateEntity();
+                    entity.Add(new NetworkedEntity(obj.Value.id_network, obj.Value.id_objectType));
+                    schema_object.spawnFunction?.Invoke(entity);
+                }
+            }
+        }
+        public static void InterpolateSnapshot(World world, float t, Schema schema, Snapshot_A snapshot_previous, Snapshot_A snapshot_next, SerializerWriter scratchBuffer)
+        {
+            var entities = world.Query(networkedEntities);
+
+            foreach (var entity in entities)
+            {
+                var net = entity.Get<NetworkedEntity>();
+                var schema_object = schema.networkedObjects[net.id_objectType];
+
+                if (snapshot_next.objects.ContainsKey(net.id_network))
+                {
+                    var obj_next = snapshot_next.objects[net.id_network];
+
+                    for (int i = 0; i < schema_object.componentTypes.Length; i++)
+                    {
+                        var schema_component = schema.networkedComponents[schema_object.componentTypes[i]];
+                        // If the previous snapshot also contains
+                        if (snapshot_previous.objects.ContainsKey(net.id_network) && schema_component.interpolationFunction != null)
+                        {
+                            var obj_prev = snapshot_previous.objects[net.id_network];
+
+                            // invoke interpolation function on the componet schema
+                            unsafe
+                            {
+                                fixed (byte* ptr_prev = snapshot_previous.data_components)
+                                {
+                                    fixed (byte* ptr_next = snapshot_next.data_components)
+                                    {
+                                        scratchBuffer.Reset();
+                                        schema_component.interpolationFunction.Invoke(scratchBuffer,
+                                            new SerializerReader(new ArraySegment<byte>(snapshot_previous.data_components, obj_prev.relativeDataPtr + schema_object.componentOffsets[i], schema_component.sizeInBytes)),
+                                            new SerializerReader(new ArraySegment<byte>(snapshot_next.data_components, obj_next.relativeDataPtr + schema_object.componentOffsets[i], schema_component.sizeInBytes)),
+                                            t
+                                            );
+
+                                        fixed (byte* ptr_buffer = scratchBuffer.DataRaw)
+                                        {
+                                            entity.Set(schema_component.type_component, ptr_buffer);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // If the previous snapshot doesn't contain data about the snapshot just set it directly
+                        else
+                        {
+                            unsafe
+                            {
+                                fixed (byte* ptr = snapshot_next.data_components)
+                                {
+                                    entity.Set(
+                                        schema_component.type_component,
+                                        (void*)(ptr + obj_next.relativeDataPtr + schema_object.componentOffsets[i]));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
 
         public struct SpawnDesrtroyCallBack
         {
