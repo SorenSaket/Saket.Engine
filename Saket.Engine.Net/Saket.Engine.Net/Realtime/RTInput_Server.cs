@@ -25,7 +25,7 @@ namespace Saket.Engine.Net.Realtime
         public Dictionary<ushort, ClientInput> inputs = new();
 
         /// <summary>
-        /// Many many input packets lost over 100 packets
+        /// How many input packets lost over 100 packets
         /// </summary>
         public float packetloss_avg = 0;
     }
@@ -33,6 +33,10 @@ namespace Saket.Engine.Net.Realtime
     public class RTInput_Server<ClientInput>
     {
         public Dictionary<IDNet, RTInputSender<ClientInput>> clients = new();
+
+        public RTInput_Server(int maxInputBufferSize = 16)
+        {
+        }
 
         /// <summary>
         /// 
@@ -87,9 +91,39 @@ namespace Saket.Engine.Net.Realtime
                     )
                     clients[id_network].inputs.Add(t, inputs[i]);
             }
+
+
+
         }
 
 
+        public bool TryDequeueInput(IDNet id_network, out ClientInput input)
+        {
+            if (!clients.ContainsKey(id_network))
+                throw new Exception($"Client with id {id_network} does not exsist");
 
+            // Remove all old input from buffer
+            foreach (var item in clients[id_network].inputs)
+            {
+                if (item.Key < clients[id_network].tick_lastSim)
+                    clients[id_network].inputs.Remove(item.Key);
+            }
+
+            // Advance the tick_lastsim
+            clients[id_network].tick_lastSim = NetworkCommon.TickAdvance(clients[id_network].tick_lastSim, 1);
+
+            //
+            if (clients[id_network].inputs.ContainsKey(clients[id_network].tick_lastSim))
+            {
+                input = clients[id_network].inputs[clients[id_network].tick_lastSim];
+                clients[id_network].packetloss_avg -= 0.01f;
+                clients[id_network].packetloss_avg.Clamp(0, float.MaxValue);
+                return true;
+            }
+
+            clients[id_network].packetloss_avg += 1f;
+            input = default!;
+            return false ;
+        }
     }
 }
