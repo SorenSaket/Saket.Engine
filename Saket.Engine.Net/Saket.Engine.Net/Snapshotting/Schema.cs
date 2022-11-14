@@ -60,7 +60,7 @@ namespace Saket.Engine.Net.Snapshotting
         }
 
 
-        public delegate void InterpolationFunction(SerializerWriter dest, SerializerReader from, SerializerReader to, float t);
+        public delegate void InterpolationFunction(ByteWriter dest, ByteReader from, ByteReader to, float t);
 
         public delegate void DestroyFunction(Entity entity);
         public delegate void SpawnFunction(Entity entity);

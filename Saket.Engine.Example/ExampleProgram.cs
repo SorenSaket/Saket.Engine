@@ -2,7 +2,6 @@
 using OpenTK.Windowing.Common;
 using Saket.ECS;
 using System.Diagnostics;
-using System.Drawing;
 using Saket.Engine;
 using System;
 using System.Numerics;
@@ -10,6 +9,11 @@ using Saket.UI;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.Windowing.Desktop;
 using ImGuiNET;
+using Saket.Engine.Resources.Databases;
+using System.Reflection;
+using System.Resources;
+using Saket.Engine.Resources.Loaders;
+using Saket.Engine.Typography;
 
 namespace Saket.Engine.Example
 {
@@ -28,8 +32,15 @@ namespace Saket.Engine.Example
         Pipeline pipeline_render = new Pipeline();
 
         Dear_ImGui_Sample.ImGuiController controller_ui;
+
+        ResourceManager rm;
         public ExampleProgram(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings) : base(gameWindowSettings, nativeWindowSettings)
         {
+            rm = new ResourceManager();
+            rm.databases.Add(new DatabaseEmbedded(Assembly.GetExecutingAssembly()));
+            rm.RegisterLoader(new LoaderFont());
+
+            var font = rm.Load<Font>("WorkSans.ttf");
         }
 
         protected override void OnLoad()

@@ -7,7 +7,7 @@ namespace Saket.Engine.Net.Snapshotting.A
     public static class Snapshot_A_Server
     {
         public static void WriteSnapShot(
-            SerializerWriter writer,
+            ByteWriter writer,
             World state_base,
             Schema schema,
             out int sizeInBytes,

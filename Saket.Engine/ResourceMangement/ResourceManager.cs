@@ -47,6 +47,7 @@ namespace Saket.Engine
         {
             string name = asset_name;
 
+            // wtf
             if(typeof(T) == typeof(Shader))
                 name = "shader_" + asset_name;
             else if (typeof(T) == typeof(Texture))
@@ -62,8 +63,12 @@ namespace Saket.Engine
                 resources.Add(name, obj);
                 return obj;
             }
+            else
+            {
+                throw new Exception($"Resource Loader doesn't exsist for type {typeof(T).Name}.");
+            }
 
-            throw new Exception("Resource Doesn't Exsist");
+           
         }
 
 

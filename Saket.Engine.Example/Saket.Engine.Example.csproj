@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFramework>net7.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
@@ -32,6 +32,13 @@
 		<EmbeddedResource Include="..\Saket.Engine\Assets\**">
 			<LogicalName>%(Filename)%(Extension)</LogicalName>
 		</EmbeddedResource>
+	</ItemGroup>
+	
+	
+
+	
+	<ItemGroup>
+	  <None Remove="Assets\WorkSans.ttf" />
 	</ItemGroup>
 	
 	

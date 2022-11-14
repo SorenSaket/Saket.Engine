@@ -81,7 +81,7 @@ namespace Saket.Engine.Tests
         [TestMethod]
         public void Test_Network_Snapshot_A_Read()
         {
-            SerializerWriter writer = TestSnapshot();
+            ByteWriter writer = TestSnapshot();
             var snapshot = new Snapshot_A();
 
             Snapshot_A_Client.ReadSnapShotA(snapshot, writer.Data, schema);
@@ -94,7 +94,7 @@ namespace Saket.Engine.Tests
         [TestMethod]
         public void Test_Network_Snapshot_A_Apply()
         {
-            SerializerWriter writer = TestSnapshot();
+            ByteWriter writer = TestSnapshot();
             var snapshot = new Snapshot_A();
 
             World world = new();
@@ -113,9 +113,9 @@ namespace Saket.Engine.Tests
         }
 
 
-        SerializerWriter TestSnapshot()
+        ByteWriter TestSnapshot()
         {
-            SerializerWriter writer = new();
+            ByteWriter writer = new();
 
             World world = new World();
             var e = world.CreateEntity();

@@ -19,7 +19,7 @@ namespace Saket.Engine.Net.Snapshotting.A
         public Snapshot_A snapshot_previous = new();
         public Snapshot_A snapshot_next = new();
         public Schema schema;
-        private SerializerWriter buffer = new();
+        private ByteWriter buffer = new();
 
         private float timer_lerp_state = 0;
 
@@ -143,7 +143,7 @@ namespace Saket.Engine.Net.Snapshotting.A
         /// <exception cref="Exception"></exception>
         public static void ReadSnapShotA(Snapshot_A snapshot, ArraySegment<byte> data, Schema schema)
         {
-            SerializerReader reader = new SerializerReader(data);
+            ByteReader reader = new ByteReader(data);
             snapshot.numberOfEntities = reader.Read<uint>();
             snapshot.objects.Clear();
             snapshot.objects.EnsureCapacity((int)snapshot.numberOfEntities);
@@ -216,7 +216,7 @@ namespace Saket.Engine.Net.Snapshotting.A
                 }
             }
         }
-        public static void InterpolateSnapshot(World world, float t, Schema schema, Snapshot_A snapshot_previous, Snapshot_A snapshot_next, SerializerWriter scratchBuffer)
+        public static void InterpolateSnapshot(World world, float t, Schema schema, Snapshot_A snapshot_previous, Snapshot_A snapshot_next, ByteWriter scratchBuffer)
         {
             var entities = world.Query(networkedEntities);
 
@@ -246,8 +246,8 @@ namespace Saket.Engine.Net.Snapshotting.A
                                     {
                                         scratchBuffer.Reset();
                                         schema_component.interpolationFunction.Invoke(scratchBuffer,
-                                            new SerializerReader(new ArraySegment<byte>(snapshot_previous.data_components, obj_prev.relativeDataPtr + schema_object.componentOffsets[i], schema_component.sizeInBytes)),
-                                            new SerializerReader(new ArraySegment<byte>(snapshot_next.data_components, obj_next.relativeDataPtr + schema_object.componentOffsets[i], schema_component.sizeInBytes)),
+                                            new ByteReader(new ArraySegment<byte>(snapshot_previous.data_components, obj_prev.relativeDataPtr + schema_object.componentOffsets[i], schema_component.sizeInBytes)),
+                                            new ByteReader(new ArraySegment<byte>(snapshot_next.data_components, obj_next.relativeDataPtr + schema_object.componentOffsets[i], schema_component.sizeInBytes)),
                                             t
                                             );
 
