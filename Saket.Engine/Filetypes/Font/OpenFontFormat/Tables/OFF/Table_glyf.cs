@@ -209,16 +209,19 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 		public override uint Tag => 0x676c7966;
 
 		public int numGlyphs;
+		
+
 		public Table_glyf(int numGlyphs)
         {
 			this.numGlyphs = numGlyphs;
         }
         public override void Deserialize(OFFReader reader)
         {
+			/*
             for (int i = 0; i < numGlyphs; i++)
 			{
 				e
-			}
+			}*/
         }
 
         public override void Serialize(OFFWriter reader)

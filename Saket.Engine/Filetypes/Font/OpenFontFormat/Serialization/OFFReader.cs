@@ -12,7 +12,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
 {
     public class OFFReader
     {
-        public long Position { get; set; }
+        public long BufferPosition { get; set; }
         public Stream stream;
         public byte[] buffer = new byte[128];
         public bool IsReader => true;
@@ -54,7 +54,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
             }
 
             // Reset poition
-            Position = 0;
+            BufferPosition = 0;
             int bytesRead = 0;
             int n = 0;
             do
@@ -73,11 +73,11 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual void Advance(int length)
         {
-            Position += length;
+            BufferPosition += length;
 #if DEBUG
-            if (Position > buffer.Length)
+            if (BufferPosition > buffer.Length)
             {
-                throw new IndexOutOfRangeException($"Read {Position - buffer.Length} bytes past underlying buffer.");
+                throw new IndexOutOfRangeException($"Read {BufferPosition - buffer.Length} bytes past underlying buffer.");
             }
 #endif
         }
@@ -89,7 +89,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
             {
                 fixed (byte* p = buffer)
                 {
-                    value = p[Position];
+                    value = p[BufferPosition];
                     Advance(1);
                 }
             }
@@ -101,7 +101,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
             {
                 fixed (byte* p = buffer)
                 {
-                    value = (sbyte)p[Position];
+                    value = (sbyte)p[BufferPosition];
                     Advance(1);
                 }
             }
@@ -114,8 +114,8 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
                 fixed (byte* p = buffer)
                 {
                     value = (ushort)(
-                        p[Position] << 8 | 
-                        p[Position + 1]);
+                        p[BufferPosition] << 8 | 
+                        p[BufferPosition + 1]);
                     Advance(2);
                 }
             }
@@ -128,8 +128,8 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
                 fixed (byte* p = buffer)
                 {
                     value = (short)(
-                       p[Position] << 8 |
-                       p[Position + 1]);
+                       p[BufferPosition] << 8 |
+                       p[BufferPosition + 1]);
                     Advance(2);
                 }
             }
@@ -142,9 +142,9 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
                 fixed (byte* p = buffer)
                 {
                     value = (uint)(
-                        p[Position] << 16 |
-                        p[Position + 1] << 8 |
-                        p[Position + 2]
+                        p[BufferPosition] << 16 |
+                        p[BufferPosition + 1] << 8 |
+                        p[BufferPosition + 2]
                         );
                     Advance(3);
                 }
@@ -158,9 +158,9 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
                 fixed (byte* p = buffer)
                 {
                     value = (int)(
-                      p[Position] << 16 |
-                      p[Position + 1] << 8 |
-                      p[Position + 2]
+                      p[BufferPosition] << 16 |
+                      p[BufferPosition + 1] << 8 |
+                      p[BufferPosition + 2]
                       );
                     Advance(3);
                 }
@@ -174,10 +174,10 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
                 fixed (byte* p = buffer)
                 {
                     value = (uint)(
-                        p[Position] << 24 |
-                        p[Position + 1] << 16 |
-                        p[Position + 2] << 8 |
-                        p[Position + 3]  
+                        p[BufferPosition] << 24 |
+                        p[BufferPosition + 1] << 16 |
+                        p[BufferPosition + 2] << 8 |
+                        p[BufferPosition + 3]  
                         );
                     Advance(4);
                 }
@@ -191,10 +191,10 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
                 fixed (byte* p = buffer)
                 {
                     value = (int)(
-                         p[Position] << 24 |
-                         p[Position + 1] << 16 |
-                         p[Position + 2] << 8 |
-                         p[Position + 3]
+                         p[BufferPosition] << 24 |
+                         p[BufferPosition + 1] << 16 |
+                         p[BufferPosition + 2] << 8 |
+                         p[BufferPosition + 3]
                          );
                     Advance(4);
                 }
@@ -208,7 +208,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
             {
                 fixed (byte* p = buffer)
                 {
-                    value = (short)(p[Position] << 8 | p[Position + 1]);
+                    value = (short)(p[BufferPosition] << 8 | p[BufferPosition + 1]);
                     Advance(2);
                 }
             }
@@ -220,7 +220,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
             {
                 fixed (byte* p = buffer)
                 {
-                    value = (ushort)(p[Position] << 8 | p[Position + 1]);
+                    value = (ushort)(p[BufferPosition] << 8 | p[BufferPosition + 1]);
                     Advance(2);
                 }
             }
@@ -231,7 +231,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
             {
                 fixed (byte* p = buffer)
                 {
-                    value = (((short)(p[Position] << 8 | p[Position + 1])) / 16384f);
+                    value = (((short)(p[BufferPosition] << 8 | p[BufferPosition + 1])) / 16384f);
                     Advance(2);
                 }
             }
@@ -244,14 +244,14 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
                 fixed (byte* p = buffer)
                 {
                     value = (long)(
-                        p[Position ] << 56 |
-                        p[Position + 1] << 48 |
-                        p[Position + 2] << 40 |
-                        p[Position + 3] << 32 |
-                        p[Position + 4] << 24 |
-                        p[Position + 5] << 16 |
-                        p[Position + 6] << 8 |
-                        p[Position + 7]);
+                        p[BufferPosition ] << 56 |
+                        p[BufferPosition + 1] << 48 |
+                        p[BufferPosition + 2] << 40 |
+                        p[BufferPosition + 3] << 32 |
+                        p[BufferPosition + 4] << 24 |
+                        p[BufferPosition + 5] << 16 |
+                        p[BufferPosition + 6] << 8 |
+                        p[BufferPosition + 7]);
                     Advance(8);
                 }
             }
@@ -264,10 +264,10 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
                 fixed (byte* p = buffer)
                 {
                     value = new Tag((uint)(
-                        p[Position ] << 24|
-                        p[Position + 1]  << 16|
-                        p[Position + 2]  << 8|
-                        p[Position + 3] ));
+                        p[BufferPosition ] << 24|
+                        p[BufferPosition + 1]  << 16|
+                        p[BufferPosition + 2]  << 8|
+                        p[BufferPosition + 3] ));
                     Advance(4);
                 }
             }
@@ -280,8 +280,8 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
                 fixed (byte* p = buffer)
                 {
                     value = (ushort)(
-                       p[Position] << 8 |
-                       p[Position + 1]);
+                       p[BufferPosition] << 8 |
+                       p[BufferPosition + 1]);
                     Advance(2);
                 }
             }
@@ -294,10 +294,10 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
                 fixed (byte* p = buffer)
                 {
                     value = (uint)(
-                          p[Position] << 24 |
-                          p[Position + 1] << 16 |
-                          p[Position + 2] << 8 |
-                          p[Position + 3]
+                          p[BufferPosition] << 24 |
+                          p[BufferPosition + 1] << 16 |
+                          p[BufferPosition + 2] << 8 |
+                          p[BufferPosition + 3]
                           );
                     Advance(4);
                 }

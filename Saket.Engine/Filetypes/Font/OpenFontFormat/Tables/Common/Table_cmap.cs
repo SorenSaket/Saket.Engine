@@ -1,16 +1,12 @@
-﻿using Newtonsoft.Json.Linq;
-using Saket.Serialization;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection.PortableExecutable;
-using System.Security.AccessControl;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 {
+	// Freetype implementations of cmap table fomats:
+	// https://github.com/freetype/freetype/blob/29818e7ab436ae50d47c5e5a1cee41c5c12d5d69/src/sfnt/ttcmap.c
+	//
 
     // The language field must be set to zero for all cmap subtables whose platform IDs are other than Macintosh (platform  ID  1).
     //
@@ -43,9 +39,23 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 			public UInt16 language;
             public UInt16 length;
 
-			public abstract uint Lookup (uint index);
+			
 			public abstract void Serialize(OFFWriter reader);
 			public abstract void Deserialize(OFFReader reader);
+
+			/// <summary>
+			/// Lookup a single index from character code.
+			/// If the glyph does not exists 0 returns.
+			/// </summary>
+			/// <param name="characterCode"></param>
+			/// <returns></returns>
+			public abstract uint Lookup (uint characterCode);
+			/// <summary>
+			/// Returns a dictionary mapping charactercodes to glyph indexes.
+			/// </summary>
+			/// <param name="reader"></param>
+			/// <returns></returns>
+			public abstract Dictionary<int,int> MapToDictionary(OFFReader reader);
 		}
 
         /// <summary>
@@ -85,6 +95,11 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 				{
 					reader.ReadUInt8(ref glyphIdArray[i]);
 				}
+			}
+
+			public override Dictionary<int, int> MapToDictionary(OFFReader reader)
+			{
+				throw new NotImplementedException();
 			}
 		}
 
@@ -132,14 +147,6 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 			/// <summary> Glyph index array (arbitrary length). </summary>
             public UInt16[] glyphIdArray;
         
-
-			public override uint Lookup (uint index)
-			{
-				if(index > ushort.MaxValue)
-					return 0;
-				
-			}
-
 			public override void Serialize(OFFWriter reader)
 			{
 				throw new NotImplementedException();
@@ -157,7 +164,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 
 				int segmentCount = segCountX2/2;
 
-				reader.LoadBytes(segmentCount*8+1);
+				reader.LoadBytes(segmentCount*8+2);
 
    				endCode = new ushort[segmentCount];
 				for (int i = 0; i < segmentCount; i++)
@@ -173,16 +180,94 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 				for (int i = 0; i < segmentCount; i++)
 					reader.ReadInt16(ref idDelta[i]);
 
+				// The length of the glyphIdArray can be calculated by taking the 
+				//  sum of ranges which idRangeOffset is not equals zero 
+				int glyphIdArrayLength = 0;
+
+
 				idRangeOffset =  new ushort[segmentCount];
-				for (int i = 0; i < segmentCount; i++)
+				for (int i = 0; i < segmentCount; i++){
 					reader.ReadUInt16(ref idRangeOffset[i]);
-				
-				//
-				/*for (int i = 0; i < segmentCount; i++)
-				{
-					reader.ReadUInt8(ref glyphIdArray[i]);
-				}*/
+					if(idRangeOffset[i] != 0)
+					{
+						// endCode is inclusive so + 1
+						glyphIdArrayLength += endCode[i]-startCode[i]+1;
+					}
+				}
+
+				reader.LoadBytes(glyphIdArrayLength*2);
+				glyphIdArray = new ushort[glyphIdArrayLength];
+				for (int i = 0; i < glyphIdArrayLength; i++){
+					reader.ReadUInt16(ref glyphIdArray[i]);
+				}
 			}
+
+			public override uint Lookup (uint characterCode)
+			{
+				throw new NotImplementedException();
+			}
+			public override Dictionary<int,int> MapToDictionary(OFFReader reader)
+			{
+				throw new NotImplementedException();
+			}
+/*
+			public override uint Lookup (uint characterCode)
+			{
+				if(characterCode > ushort.MaxValue)
+					return 0;
+
+				
+				int i = Array.BinarySearch(endCode, (ushort)characterCode);
+				if(i < 0)
+					return 0;
+				if (startCode[i] > characterCode)
+				{
+					return 0;
+				}
+  			
+				
+				if (idRangeOffset[i] == 0)
+				{
+					return (ushort)((characterCode + idDelta[i]) % 65536);
+				}
+				else
+				{
+					
+				}
+
+
+
+				
+			}
+			public override Dictionary<int,int> MapToDictionary(OFFReader reader)
+			{
+				Dictionary<int,int> r = new();
+				// Add all mapppings
+				// iterate trough all segements
+				for (int i = 0; i < segCountX2/2; i++)
+				{
+					// If this range uses glyphIdArray for lookup
+					if(idRangeOffset[i] != 0)
+					{
+						var currentOffset = reader.stream.Position;
+						return glyphIndexArray[i - segCount + idRangeOffset[i]/2 + (c - startCode[i])]
+					}
+					// Simple range mapping
+					else
+					{
+						var end = endCode[i];
+						var delta = idDelta[i];
+						for (var index = startCode[i]; index <= end; index++) {
+							var glyphIndex = (index + idDelta[i]) % ushort.MaxValue;
+
+							if (glyphIndex != 0)
+								r.Add(index, glyphIndex);
+						}
+					}
+					reader.ReadUInt8(ref glyphIdArray[i]);
+				}
+			}*/
+
 
 		}
 
@@ -336,8 +421,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
         ushort numTables;
         EncodingRecord[] encodingRecords;
 		CharacterMap[] characterMaps;
-// temp
-		UInt16[] formats;
+
 
         public override void Serialize(OFFWriter writer)
         {
@@ -365,13 +449,23 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 				reader.ReadUInt32(ref encodingRecords[i].offset);
             }
 
-			formats = new UInt16[numTables];
             characterMaps = new CharacterMap[numTables];
             for (int i = 0; i < numTables; i++)
             {
                 reader.stream.Seek(beginAt + encodingRecords[i].offset, SeekOrigin.Begin);
 				reader.LoadBytes(2);
-				reader.ReadUInt16(ref formats[i]);
+				ushort format = 0;
+				reader.ReadUInt16(ref format);
+
+				switch (format)
+				{
+					case 4:
+						characterMaps[i] = new CharacterMapFormat4();
+						characterMaps[i].Deserialize(reader);
+						break;
+					default:
+						throw new NotImplementedException("Other cmap subformats coming soon.");
+				}
             }
         }
         

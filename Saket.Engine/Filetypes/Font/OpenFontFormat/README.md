@@ -23,3 +23,9 @@ Mostly 1-1 naming with specification
 
 
 Provides full implementation of the Open Font Format Specification.
+
+
+Other reference implementations used and referenced:
+https://github.com/freetype/freetype
+https://github.com/LayoutFarm/Typography
+https://github.com/MikePopoloski/SharpFont
