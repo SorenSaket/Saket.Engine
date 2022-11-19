@@ -40,8 +40,8 @@ namespace Saket.Engine
             GL.ActiveTexture(TextureUnit.Texture0);
 
             GL.BindTexture(TextureTarget.Texture2D, handle);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);
             GL.TextureStorage2D(handle, 0, SizedInternalFormat.Rgba8, image.Width, image.Height);
 
 

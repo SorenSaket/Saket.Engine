@@ -43,11 +43,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Filetypes\Audio\MP3\" />
-	  <Folder Include="Filetypes\Audio\WAV\" />
-	  <Folder Include="Filetypes\Image\ICO\" />
-	  <Folder Include="Filetypes\Image\QOI\" />
-	  <Folder Include="Filetypes\Image\PNG\" />
+	  <Folder Include="Audio\MP3\" />
+	  <Folder Include="Audio\FLAC\" />
+	  <Folder Include="Audio\WAV\" />
+	  <Folder Include="Image\ICO\" />
+	  <Folder Include="Image\SVG\" />
+	  <Folder Include="Image\QOI\" />
+	  <Folder Include="Image\PNG\" />
+	  <Folder Include="Graphics\MSDF\" />
 	  <Folder Include="IMGUI\" />
 	  <Folder Include="Audio\" />
 	  <Folder Include="Platform\Windows\" />

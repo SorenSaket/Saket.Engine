@@ -21,7 +21,6 @@ Fully Managed C# code.
 
 Mostly 1-1 naming with specification
 
-
 Provides full implementation of the Open Font Format Specification.
 
 
