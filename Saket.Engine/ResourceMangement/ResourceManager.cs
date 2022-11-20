@@ -71,6 +71,18 @@ namespace Saket.Engine
            
         }
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="resource_name"></param>
+		/// <typeparam name="T"></typeparam>
+		/// <returns></returns>
+		public bool TryLoad<T>(string resource_name, T value)
+		{
+			
+			throw new NotImplementedException();
+		}
+
 
 
   /*
@@ -78,6 +90,8 @@ namespace Saket.Engine
         {
 
         }*/
+
+
 
 
 
