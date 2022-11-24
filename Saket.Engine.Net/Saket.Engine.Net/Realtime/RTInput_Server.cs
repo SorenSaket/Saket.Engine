@@ -117,7 +117,7 @@ namespace Saket.Engine.Net.Realtime
             {
                 input = clients[id_network].inputs[clients[id_network].tick_lastSim];
                 clients[id_network].packetloss_avg -= 0.01f;
-                clients[id_network].packetloss_avg.Clamp(0, float.MaxValue);
+				   clients[id_network].packetloss_avg = Math.Clamp(clients[id_network].packetloss_avg,0, float.MaxValue);
                 return true;
             }
 

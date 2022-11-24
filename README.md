@@ -3,7 +3,7 @@ Example game made in the engine:
 <img src="https://media2.giphy.com/media/5Gfa671zLUKmZwBmTw/giphy.gif"/>
 
 
-
+Current Roadmap:
 
 <img src="/documentation/roadmap.drawio.png">
 
@@ -13,7 +13,7 @@ Example game made in the engine:
 
 
 
-
+Embraces .Net ecosystem. Exclusivly uses the built in numerics.
 
 
 

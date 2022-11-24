@@ -8,9 +8,6 @@ namespace Saket.Engine
 {
 	public static class Extensions_Math
 	{
-		public static void Clamp(this ref float value, in float min, in float max)
-		{
-			value = value < min ? min : value > max ? max : value;
-		}
+		
 	}
 }

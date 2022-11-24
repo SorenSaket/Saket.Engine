@@ -26,14 +26,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="FreeTypeSharp" Version="1.1.3" />
 		<PackageReference Include="ImGui.NET" Version="1.87.3" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
 		<PackageReference Include="OpenTK" Version="4.7.5" />
-		<PackageReference Include="SharpFont" Version="4.0.1" />
 		<PackageReference Include="StbImageSharp" Version="2.27.12" />
-		<PackageReference Include="StbTrueTypeSharp" Version="1.26.11" />
-		<PackageReference Include="System.Drawing.Common" Version="6.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -50,7 +46,6 @@
 	  <Folder Include="Image\SVG\" />
 	  <Folder Include="Image\QOI\" />
 	  <Folder Include="Image\PNG\" />
-	  <Folder Include="Graphics\MSDF\" />
 	  <Folder Include="IMGUI\" />
 	  <Folder Include="Audio\" />
 	  <Folder Include="Platform\Windows\" />

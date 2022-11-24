@@ -5,8 +5,6 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
-using System.Drawing;
-using System.Drawing.Imaging;
 using StbImageSharp;
 
 namespace Saket.Engine.Resources.Loaders

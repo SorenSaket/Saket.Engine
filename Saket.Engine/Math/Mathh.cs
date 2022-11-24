@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,16 +9,23 @@ namespace Saket.Engine
 {
     public static class Mathh
     {
-        public static readonly float sqrt2 = MathF.Sqrt(2);
-        public static float RadToDeg(float radians)
+		public static readonly float sqrt2 = MathF.Sqrt(2f);
+		public const float RadToDeg = (180f / MathF.PI) ;
+		public const float DegToRad = (MathF.PI / 180f);
+
+        /// <summary>
+        /// Returns 1 for non-negative values and -1 for negative values. Returns 1 in case of 0.
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int NonZeroSign(double n)
         {
-            return (180 / MathF.PI) * radians;
+            return n >= 0 ? 1 : -1;
         }
 
-        public static float DegToRad(float degrees)
-        {
-            return degrees * (MathF.PI/180);
-        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Lerp(float a, float b, float t)
         {
             return a + (b - a) * Clamp01(t);
