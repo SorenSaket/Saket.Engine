@@ -38,13 +38,7 @@ namespace Saket.Engine.Net.Snapshotting.A
         /// <param name="world"></param>
         public void System_InterpolateEntities(World world)
         {
-            // -- Interpolate/Set component Values --
-            // Get the current time between snapshot this and next
-            // Interpolate between values that implements IInterpolatable
-            // All other values are just set to snapshot next values
-            // Apply to world
-            // Comment( Soren ): This code is becoming obscure at best
-            // Should uninterpolated values be based off previous or next snapshot?
+          
 
             timer_lerp_state += world.Delta;
             float t = timer_lerp_state / (1f / 30f);
@@ -217,7 +211,14 @@ namespace Saket.Engine.Net.Snapshotting.A
             }
         }
         public static void InterpolateSnapshot(World world, float t, Schema schema, Snapshot_A snapshot_previous, Snapshot_A snapshot_next, ByteWriter scratchBuffer)
-        {
+        {  
+            // -- Interpolate/Set component Values --
+            // Get the current time between snapshot this and next
+            // Interpolate between values that implements IInterpolatable
+            // All other values are just set to snapshot next values
+            // Apply to world
+            // Comment( Soren ): This code is becoming obscure at best
+            // Should uninterpolated values be based off previous or next snapshot?
             var entities = world.Query(networkedEntities);
 
             foreach (var entity in entities)

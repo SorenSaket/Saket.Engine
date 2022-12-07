@@ -23,103 +23,14 @@ namespace Saket.Engine.Graphics.MSDF
             ContourSd   = Array.Empty<float>();
         }
 
+
+        // 1. edgecoloring
+        // 2. sdf
+        // 3. error correction
+
         public void GenerateSDF(Color[] output, int outputWidth, Shape shape, float range, Vector2 scale, Vector2 translation)
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            Color ComputePixel(ref InstanceContext ctx)
-            {
-                var sr = EdgePoint.Default;
-                var sg = EdgePoint.Default;
-                var sb = EdgePoint.Default;
-                var d = Math.Abs(SignedDistance.Infinite.Distance);
-
-                for (var i = 0; i < shape.Count; ++i)
-                {
-                    var r = EdgePoint.Default;
-                    var g = EdgePoint.Default;
-                    var b = EdgePoint.Default;
-
-                    MsdfScanContourEdges(shape[i], ctx.P, ref r, ref g, ref b);
-
-                    if (r.MinDistance < sr.MinDistance)
-                        sr = r;
-                    if (g.MinDistance < sg.MinDistance)
-                        sg = g;
-                    if (b.MinDistance < sb.MinDistance)
-                        sb = b;
-
-                    var medMinDistance = Math.Abs(Arithmetic.Median(r.MinDistance.Distance,
-                        g.MinDistance.Distance,
-                        b.MinDistance.Distance));
-
-                    if (medMinDistance < d)
-                    {
-                        d = medMinDistance;
-                        ctx.Winding = -Windings[i];
-                    }
-
-                    r.NearEdge?.DistanceToPseudoDistance(ref r.MinDistance, ctx.P, r.NearT);
-                    g.NearEdge?.DistanceToPseudoDistance(ref g.MinDistance, ctx.P, g.NearT);
-                    b.NearEdge?.DistanceToPseudoDistance(ref b.MinDistance, ctx.P, b.NearT);
-                    medMinDistance = Arithmetic.Median(r.MinDistance.Distance, g.MinDistance.Distance,
-                        b.MinDistance.Distance);
-                    ContourSd[i].R = r.MinDistance.Distance;
-                    ContourSd[i].G = g.MinDistance.Distance;
-                    ContourSd[i].B = b.MinDistance.Distance;
-                    ContourSd[i].Med = medMinDistance;
-                    ctx.UpdateDistance(Windings[i], medMinDistance);
-                }
-
-                sr.NearEdge?.DistanceToPseudoDistance(ref sr.MinDistance, ctx.P, sr.NearT);
-                sg.NearEdge?.DistanceToPseudoDistance(ref sg.MinDistance, ctx.P, sg.NearT);
-                sb.NearEdge?.DistanceToPseudoDistance(ref sb.MinDistance, ctx.P, sb.NearT);
-
-                var msd = ComputeSignedDistance(Infinite, ref ctx);
-
-                if (Arithmetic.Median(sr.MinDistance.Distance, sg.MinDistance.Distance, sb.MinDistance.Distance) ==
-                    msd.Med)
-                {
-                    msd.R = sr.MinDistance.Distance;
-                    msd.G = sg.MinDistance.Distance;
-                    msd.B = sb.MinDistance.Distance;
-                }
-
-                return new FloatRgb
-                {
-                    R = (float)(msd.R / Range + .5),
-                    G = (float)(msd.G / Range + .5),
-                    B = (float)(msd.B / Range + .5)
-                };
-            }
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            float ComputeSignedDistance(float sd, ref InstanceContext context)
-            {
-                if (context.PosDist >= 0 && Math.Abs(context.PosDist) <= Math.Abs(context.NegDist))
-                {
-                    sd.Dist = context.PosDist;
-                    context.Winding = 1;
-                    for (var i = 0; i < Shape.Count; ++i)
-                        if (Windings[i] > 0 && ContourSd[i].Dist > sd.Dist &&
-                            Math.Abs(ContourSd[i].Dist) < Math.Abs(context.NegDist))
-                            sd = ContourSd[i];
-                }
-                else if (context.NegDist <= 0 && Math.Abs(context.NegDist) <= Math.Abs(context.PosDist))
-                {
-                    sd.Dist = context.NegDist;
-                    context.Winding = -1;
-                    for (var i = 0; i < Shape.Count; ++i)
-                        if (Windings[i] < 0 && ContourSd[i].Dist < sd.Dist &&
-                            Math.Abs(ContourSd[i].Dist) < Math.Abs(context.PosDist))
-                            sd = ContourSd[i];
-                }
-
-                for (var i = 0; i < Shape.Count; ++i)
-                    if (Windings[i] != context.Winding && Math.Abs(ContourSd[i].Dist) < Math.Abs(sd.Dist))
-                        sd = ContourSd[i];
-                return sd;
-            }
-
+         
 
             // resize temp data to fit
             if (Windings.Length < shape.Count)
@@ -151,13 +62,106 @@ namespace Saket.Engine.Graphics.MSDF
                         Winding = 0
                     };
 
-                    output[x+y*outputWidth] = ComputePixel(ref context);
+                    //output[x+y*outputWidth] = ComputePixel(ref context);
                 }
             }
 
         }
+        /*
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        Color ComputePixel(ref InstanceContext ctx)
+        {
+            var sr = EdgePoint.Default;
+            var sg = EdgePoint.Default;
+            var sb = EdgePoint.Default;
+            var d = Math.Abs(SignedDistance.Infinite.Distance);
 
+            for (var i = 0; i < shape.Count; ++i)
+            {
+                var r = EdgePoint.Default;
+                var g = EdgePoint.Default;
+                var b = EdgePoint.Default;
 
+                MsdfScanContourEdges(shape[i], ctx.P, ref r, ref g, ref b);
+
+                if (r.MinDistance < sr.MinDistance)
+                    sr = r;
+                if (g.MinDistance < sg.MinDistance)
+                    sg = g;
+                if (b.MinDistance < sb.MinDistance)
+                    sb = b;
+
+                var medMinDistance = Math.Abs(Arithmetic.Median(r.MinDistance.Distance,
+                    g.MinDistance.Distance,
+                    b.MinDistance.Distance));
+
+                if (medMinDistance < d)
+                {
+                    d = medMinDistance;
+                    ctx.Winding = -Windings[i];
+                }
+
+                r.NearEdge?.DistanceToPseudoDistance(ref r.MinDistance, ctx.P, r.NearT);
+                g.NearEdge?.DistanceToPseudoDistance(ref g.MinDistance, ctx.P, g.NearT);
+                b.NearEdge?.DistanceToPseudoDistance(ref b.MinDistance, ctx.P, b.NearT);
+                medMinDistance = Arithmetic.Median(r.MinDistance.Distance, g.MinDistance.Distance,
+                    b.MinDistance.Distance);
+                ContourSd[i].R = r.MinDistance.Distance;
+                ContourSd[i].G = g.MinDistance.Distance;
+                ContourSd[i].B = b.MinDistance.Distance;
+                ContourSd[i].Med = medMinDistance;
+                ctx.UpdateDistance(Windings[i], medMinDistance);
+            }
+
+            sr.NearEdge?.DistanceToPseudoDistance(ref sr.MinDistance, ctx.P, sr.NearT);
+            sg.NearEdge?.DistanceToPseudoDistance(ref sg.MinDistance, ctx.P, sg.NearT);
+            sb.NearEdge?.DistanceToPseudoDistance(ref sb.MinDistance, ctx.P, sb.NearT);
+
+            var msd = ComputeSignedDistance(Infinite, ref ctx);
+
+            if (Arithmetic.Median(sr.MinDistance.Distance, sg.MinDistance.Distance, sb.MinDistance.Distance) ==  msd.Med)
+            {
+                msd.R = sr.MinDistance.Distance;
+                msd.G = sg.MinDistance.Distance;
+                msd.B = sb.MinDistance.Distance;
+            }
+
+            return new FloatRgb
+            {
+                R = (float)(msd.R / Range + .5),
+                G = (float)(msd.G / Range + .5),
+                B = (float)(msd.B / Range + .5)
+            };
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        float ComputeSignedDistance(float sd, ref InstanceContext context)
+        {
+            if (context.PosDist >= 0 && Math.Abs(context.PosDist) <= Math.Abs(context.NegDist))
+            {
+                sd.Dist = context.PosDist;
+                context.Winding = 1;
+                for (var i = 0; i < Shape.Count; ++i)
+                    if (Windings[i] > 0 && ContourSd[i].Dist > sd.Dist &&
+                        Math.Abs(ContourSd[i].Dist) < Math.Abs(context.NegDist))
+                        sd = ContourSd[i];
+            }
+            else if (context.NegDist <= 0 && Math.Abs(context.NegDist) <= Math.Abs(context.PosDist))
+            {
+                sd.Dist = context.NegDist;
+                context.Winding = -1;
+                for (var i = 0; i < Shape.Count; ++i)
+                    if (Windings[i] < 0 && ContourSd[i].Dist < sd.Dist &&
+                        Math.Abs(ContourSd[i].Dist) < Math.Abs(context.PosDist))
+                        sd = ContourSd[i];
+            }
+
+            for (var i = 0; i < Shape.Count; ++i)
+                if (Windings[i] != context.Winding && Math.Abs(ContourSd[i].Dist) < Math.Abs(sd.Dist))
+                    sd = ContourSd[i];
+            return sd;
+        }
+        */
 
         /// <summary>
         /// 
@@ -199,7 +203,58 @@ namespace Saket.Engine.Graphics.MSDF
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="aDir"></param>
+        /// <param name="bDir"></param>
+        /// <param name="crossThreshold"></param>
+        /// <returns></returns>
+        private static bool IsCorner(Vector2 aDir, Vector2 bDir, double crossThreshold)
+        {
+            return
+                // Dot products is less than one when the vectors are pointing away from each other
+                // Dot product is 0 when perpendicular
+                // return true if they're pointing in opposite directions or perpendicular
+                Vector2.Dot(aDir, bDir) <= 0 ||
+                // The cross product is zero when the vectors are pointing in the same or opposite direction. 
+                // if they're off by more than crossThreshold return true.
+                Math.Abs(Extensions_Vector2.Cross(aDir, bDir)) > crossThreshold;
+        }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="color"></param>
+        /// <param name="seed"></param>
+        /// <param name="banned"></param>
+        private static void SwitchColor(ref EdgeColor color, ref ulong seed, EdgeColor banned = EdgeColor.Black)
+        {
+            // combined is the banned colors that is also present in color
+            EdgeColor combined = color & banned;
+
+            if (combined == EdgeColor.Red || combined == EdgeColor.Green || combined == EdgeColor.Blue)
+            {
+                // Exclusive Or
+                // The color gets inverted
+                color = combined ^ EdgeColor.White;
+                return;
+            }
+
+            // Choose random color
+            if (color == EdgeColor.Black || color == EdgeColor.White)
+            {
+                Span<EdgeColor> start = stackalloc[] { EdgeColor.Cyan, EdgeColor.Magenta, EdgeColor.Yellow };
+                color = start[(int)(seed % 3)];
+                seed /= 3;
+                return;
+            }
+
+
+            var shifted = (int)color << (int)(1 + (seed & 1));
+            color = (EdgeColor)((shifted | (shifted >> 3)) & (int)EdgeColor.White);
+            seed >>= 1;
+        }
         private struct Simple
         {
             private readonly Shape _shape;
@@ -212,7 +267,7 @@ namespace Saket.Engine.Graphics.MSDF
                 _seed = seed;
                 _shape = shape;
                 _corners = new List<int>();
-                _crossThreshold = Math.Sin(angleThreshold);
+                _crossThreshold = MathF.Sin(angleThreshold);
             }
 
             private void IdentifyCorners(Contour contour)
@@ -223,16 +278,16 @@ namespace Saket.Engine.Graphics.MSDF
                 var index = 0;
                 foreach (var edge in contour)
                 {
-                    if (IsCorner(prevDirection.Normalize(), edge.Direction(0).Normalize(), _crossThreshold))
+                    if (IsCorner(Vector2.Normalize( prevDirection), Vector2.Normalize(edge.Direction(0)), _crossThreshold))
                         _corners.Add(index++);
                     prevDirection = edge.Direction(1);
                 }
             }
 
             private void ProcessSmoothContour(Contour contour)
-            {
+            {/*
                 foreach (var edge in contour)
-                    edge.Color = EdgeColor.White;
+                    edge.Color = EdgeColor.White;*/
             }
 
             internal void Process()
@@ -260,11 +315,11 @@ namespace Saket.Engine.Graphics.MSDF
                 var colors = stackalloc[] { EdgeColor.White, EdgeColor.White, EdgeColor.Black };
                 ProcessTearDropContourComputeColor(colors);
                 if (contour.Count >= 3)
-                {
+                {/*
                     var m = contour.Count;
                     for (var i = 0; i < m; ++i)
                         contour[(_corners[0] + i) % m].Color =
-                            (colors + 1)[(int)Math.Floor(3 + 2.875 * i / (m - 1) - 1.4375 + .5) - 3];
+                            (colors + 1)[(int)Math.Floor(3 + 2.875 * i / (m - 1) - 1.4375 + .5) - 3];*/
                 }
                 else if (contour.Count >= 1)
                     ProcessTearDropContourSplitAndColor(contour, colors);
@@ -279,6 +334,8 @@ namespace Saket.Engine.Graphics.MSDF
 
             private unsafe void ProcessTearDropContourSplitAndColor(Contour contour, EdgeColor* colors)
             {
+                throw new NotImplementedException();
+                /*
                 var corner = _corners[0];
                 var parts = new EdgeSegment[] { null, null, null, null, null, null, null };
                 contour[0].SplitInThirds(out parts[0 + 3 * corner], out parts[1 + 3 * corner],
@@ -301,7 +358,7 @@ namespace Saket.Engine.Graphics.MSDF
 
                 contour.Clear();
                 for (var i = 0; parts[i] != null; ++i)
-                    contour.Add(parts[i]);
+                    contour.Add(parts[i]);*/
             }
 
             private void ProcessMultiCornerContour(Contour contour)
@@ -322,7 +379,7 @@ namespace Saket.Engine.Graphics.MSDF
                         SwitchColor(ref color, ref _seed, spline == cornerCount - 1 ? initialColor : 0);
                     }
 
-                    contour[index].Color = color;
+                    //contour[index].Color = color;
                 }
             }
         }

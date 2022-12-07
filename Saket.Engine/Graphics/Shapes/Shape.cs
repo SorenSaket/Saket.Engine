@@ -16,7 +16,7 @@ namespace Saket.Engine.Graphics.Shapes
 
         /// Normalizes the shape geometry for distance field generation.
         public void Normalize()
-        {
+        {/*
             foreach (var contour in this)
                 if (contour.Count == 1)
                 {
@@ -26,12 +26,12 @@ namespace Saket.Engine.Graphics.Shapes
                     contour.Add(parts[0]);
                     contour.Add(parts[1]);
                     contour.Add(parts[2]);
-                }
+                }*/
         }
 
         /// Performs basic checks to determine if the object represents a valid shape.
         public bool Validate()
-        {
+        {/*
             foreach (var contour in this)
                 if (contour.Count > 0)
                 {
@@ -44,7 +44,7 @@ namespace Saket.Engine.Graphics.Shapes
                             return false;
                         corner = edge.Point(1);
                     }
-                }
+                }*/
 
             return true;
         }

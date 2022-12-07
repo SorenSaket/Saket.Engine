@@ -128,15 +128,18 @@ namespace Saket.Engine.Graphics.Shapes
 
 
 
-        /*
+        
         public void SplitInThirds(out QuadraticBezier part1, out QuadraticBezier part2, out QuadraticBezier part3)
         {
+            throw new NotImplementedException();
+            /*
             part1 = new QuadraticBezier(a, Arithmetic.Mix(a, c, 1.0 / 3.0), Point(1.0 / 3.0));
 
             part2 = new QuadraticBezier(Color, Point(1.0 / 3.0),
                 Arithmetic.Mix(Arithmetic.Mix(a, c, 5.0 / 9.0), Arithmetic.Mix(c, b, 4.0 / 9.0), 0.5),
                 Point(2 / 3.0));
             part3 = new QuadraticBezier(Color, Point(2.0 / 3.0), Arithmetic.Mix(c, b, 2.0 / 3.0), b);
-        }*/
+        */
+        }
     }
 }

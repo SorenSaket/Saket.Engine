@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Saket.Engine.Filetypes.Font.TrueType;
 using Saket.Engine.Resources.Loaders;
 using Saket.Engine.Typography;
-using StbTrueTypeSharp;
+
 
 namespace Saket.Engine.Resources.Loaders
 {

@@ -12,6 +12,8 @@ namespace Saket.Engine
         // Tests to find where the equation intersects the x axis
 
         // Functions returns the number of intersections
+        // -1: for infinite intersections
+        // 0: no intersections
 
 
 
@@ -20,7 +22,7 @@ namespace Saket.Engine
         /// </summary>
         /// <param name="a"></param>
         /// <param name="b"></param>
-        /// <returns></returns>
+        /// <returns>The number of intersections</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int SolveLinear(float a, float b, out float intersection)
         {
@@ -38,12 +40,6 @@ namespace Saket.Engine
             intersection = -b / a;
             return 1;
         }
-        /*
-        public static int SolveLinear(Span<float> coefficients, Span<float> intersections)
-        {
-
-        }*/
-
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -82,14 +78,16 @@ namespace Saket.Engine
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int SolveCubicNormed(float a, float b, float c, out float intersection1, out float intersection2, out float intersection3)
         {
-            var a2 = a * a;
-            var q = (a2 - 3 * b) / 9;
-            var r = (a * (2 * a2 - 9 * b) + 27 * c) / 54;
-            var r2 = r * r;
-            var q3 = q * q * q;
+            float a2 = a * a;
+            float q = (a2 - 3f * b) / 9f;
+            float r = (a * (2f * a2 - 9f * b) + 27f * c) / 54f;
+            float r2 = r * r;
+            float q3 = q * q * q;
+            
+            
             if (r2 < q3)
             {
-                var t = r / MathF.Sqrt(q3);
+                float t = r / MathF.Sqrt(q3);
                 if (t < -1) t = -1;
                 if (t > 1) t = 1;
                 t = MathF.Acos(t);
@@ -101,9 +99,9 @@ namespace Saket.Engine
                 return 3;
             }
 
-            var aa = -MathF.Pow(MathF.Abs(r) + MathF.Sqrt(r2 - q3), 1f / 3.0f);
+            float aa = -MathF.Pow(MathF.Abs(r) + MathF.Sqrt(r2 - q3), 1f / 3.0f);
             if (r < 0) aa = -aa;
-            var bb = aa == 0 ? 0 : q / aa;
+            float bb = aa == 0 ? 0 : q / aa;
             a /= 3;
             intersection1 = aa + bb - a;
             intersection2 = -0.5f * (aa + bb) - a;
