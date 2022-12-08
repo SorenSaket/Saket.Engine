@@ -1,0 +1,6 @@
+[submodule "Saket.ECS"]
+	path = Saket.ECS
+	url = https://github.com/SorenSaket/Saket.ECS.git
+[submodule "Saket.Serialization"]
+	path = Saket.Serialization
+	url = https://github.com/SorenSaket/Saket.Serialization.git
