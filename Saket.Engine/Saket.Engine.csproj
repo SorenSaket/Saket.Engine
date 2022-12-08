@@ -19,11 +19,6 @@
 	</PropertyGroup>
 	
 	<!-- References -->
-	<ItemGroup>
-		<ProjectReference Include="..\..\Saket.ECS\Saket.ECS\Saket.ECS.csproj" />
-		<ProjectReference Include="..\..\Saket.Serialization\Saket.Serialization\Saket.Serialization.csproj" />
-		<ProjectReference Include="..\..\Saket.UI\Saket.UI\Saket.UI.csproj" />
-	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="ImGui.NET" Version="1.87.3" />
@@ -50,5 +45,10 @@
 	  <Folder Include="Audio\" />
 	  <Folder Include="Platform\Windows\" />
 	  <Folder Include="Typography\Rasterization\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Saket.ECS\Saket.ECS\Saket.ECS.csproj" />
+	  <ProjectReference Include="..\Saket.Serialization\Saket.Serialization\Saket.Serialization.csproj" />
 	</ItemGroup>
 </Project>

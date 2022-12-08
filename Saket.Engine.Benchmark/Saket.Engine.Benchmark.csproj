@@ -13,8 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Saket.Serialization\Saket.Serialization\Saket.Serialization.csproj" />
     <ProjectReference Include="..\Saket.Engine\Saket.Engine.csproj" />
+    <ProjectReference Include="..\Saket.Serialization\Saket.Serialization\Saket.Serialization.csproj" />
   </ItemGroup>
 
 </Project>

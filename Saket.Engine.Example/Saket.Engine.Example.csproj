@@ -52,7 +52,6 @@
 
 	
 	<ItemGroup>
-	  <ProjectReference Include="..\..\Saket.UI\Saket.UI\Saket.UI.csproj" />
 	  <ProjectReference Include="..\Saket.Engine\Saket.Engine.csproj" />
 	</ItemGroup>
 	
