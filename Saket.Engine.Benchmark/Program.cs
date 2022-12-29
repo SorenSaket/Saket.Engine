@@ -1,9 +1,6 @@
 ﻿using BenchmarkDotNet.Running;
 using System.Diagnostics;
 using System.Numerics;
-
-using FreeTypeSharp;
-using FreeTypeSharp.Native;
 using Saket.Engine.Filetypes.Font.TrueType;
 using Saket.Engine;
 

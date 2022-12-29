@@ -1,26 +1,26 @@
-Example game made in the engine:
+
+
+<img src="./documentation/saketengine_branding.png">
+
+Saket Engine is Data Oriented Application Development Framework made for Games, Visualizations, Applications and Engineering.
+
+
+
+Currently it fully embraces .Net ecosystem. It for example is always using the newest version of .Net and is exclusively uses the built in numerics instead of a custom math library. That might however change in the future. Some modules might be made in C for true cross compatibility.
+
+
+
+
+
+
+## Examples
+Example game made in the engine. Is inspired by and uses assets of Wilmots warehouse:
 
 <img src="https://media2.giphy.com/media/5Gfa671zLUKmZwBmTw/giphy.gif"/>
 
+## Roadmap
 
-Current Roadmap:
-
-<img src="/documentation/roadmap.drawio.png">
-
-
-
-
-
-
-
-Embraces .Net ecosystem. Exclusivly uses the built in numerics.
-
-
-
-
-
-
-
+<img src="./documentation/roadmap.drawio.png">
 
 
 
@@ -50,10 +50,10 @@ Embraces .Net ecosystem. Exclusivly uses the built in numerics.
 
 
 
-
 ## Editor
 - Blender Export/Import
 - Untiy Export/Import
 - Godot Export/Import
 - Affinty Designer Export/Import
 - Supported Image file types: PNG, JPG, QOI
+

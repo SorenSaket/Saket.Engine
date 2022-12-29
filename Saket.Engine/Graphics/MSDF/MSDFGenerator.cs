@@ -30,14 +30,12 @@ namespace Saket.Engine.Graphics.MSDF
 
         public void GenerateSDF(Color[] output, int outputWidth, Shape shape, float range, Vector2 scale, Vector2 translation)
         {
-         
-
             // resize temp data to fit
             if (Windings.Length < shape.Count)
             {
                 Array.Resize(ref Windings, shape.Count);
             }
-            if(ContourSd.Length  < shape.Count)
+            if (ContourSd.Length  < shape.Count)
             {
                 Array.Resize(ref ContourSd, shape.Count);
             }

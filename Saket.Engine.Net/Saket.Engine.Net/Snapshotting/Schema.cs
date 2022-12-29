@@ -67,9 +67,13 @@ namespace Saket.Engine.Net.Snapshotting
 
         public struct NetworkedComponent
         {
+            /// <summary> identifier for this component </summary>
             public uint id_component;
+            /// <summary> the type of the component </summary>
             public Type type_component;
+            /// <summary> The total size in bytes </summary>
             public int sizeInBytes;
+            /// <summary> Optional interpolation function. </summary>
             public InterpolationFunction? interpolationFunction;
 
             public NetworkedComponent(uint id_component, Type type_component, InterpolationFunction? interpolationFunction)
@@ -82,11 +86,17 @@ namespace Saket.Engine.Net.Snapshotting
         }
         public struct NetworkedObject
         {
+            /// <summary> identifier for this object </summary>
             public uint id_object;
+            /// <summary> identifiers for this components syncronized on this object</summary>
             public uint[] componentTypes;
+            /// <summary> Byte offests of each compononents</summary>
             public int[] componentOffsets;
+            /// <summary> Total byte size of all components combined in this object. </summary>
             public int sizeInBytes;
+            /// <summary> Function to call when this object is spawned on the client.</summary>
             public SpawnFunction? spawnFunction;
+            /// <summary> Function to call when this object is destroyed on the client.</summary>
             public DestroyFunction? destroyFunction;
             
             public NetworkedObject(uint id_object, uint[] componentTypes, int[] componentOffsets, int sizeInBytes, SpawnFunction? spawnFunction = null, DestroyFunction? destroyFunction = null)
@@ -104,7 +114,9 @@ namespace Saket.Engine.Net.Snapshotting
         public struct UserNetworkedObject
         {
             public Type[] componentTypes;
+            
             public SpawnFunction? spawnFunction;
+            
             public DestroyFunction? destroyFunction;
 
             public UserNetworkedObject(Type[] componentTypes, SpawnFunction? spawnFunction = null, DestroyFunction? destroyFunction = null)

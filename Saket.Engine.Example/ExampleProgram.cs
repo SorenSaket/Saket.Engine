@@ -41,9 +41,6 @@ namespace Saket.Engine.Example
             resources.databases.Add(new DatabaseEmbedded(Assembly.GetExecutingAssembly()));
             resources.RegisterLoader(new LoaderTexture());
             resources.RegisterLoader(new LoaderShader());
-
-           
-
         }
 
         protected override void OnLoad()
@@ -56,13 +53,12 @@ namespace Saket.Engine.Example
             // Initialize graphics resources
             spriteRenderer = new SpriteRenderer(1000, entity_camera, resources.Load<Shader>("msdf"));
     
-            
             // ---- Texture Loading
             {
                 float ppu = 256f;
 
                 TextureGroups groups = new();
-
+                h
                 var tex = resources.Load<Texture>("msdffont");
                 tex.LoadToGPU();
                 tex.UnloadFromCPU();
