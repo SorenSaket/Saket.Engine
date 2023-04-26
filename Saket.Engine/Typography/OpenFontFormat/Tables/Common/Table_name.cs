@@ -4,13 +4,14 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Saket.Engine.Typography.OpenFontFormat.Serialization;
 
 namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 {
-	/// <summary>
-	/// Horizontal metrics 
-	/// </summary>
-	public class Table_name : Table
+    /// <summary>
+    /// Horizontal metrics 
+    /// </summary>
+    public class Table_name : Table
 	{
 		public struct NameRecord
 		{

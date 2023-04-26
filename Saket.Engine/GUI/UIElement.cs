@@ -8,10 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Saket.UI
-
 {
-
-
     [StructLayout(LayoutKind.Sequential)]
     public struct Button
     {

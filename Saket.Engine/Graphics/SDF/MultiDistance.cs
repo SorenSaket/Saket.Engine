@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.CompilerServices;
 
-namespace Saket.Engine.Graphics.MSDF
+
+namespace Saket.Engine.Graphics.SDF
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public struct MultiDistance
     {
         public float R, G, B;

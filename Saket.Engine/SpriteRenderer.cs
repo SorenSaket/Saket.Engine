@@ -309,9 +309,6 @@ namespace Saket.Engine
             GL.DrawArraysInstanced(PrimitiveType.Triangles, 0, 6, count);
         }
 
-
-
-
         [StructLayout(LayoutKind.Sequential)]
         public struct SpriteElement
         {

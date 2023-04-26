@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Saket.Engine.Typography.OpenFontFormat.Serialization;
 
 namespace Saket.Engine.Filetypes.Font.OpenFontFormat
 {

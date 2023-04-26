@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saket.Engine", "Saket.Engin
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saket.Engine.Example", "Saket.Engine.Example\Saket.Engine.Example.csproj", "{E7D4FAF7-4158-4946-B0A4-32B32A96C742}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saket.Engine.Tests", "Saket.Engine.Tests\Saket.Engine.Tests.csproj", "{7BB83F5A-F38C-439C-A80F-17D96F3297FC}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saket.Engine.Net", "Saket.Engine.Net\Saket.Engine.Net\Saket.Engine.Net.csproj", "{94683A19-ADD2-4BB0-8376-AB1EA9C44BBE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saket.Engine.Net.Litenetlib", "Saket.Engine.Net\Saket.Engine.Net.Litenetlib\Saket.Engine.Net.Litenetlib.csproj", "{D72BDEC2-4261-4C10-8E9C-F3C40902D458}"
@@ -25,6 +23,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saket.Serialization", "Saket.Serialization\Saket.Serialization\Saket.Serialization.csproj", "{45E75230-5FBD-4A7B-8128-F8BD0BEFE06A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saket.ECS", "Saket.ECS\Saket.ECS\Saket.ECS.csproj", "{F74F3914-9A97-4040-B7A6-38108D4D4D20}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saket.Engine.Tests", "Saket.Engine.Tests\Saket.Engine.Tests.csproj", "{5E73BC5C-7F5E-4615-B374-7D2021FE9DDE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -49,14 +49,6 @@ Global
 		{E7D4FAF7-4158-4946-B0A4-32B32A96C742}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E7D4FAF7-4158-4946-B0A4-32B32A96C742}.Release|x64.ActiveCfg = Release|Any CPU
 		{E7D4FAF7-4158-4946-B0A4-32B32A96C742}.Release|x64.Build.0 = Release|Any CPU
-		{7BB83F5A-F38C-439C-A80F-17D96F3297FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7BB83F5A-F38C-439C-A80F-17D96F3297FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7BB83F5A-F38C-439C-A80F-17D96F3297FC}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{7BB83F5A-F38C-439C-A80F-17D96F3297FC}.Debug|x64.Build.0 = Debug|Any CPU
-		{7BB83F5A-F38C-439C-A80F-17D96F3297FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7BB83F5A-F38C-439C-A80F-17D96F3297FC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7BB83F5A-F38C-439C-A80F-17D96F3297FC}.Release|x64.ActiveCfg = Release|Any CPU
-		{7BB83F5A-F38C-439C-A80F-17D96F3297FC}.Release|x64.Build.0 = Release|Any CPU
 		{94683A19-ADD2-4BB0-8376-AB1EA9C44BBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{94683A19-ADD2-4BB0-8376-AB1EA9C44BBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{94683A19-ADD2-4BB0-8376-AB1EA9C44BBE}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -105,6 +97,14 @@ Global
 		{F74F3914-9A97-4040-B7A6-38108D4D4D20}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F74F3914-9A97-4040-B7A6-38108D4D4D20}.Release|x64.ActiveCfg = Release|Any CPU
 		{F74F3914-9A97-4040-B7A6-38108D4D4D20}.Release|x64.Build.0 = Release|Any CPU
+		{5E73BC5C-7F5E-4615-B374-7D2021FE9DDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E73BC5C-7F5E-4615-B374-7D2021FE9DDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E73BC5C-7F5E-4615-B374-7D2021FE9DDE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5E73BC5C-7F5E-4615-B374-7D2021FE9DDE}.Debug|x64.Build.0 = Debug|Any CPU
+		{5E73BC5C-7F5E-4615-B374-7D2021FE9DDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E73BC5C-7F5E-4615-B374-7D2021FE9DDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E73BC5C-7F5E-4615-B374-7D2021FE9DDE}.Release|x64.ActiveCfg = Release|Any CPU
+		{5E73BC5C-7F5E-4615-B374-7D2021FE9DDE}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

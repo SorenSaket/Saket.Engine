@@ -1,4 +1,4 @@
-﻿This implementation of the Open Font Format provides loading and saving of the following types:
+﻿This implementation of the Open Font Format provides loading and saving of the following file types:
 .tff, .otf, .woff, .woff2
 
 
@@ -28,3 +28,11 @@ Other reference implementations used and referenced:
 https://github.com/freetype/freetype
 https://github.com/LayoutFarm/Typography
 https://github.com/MikePopoloski/SharpFont
+
+
+
+
+<hr/>
+
+ How the Open Font Format works
+ How ta

@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Saket.Engine.Typography.OpenFontFormat.Serialization;
 
 namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 {
-	/// <summary>
-	/// OS/2 Global font information table 
-	/// </summary>
-	public class Table_OS2 : Table
+    /// <summary>
+    /// OS/2 Global font information table 
+    /// </summary>
+    public class Table_OS2 : Table
 	{
 		/// <summary>
 		/// Type flags. 

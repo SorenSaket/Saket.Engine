@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Saket.UI.Text
+namespace Saket.Engine.GUI
 {
-    public static class Text
+    public struct Button
     {
-        
     }
 }

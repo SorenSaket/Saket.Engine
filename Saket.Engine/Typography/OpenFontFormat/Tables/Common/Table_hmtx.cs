@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Saket.Engine.Typography.OpenFontFormat.Serialization;
 
 namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 {
-	/// <summary>
-	/// Horizontal metrics 
-	/// </summary>
-	public class Table_hmtx : Table
+    /// <summary>
+    /// Horizontal metrics 
+    /// </summary>
+    public class Table_hmtx : Table
 	{
 		public struct longHorMetric
 		{

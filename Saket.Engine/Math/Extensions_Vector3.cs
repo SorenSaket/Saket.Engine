@@ -4,7 +4,7 @@ using System.Numerics;
 
 namespace Saket.Engine
 {
-    public static class EXtensions_Vector3
+    public static class Extensions_Vector3
     {
 
         // Math

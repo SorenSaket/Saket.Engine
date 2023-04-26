@@ -1,11 +1,12 @@
 ﻿using Saket.Engine.Filetypes.Font.OpenFontFormat;
 using Saket.Engine.Filetypes.Font.OpenFontFormat.Tables;
+using Saket.Engine.Typography.OpenFontFormat.Serialization;
 using Saket.Serialization;
 using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Saket.Engine.Filetypes.Font.TrueType
+namespace Saket.Engine.Typography
 {
     public class OpenFont
     {

@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using Saket.Engine.Filetypes.Font.OpenFontFormat;
 using Saket.Serialization;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Saket.Engine.Filetypes.Font.OpenFontFormat
+namespace Saket.Engine.Typography.OpenFontFormat.Serialization
 {
     public class OFFWriter
     {
@@ -24,7 +25,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
             }
             stream = input;
         }
-       
+
         /// <summary>
         /// Ensures that there is more than the number of bytes left in stream.
         /// Do this once before any read to ensure that you don't cross end of stream.
@@ -68,7 +69,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
 
             return true;
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected virtual void Advance(int length)
         {
@@ -80,7 +81,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
             }
 #endif
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ReadUInt8(ref byte value)
         {
@@ -112,7 +113,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
             {
                 fixed (byte* p = buffer)
                 {
-                    value = (ushort)(p[Position+1] << 8 & p[Position]);
+                    value = (ushort)(p[Position + 1] << 8 & p[Position]);
                     Advance(2);
                 }
             }
@@ -145,9 +146,9 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ReadFWORD(ref short value) { }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ReadUFWORD (ref ushort value) { }
+        public void ReadUFWORD(ref ushort value) { }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ReadF2DOT14(ref float value){}
+        public void ReadF2DOT14(ref float value) { }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ReadLONGDATETIME(ref long value) { }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

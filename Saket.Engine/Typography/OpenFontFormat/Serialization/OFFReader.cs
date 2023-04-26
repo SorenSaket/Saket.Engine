@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using Saket.Engine.Filetypes.Font.OpenFontFormat;
 using Saket.Serialization;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Saket.Engine.Filetypes.Font.OpenFontFormat
+namespace Saket.Engine.Typography.OpenFontFormat.Serialization
 {
     public class OFFReader
     {
@@ -24,8 +25,8 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
             }
             stream = input;
         }
-       
-        
+
+
         /// <summary>
         /// Ensures that there is more than the number of bytes left in stream.
         /// Do this once before any read to ensure that you don't cross end of stream.
@@ -69,7 +70,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
 
             return true;
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual void Advance(int length)
         {
@@ -81,7 +82,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
             }
 #endif
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ReadUInt8(ref byte value)
         {
@@ -114,7 +115,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
                 fixed (byte* p = buffer)
                 {
                     value = (ushort)(
-                        p[BufferPosition] << 8 | 
+                        p[BufferPosition] << 8 |
                         p[BufferPosition + 1]);
                     Advance(2);
                 }
@@ -157,11 +158,11 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
             {
                 fixed (byte* p = buffer)
                 {
-                    value = (int)(
+                    value = 
                       p[BufferPosition] << 16 |
                       p[BufferPosition + 1] << 8 |
                       p[BufferPosition + 2]
-                      );
+                      ;
                     Advance(3);
                 }
             }
@@ -177,7 +178,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
                         p[BufferPosition] << 24 |
                         p[BufferPosition + 1] << 16 |
                         p[BufferPosition + 2] << 8 |
-                        p[BufferPosition + 3]  
+                        p[BufferPosition + 3]
                         );
                     Advance(4);
                 }
@@ -190,19 +191,19 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
             {
                 fixed (byte* p = buffer)
                 {
-                    value = (int)(
+                    value = 
                          p[BufferPosition] << 24 |
                          p[BufferPosition + 1] << 16 |
                          p[BufferPosition + 2] << 8 |
                          p[BufferPosition + 3]
-                         );
+                         ;
                     Advance(4);
                 }
             }
 
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ReadFWORD(ref short value) 
+        public void ReadFWORD(ref short value)
         {
             unsafe
             {
@@ -214,7 +215,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
             }
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ReadUFWORD (ref ushort value)
+        public void ReadUFWORD(ref ushort value)
         {
             unsafe
             {
@@ -226,54 +227,55 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
             }
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ReadF2DOT14(ref float value){
-            unsafe
-            {
-                fixed (byte* p = buffer)
-                {
-                    value = (((short)(p[BufferPosition] << 8 | p[BufferPosition + 1])) / 16384f);
-                    Advance(2);
-                }
-            }
-        }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ReadLONGDATETIME(ref long value) 
+        public void ReadF2DOT14(ref float value)
         {
             unsafe
             {
                 fixed (byte* p = buffer)
                 {
-                    value = (long)(
-                        p[BufferPosition ] << 56 |
+                    value = (short)(p[BufferPosition] << 8 | p[BufferPosition + 1]) / 16384f;
+                    Advance(2);
+                }
+            }
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void ReadLONGDATETIME(ref long value)
+        {
+            unsafe
+            {
+                fixed (byte* p = buffer)
+                {
+                    value = 
+                        p[BufferPosition] << 56 |
                         p[BufferPosition + 1] << 48 |
                         p[BufferPosition + 2] << 40 |
                         p[BufferPosition + 3] << 32 |
                         p[BufferPosition + 4] << 24 |
                         p[BufferPosition + 5] << 16 |
                         p[BufferPosition + 6] << 8 |
-                        p[BufferPosition + 7]);
+                        p[BufferPosition + 7];
                     Advance(8);
                 }
             }
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ReadTag(ref Tag value) 
+        public void ReadTag(ref Tag value)
         {
             unsafe
             {
                 fixed (byte* p = buffer)
                 {
                     value = new Tag((uint)(
-                        p[BufferPosition ] << 24|
-                        p[BufferPosition + 1]  << 16|
-                        p[BufferPosition + 2]  << 8|
-                        p[BufferPosition + 3] ));
+                        p[BufferPosition] << 24 |
+                        p[BufferPosition + 1] << 16 |
+                        p[BufferPosition + 2] << 8 |
+                        p[BufferPosition + 3]));
                     Advance(4);
                 }
             }
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ReadOffset16(ref ushort value) 
+        public void ReadOffset16(ref ushort value)
         {
             unsafe
             {
@@ -287,7 +289,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat
             }
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ReadOffset32(ref uint value) 
+        public void ReadOffset32(ref uint value)
         {
             unsafe
             {

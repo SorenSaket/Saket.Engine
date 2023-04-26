@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Saket.Engine.Graphics.Shapes
+namespace Saket.Engine.Math.Geometry
 {
+    /// <summary>
+    /// Bezier cruve from 3 points
+    /// </summary>
     public struct QuadraticBezier : ICurve2D
     {
         /// <summary>
@@ -27,9 +26,9 @@ namespace Saket.Engine.Graphics.Shapes
             // corrent invalid control point
             if (c == a || c == b)
                 c = 0.5f * (a + b);
-            this.start = a;
-            this.end = b;
-            this.control = c;
+            start = a;
+            end = b;
+            control = c;
         }
 
         public Vector2 Evaluate(float t)
@@ -51,10 +50,10 @@ namespace Saket.Engine.Graphics.Shapes
             Vector2 qa = start - origin;
             Vector2 ab = control - start;
             Vector2 br = start + end - control - control;
-            
+
             int intersectionCount = Solver.SolveCubic(
-                Vector2.Dot(br, br), 
-                3f * Vector2.Dot(ab, br), 
+                Vector2.Dot(br, br),
+                3f * Vector2.Dot(ab, br),
                 2f * Vector2.Dot(ab, ab) + Vector2.Dot(qa, br),
                 Vector2.Dot(qa, ab),
                 out float t1,
@@ -63,14 +62,14 @@ namespace Saket.Engine.Graphics.Shapes
                 );
 
 
-            float minDistance = Mathh.NonZeroSign(Extensions_Vector2.Cross(ab, qa)) * qa.Length(); // distance from A
+            float minDistance = Mathf.NonZeroSign(Extensions_Vector2.Cross(ab, qa)) * qa.Length(); // distance from A
 
 
             t = -Vector2.Dot(qa, ab) / Vector2.Dot(ab, ab);
             {
-                float distance = Mathh.NonZeroSign(Extensions_Vector2.Cross(end - control, end - origin)) *
+                float distance = Mathf.NonZeroSign(Extensions_Vector2.Cross(end - control, end - origin)) *
                                (end - origin).Length(); // distance from B
-                if (Math.Abs(distance) < Math.Abs(minDistance))
+                if (MathF.Abs(distance) < MathF.Abs(minDistance))
                 {
                     minDistance = distance;
                     t = Vector2.Dot(origin - control, end - control) /
@@ -79,56 +78,59 @@ namespace Saket.Engine.Graphics.Shapes
             }
 
             Span<float> solutions = stackalloc float[3] { t1, t2, t3 };
-            
+
             for (var i = 0; i < intersectionCount; ++i)
             {
                 if (solutions[i] > 0 && solutions[i] < 1f)
                 {
                     Vector2 endpoint = start + 2f * solutions[i] * ab + solutions[i] * solutions[i] * br;
-                    float distance = Mathh.NonZeroSign(Extensions_Vector2.Cross(end - start, endpoint - origin)) *
+                    float distance = Mathf.NonZeroSign(Extensions_Vector2.Cross(end - start, endpoint - origin)) *
                                    (endpoint - origin).Length();
-                    if (Math.Abs(distance) <= Math.Abs(minDistance))
+                    if (MathF.Abs(distance) <= MathF.Abs(minDistance))
                     {
                         minDistance = distance;
                         t = solutions[i];
                     }
                 }
             }
-               
+
 
             if (t >= 0f && t <= 1f)
                 return new SignedDistance(minDistance, 0);
             if (t < 0.5f)
-                return new SignedDistance(minDistance, Math.Abs(Vector2.Dot(Vector2.Normalize(ab), Vector2.Normalize(qa))));
+                return new SignedDistance(minDistance, MathF.Abs(Vector2.Dot(Vector2.Normalize(ab), Vector2.Normalize(qa))));
             return new SignedDistance(minDistance,
-                Math.Abs(Vector2.Dot(Vector2.Normalize(end - control), Vector2.Normalize(end - origin))));
+                MathF.Abs(Vector2.Dot(Vector2.Normalize(end - control), Vector2.Normalize(end - origin))));
         }
 
-        public Bounds Bounds()
+        //TODO doc
+        public BoundingBox2D Bounds()
         {
-            throw new NotImplementedException();
-            /*
-            PointBounds(a, box);
-            PointBounds(b, box);
-            var bot = c - a - (b - c);
-            if (bot.X != 0)
+            BoundingBox2D bounds = BoundingBox2D.Infinite;
+            bounds.AddPoint(start);
+            bounds.AddPoint(end);
+
+            Vector2 bot = control - start - (end - control);
+
+            // null division guard
+            if (bot.X != 0f)
             {
-                var param = (c.X - a.X) / bot.X;
-                if (param > 0 && param < 1)
-                    PointBounds(Point(param), box);
+                var param = (control.X - start.X) / bot.X;
+
+                if (param > 0f && param < 1f)
+                    bounds.AddPoint(Evaluate(param));
             }
 
-            if (bot.Y != 0)
+            if (bot.Y != 0f)
             {
-                var param = (c.Y - a.Y) / bot.Y;
-                if (param > 0 && param < 1)
-                    PointBounds(Point(param), box);
-            }*/
+                var param = (control.Y - start.Y) / bot.Y;
+                if (param > 0f && param < 1f)
+                    bounds.AddPoint(Evaluate(param));
+            }
+
+            return bounds;
         }
 
-
-
-        
         public void SplitInThirds(out QuadraticBezier part1, out QuadraticBezier part2, out QuadraticBezier part3)
         {
             throw new NotImplementedException();

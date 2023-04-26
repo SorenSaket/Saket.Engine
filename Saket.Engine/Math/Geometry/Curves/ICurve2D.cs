@@ -1,43 +1,40 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Saket.Engine.Graphics.Shapes
+namespace Saket.Engine.Math.Geometry
 {
+
     public interface ICurve2D
     {
         /// <summary>
-        /// Returns a point on the curve at specfic t value
+        /// Returns a point on the spline at specfic t value
         /// </summary>
-        /// <param name="t">Percentage along the curve 0-1</param>
-        /// <returns>Point on curve</returns>
+        /// <param name="t">Percentage along the spline 0-1</param>
+        /// <returns>Point on spline</returns>
         public Vector2 Evaluate(float t);
 
         /// <summary>
         /// Returns the tanget at specfic t value
         /// </summary>
-        /// <param name="t"></param>
+        /// <param name="t">Percentage along the spline 0-1</param>
         /// <returns></returns>
         public Vector2 Direction(float t);
 
         /// <summary>
-        /// 
+        /// Returns the signed distance from spline to point
         /// </summary>
         /// <param name="point"></param>
-        /// <param name="t">The t value for the closest point on the curve.</param>
+        /// <param name="t">The t value for the closest point on the spline.</param>
         /// <returns></returns>
         public SignedDistance SignedDistance(Vector2 point, out float t);
-        
+
         /// <summary>
-		/// Converts a previously retrieved signed distance from origin to pseudo-distance.
-		/// </summary>
-		/// <param name="distance"></param>
-		/// <param name="origin"></param>
-		/// <param name="param"></param>
-		public void DistanceToPseudoDistance(ref SignedDistance distance, Vector2 origin, float param)
+        /// Converts a previously retrieved signed distance from origin to pseudo-distance.
+        /// </summary>
+        /// <param name="distance"></param>
+        /// <param name="origin"></param>
+        /// <param name="param"></param>
+        public void DistanceToPseudoDistance(ref SignedDistance distance, Vector2 origin, float param)
         {
             if (param < 0)
             {
@@ -47,7 +44,7 @@ namespace Saket.Engine.Graphics.Shapes
                 if (ts < 0)
                 {
                     var pseudoDistance = Extensions_Vector2.Cross(aq, dir);
-                    if (Math.Abs(pseudoDistance) <= Math.Abs(distance.Distance))
+                    if (MathF.Abs(pseudoDistance) <= MathF.Abs(distance.Distance))
                     {
                         distance.Distance = pseudoDistance;
                         distance.Dot = 0;
@@ -62,7 +59,7 @@ namespace Saket.Engine.Graphics.Shapes
                 if (ts > 0)
                 {
                     var pseudoDistance = Extensions_Vector2.Cross(bq, dir);
-                    if (Math.Abs(pseudoDistance) <= Math.Abs(distance.Distance))
+                    if (MathF.Abs(pseudoDistance) <= MathF.Abs(distance.Distance))
                     {
                         distance.Distance = pseudoDistance;
                         distance.Dot = 0;
@@ -70,11 +67,11 @@ namespace Saket.Engine.Graphics.Shapes
                 }
             }
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
-        /// <returns>AABB of the extremidies of the curve</returns>
-        public Bounds Bounds();
+        /// <returns>AABB of the extremidies of the spline</returns>
+        public BoundingBox2D Bounds();
     }
 }

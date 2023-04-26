@@ -1,6 +1,6 @@
 using System;
 
-namespace Saket.Engine.Graphics.MSDF
+namespace Saket.Engine.Graphics.SDF
 {
     /// <summary>
     ///  Edge color specifies which color channels an edge belongs to.

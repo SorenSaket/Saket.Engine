@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Saket.Engine.Typography.OpenFontFormat.Serialization;
 
 namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 {
-	/// <summary>
-	/// Horizontal header
-	/// </summary>
-	public class Table_hhea : Table
+    /// <summary>
+    /// Horizontal header
+    /// </summary>
+    public class Table_hhea : Table
 	{
 		public override uint Tag => 0x68686561;
 

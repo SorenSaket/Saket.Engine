@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Saket.Engine.Filetypes.Font.TrueType;
 using Saket.Engine.Resources.Loaders;
 using Saket.Engine.Typography;
 

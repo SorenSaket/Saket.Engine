@@ -1,15 +1,18 @@
-﻿using Saket.Engine.Graphics.Shapes;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Saket.Engine.Math;
 
-namespace Saket.Engine.Graphics.MSDF
+namespace Saket.Engine.Graphics.SDF
 {
-    public struct EdgePoint
+    /// <summary>
+    /// Describes a point along a curve.
+    /// </summary>
+    public struct CurvePoint
     {
-        public static readonly EdgePoint Default = new EdgePoint
+        public static readonly CurvePoint Default = new CurvePoint
         {
             MinDistance = SignedDistance.Infinite,
             NearEdge = -1,

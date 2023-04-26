@@ -1717,10 +1717,10 @@ namespace Saket.Graphics
 		{
 			amount = Math.Clamp(amount, 0, 1);
 			return new Color(
-				(int)Mathh.Lerp(value1.R, value2.R, amount),
-				(int)Mathh.Lerp(value1.G, value2.G, amount),
-				(int)Mathh.Lerp(value1.B, value2.B, amount),
-				(int)Mathh.Lerp(value1.A, value2.A, amount));
+				(int)Mathf.Lerp(value1.R, value2.R, amount),
+				(int)Mathf.Lerp(value1.G, value2.G, amount),
+				(int)Mathf.Lerp(value1.B, value2.B, amount),
+				(int)Mathf.Lerp(value1.A, value2.A, amount));
 		}
 
 
