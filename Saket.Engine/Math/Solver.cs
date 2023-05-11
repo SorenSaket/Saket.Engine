@@ -53,24 +53,24 @@ namespace Saket.Engine
                 return r;
             }
 
-            var discriminant = b * b - 4 * a * c;
+            var discriminant = b * b - 4f * a * c;
 
             // Two intersections
-            if (discriminant > 0)
+            if (discriminant > 0f)
             {
                 discriminant = MathF.Sqrt(discriminant);
-                intersection1 = (-b + discriminant) / (2 * a);
-                intersection2 = (-b - discriminant) / (2 * a);
+                intersection1 = (-b + discriminant) / (2f * a);
+                intersection2 = (-b - discriminant) / (2f * a);
                 return 2;
             }
-
+            // One intersection
             if (discriminant == 0)
             {
                 intersection1 = -b / (2 * a);
                 intersection2 = 0;
                 return 1;
             }
-
+            // No intersections
             intersection1 = intersection2 = 0;
             return 0;
         }
@@ -83,30 +83,35 @@ namespace Saket.Engine
             float r = (a * (2f * a2 - 9f * b) + 27f * c) / 54f;
             float r2 = r * r;
             float q3 = q * q * q;
-            
+
+            a *= 1f / 3f;
             
             if (r2 < q3)
             {
                 float t = r / MathF.Sqrt(q3);
-                if (t < -1) t = -1;
-                if (t > 1) t = 1;
+                if (t < -1f) t = -1f;
+                if (t > 1f) t = 1f;
                 t = MathF.Acos(t);
-                a /= 3;
                 q = -2 * MathF.Sqrt(q);
-                intersection1 = q * MathF.Cos(t / 3) - a;
-                intersection2 = q * MathF.Cos((t + 2 * MathF.PI) / 3) - a;
-                intersection3 = q * MathF.Cos((t - 2 * MathF.PI) / 3) - a;
+                intersection1 = q * MathF.Cos(t / 3f) - a;
+                intersection2 = q * MathF.Cos((t + 2f * MathF.PI) / 3f) - a;
+                intersection3 = q * MathF.Cos((t - 2f * MathF.PI) / 3f) - a;
                 return 3;
             }
 
-            float aa = -MathF.Pow(MathF.Abs(r) + MathF.Sqrt(r2 - q3), 1f / 3.0f);
-            if (r < 0) aa = -aa;
-            float bb = aa == 0 ? 0 : q / aa;
-            a /= 3;
-            intersection1 = aa + bb - a;
-            intersection2 = -0.5f * (aa + bb) - a;
-            intersection3 = 0.5f * MathF.Sqrt(3.0f) * (aa - bb);
-            return MathF.Abs(c) < 1e-14 ? 2 : 1;
+            float u = (r < 0 ? 1f : -1f) *MathF.Pow(MathF.Abs(r) + MathF.Sqrt(r2 - q3), 1f / 3.0f);
+            float v = u == 0 ? 0 : q / u;
+
+            intersection1 = (u + v) - a;
+            if(u == v || MathF.Abs(u - v) < 1e-12 * MathF.Abs(u + v))
+            {
+                intersection2 = -0.5f * (u + v) - a;
+                intersection3 = 0;
+                return 2;
+            }
+
+            intersection3 = intersection2= 0;
+            return 1;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

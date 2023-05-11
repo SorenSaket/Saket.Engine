@@ -193,7 +193,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
             glyphDataFormat = reader.ReadInt16()*/
         }
 
-        public override void Serialize(OFFWriter reader)
+        public override void Serialize(OFFWriter writer)
         {
             throw new NotImplementedException();
         }

@@ -11,6 +11,11 @@ namespace Saket.Engine.Math
         public static readonly SignedDistance Infinite = new SignedDistance(float.NegativeInfinity, 1);
 
         public float Distance;
+
+        /// <summary>
+        /// Dot is zero when the t value is outside of the range of 0..1
+        /// 
+        /// </summary>
         public float Dot;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

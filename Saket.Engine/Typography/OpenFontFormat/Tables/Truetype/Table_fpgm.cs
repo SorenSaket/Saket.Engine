@@ -11,9 +11,9 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
     public class Table_fpgm : Table
     {
 		public override uint Tag => 0x6670676d;
-
 		public int n;
 		public byte[] data;
+
 		public Table_fpgm(int n)
         {
 			this.n = n;
@@ -28,7 +28,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 			}
         }
 
-        public override void Serialize(OFFWriter reader)
+        public override void Serialize(OFFWriter writer)
         {
             throw new NotImplementedException();
         }

@@ -62,7 +62,7 @@ public Table_directory(uint tag, uint checksum, uint offset, uint length)
 			});
         }
 
-        public  void Serialize(OFFWriter reader)
+        public  void Serialize(OFFWriter writer)
         {
             throw new NotImplementedException();
         }

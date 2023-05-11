@@ -8,11 +8,11 @@ using Saket.Engine.Math;
 namespace Saket.Engine.Graphics.SDF
 {
     /// <summary>
-    /// Describes a point along a curve.
+    /// Describes a point along a spline.
     /// </summary>
-    public struct CurvePoint
+    public struct SplinePoint
     {
-        public static readonly CurvePoint Default = new CurvePoint
+        public static readonly SplinePoint Default = new SplinePoint
         {
             MinDistance = SignedDistance.Infinite,
             NearEdge = -1,

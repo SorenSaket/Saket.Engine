@@ -23,12 +23,9 @@ namespace Saket.Engine.Math.Geometry
 
         public QuadraticBezier(Vector2 a, Vector2 b, Vector2 c)
         {
-            // corrent invalid control point
-            if (c == a || c == b)
-                c = 0.5f * (a + b);
             start = a;
-            end = b;
-            control = c;
+            control = b;
+            end = c;
         }
 
         public Vector2 Evaluate(float t)
@@ -46,10 +43,9 @@ namespace Saket.Engine.Math.Geometry
             // todo check validity of code
             // Figure out how it works
 
-
             Vector2 qa = start - origin;
             Vector2 ab = control - start;
-            Vector2 br = start + end - control - control;
+            Vector2 br = end - control - ab;
 
             int intersectionCount = Solver.SolveCubic(
                 Vector2.Dot(br, br),
@@ -61,19 +57,21 @@ namespace Saket.Engine.Math.Geometry
                 out float t3
                 );
 
+            Vector2 epDir = Direction(0);
+            float minDistance = Mathf.NonZeroSign(Extensions_Vector2.Cross(epDir, qa)) * qa.Length(); // distance from A
 
-            float minDistance = Mathf.NonZeroSign(Extensions_Vector2.Cross(ab, qa)) * qa.Length(); // distance from A
+            t = -Vector2.Dot(qa, epDir) / Vector2.Dot(epDir, epDir);
 
 
-            t = -Vector2.Dot(qa, ab) / Vector2.Dot(ab, ab);
             {
-                float distance = Mathf.NonZeroSign(Extensions_Vector2.Cross(end - control, end - origin)) *
-                               (end - origin).Length(); // distance from B
+                epDir = Direction(1);
+                float distance =  (end - origin).Length(); // distance from B
                 if (MathF.Abs(distance) < MathF.Abs(minDistance))
                 {
-                    minDistance = distance;
-                    t = Vector2.Dot(origin - control, end - control) /
-                            Vector2.Dot(end - control, end - control);
+                    minDistance = Mathf.NonZeroSign(Extensions_Vector2.Cross(epDir, end - origin)) *distance  ;
+
+                    // taking a vector dot product of itself is equal to the square of its magnitude
+                    t = Vector2.Dot(origin - control, epDir) / Vector2.Dot(epDir, epDir);
                 }
             }
 
@@ -83,12 +81,11 @@ namespace Saket.Engine.Math.Geometry
             {
                 if (solutions[i] > 0 && solutions[i] < 1f)
                 {
-                    Vector2 endpoint = start + 2f * solutions[i] * ab + solutions[i] * solutions[i] * br;
-                    float distance = Mathf.NonZeroSign(Extensions_Vector2.Cross(end - start, endpoint - origin)) *
-                                   (endpoint - origin).Length();
-                    if (MathF.Abs(distance) <= MathF.Abs(minDistance))
+                    Vector2 qe = qa + 2f * solutions[i] * ab + solutions[i] * solutions[i] * br;
+                    float distance = (qe).Length();
+                    if (distance <= MathF.Abs(minDistance))
                     {
-                        minDistance = distance;
+                        minDistance = Mathf.NonZeroSign(Extensions_Vector2.Cross(ab+ solutions[i]*br, qe)) * distance;
                         t = solutions[i];
                     }
                 }
@@ -98,9 +95,8 @@ namespace Saket.Engine.Math.Geometry
             if (t >= 0f && t <= 1f)
                 return new SignedDistance(minDistance, 0);
             if (t < 0.5f)
-                return new SignedDistance(minDistance, MathF.Abs(Vector2.Dot(Vector2.Normalize(ab), Vector2.Normalize(qa))));
-            return new SignedDistance(minDistance,
-                MathF.Abs(Vector2.Dot(Vector2.Normalize(end - control), Vector2.Normalize(end - origin))));
+                return new SignedDistance(minDistance, MathF.Abs(Vector2.Dot(Vector2.Normalize(Direction(0)), Vector2.Normalize(qa))));
+            return new SignedDistance(minDistance, MathF.Abs(Vector2.Dot(Vector2.Normalize(Direction(1)), Vector2.Normalize(end - origin))));
         }
 
         //TODO doc

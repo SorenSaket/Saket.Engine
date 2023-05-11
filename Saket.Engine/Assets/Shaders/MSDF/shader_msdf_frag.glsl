@@ -19,5 +19,5 @@ void main() {
 	// The anti-aliased measure of how "inside" the fragment lies
 	float w = clamp(d / fwidth(d) + 0.5, 0.0, 1.0);
 	// Combining the two colors
-	outputColor = mix(vec4(0, 0, 0, 0),fsin_Tint, w);
+	outputColor = mix(vec4(0, 0, 0, 0), fsin_Tint, w);
 }

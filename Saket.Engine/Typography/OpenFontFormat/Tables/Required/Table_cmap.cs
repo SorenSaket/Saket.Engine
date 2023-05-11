@@ -25,8 +25,6 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
     {
 		public override uint Tag => 0x636d6170;
 
-
-
         #region Character Map Formats
 
 
@@ -41,7 +39,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
             public UInt16 length;
 
 			
-			public abstract void Serialize(OFFWriter reader);
+			public abstract void Serialize(OFFWriter writer);
 			public abstract void Deserialize(OFFReader reader);
 
 			/// <summary>
@@ -80,7 +78,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 				return glyphIdArray[index];
 			}
 
-			public override void Serialize(OFFWriter reader)
+			public override void Serialize(OFFWriter writer)
 			{
 				throw new NotImplementedException();
 			}
@@ -148,7 +146,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 			/// <summary> Glyph index array (arbitrary length). </summary>
             public UInt16[] glyphIdArray;
         
-			public override void Serialize(OFFWriter reader)
+			public override void Serialize(OFFWriter writer)
 			{
 				throw new NotImplementedException();
 			}

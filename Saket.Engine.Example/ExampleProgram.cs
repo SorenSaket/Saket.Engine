@@ -16,8 +16,12 @@ using Saket.Engine.Resources.Loaders;
 using Saket.Engine.Typography;
 using Saket.UI;
 using Saket.ECS;
-
-
+using Saket.Engine.Graphics.SDF;
+using Saket.Graphics;
+using Saket.Engine.Math.Geometry;
+using System.Collections;
+using System.Linq;
+using ImGuiNET;
 
 namespace Saket.Engine.Example
 {
@@ -35,7 +39,7 @@ namespace Saket.Engine.Example
         Pipeline pipeline_update = new Pipeline();
         Pipeline pipeline_render = new Pipeline();
         
-        //Dear_ImGui_Sample.ImGuiController controller_ui;
+        Dear_ImGui_Sample.ImGuiController controller_ui;
 
         ResourceManager resources;
 
@@ -53,28 +57,74 @@ namespace Saket.Engine.Example
             var entity_camera = world.CreateEntity();
             entity_camera.Add(new Transform2D());
             entity_camera.Add(new CameraOrthographic(32, 0.1f, 100f));
-
+            controller_ui = new Dear_ImGui_Sample.ImGuiController(1280, 720);
             // Initialize graphics resources
-            spriteRenderer = new SpriteRenderer(1000, entity_camera, resources.Load<Shader>("msdf"));
-    
+            spriteRenderer = new SpriteRenderer(1000, entity_camera, resources.Load<Shader>("sdf"));
+
+
+            float margin = 6f;
+            Shape shape = new Shape(new Spline2D[] { new Spline2D(new System.Collections.Generic.List<Vector2>()
+            {
+                new Vector2(margin,margin),
+                new Vector2(margin,32f-margin),
+                new Vector2(32f-margin,32f-margin),
+                new Vector2(32f-margin,margin),
+                new Vector2(margin,margin),
+            })});
+            
+
+            float[] color = new float[32*32];
+            SDFGenerator gen = new SDFGenerator();
+            gen.GenerateSDF(
+                new SDFGenerator.Settings() { type = SDFGenerator.SDFType.SDF, inverseY = false, inverseX = false },
+                color,
+                32,
+                shape,
+                0.5f,
+                Vector2.One,
+                Vector2.Zero
+            );
+            // remap values from 0..255
+            float min = float.PositiveInfinity;
+            float max = float.NegativeInfinity;
+            for (int i = 0; i < color.Length; i++)
+            {
+                if (color[i] < min)
+                    min = color[i];
+                if (color[i] > max) 
+                    max = color[i];
+            }
+
+            float r = MathF.Max(MathF.Abs(max), MathF.Abs(min));
+
+            for (int i = 0; i < color.Length; i++)
+            {
+                color[i] = Mathf.Remap(color[i], min, max, 0, 255);
+            }
+
+            byte[] bytes = color.SelectMany(x => new byte[4] { (byte)x, (byte)x, (byte)x, (byte)x }).ToArray();
+
             // ---- Texture Loading
             {
                 float ppu = 256f;
 
                 TextureGroups groups = new();
                 
-                var tex = resources.Load<Texture>("msdffont");
+                Texture tex = new Texture(bytes, 32, 32); // resources.Load<Texture>("sdf_circle"); // 
                 tex.LoadToGPU();
                 tex.UnloadFromCPU();
+
+
                 var sheet = new Sheet(1, 1, 1);
                 groups.Add(tex, sheet);
 
                 world.SetResource(groups);
             }
 
+
             var teste = world.CreateEntity();
             teste.Add(new Sprite(0, 0, int.MaxValue));
-            teste.Add(new Transform2D(0f, 0f, 0, 0, 100, 100));
+            teste.Add(new Transform2D(0f, 0f, 0, 0, 10, 10));
 
 
 
@@ -91,8 +141,8 @@ namespace Saket.Engine.Example
         protected override void OnUpdateFrame(FrameEventArgs args)
         {
             float delta = (float)args.Time;
-            /*controller_ui.Update(this, delta);
-            ImGui
+            controller_ui.Update(this, delta);
+            
             {
                 
 
@@ -122,7 +172,7 @@ namespace Saket.Engine.Example
                 ImGui.Text("ok i pull up");
                 ImGui.End();
             }
-            */
+            
             pipeline_update.Update(world, delta);
         }
 
@@ -135,7 +185,7 @@ namespace Saket.Engine.Example
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.StencilBufferBit | ClearBufferMask.DepthBufferBit);
 
             pipeline_render.Update(world, delta);
-            //controller_ui.Render();
+            controller_ui.Render();
             SwapBuffers();
         }
 
@@ -143,7 +193,7 @@ namespace Saket.Engine.Example
         {
             aspectRatio = (float)e.Width / (float)e.Height;
             GL.Viewport(0, 0, e.Width, e.Height);
-            //controller_ui.WindowResized(e.Width, e.Height);
+            controller_ui.WindowResized(e.Width, e.Height);
         }
     }
 }

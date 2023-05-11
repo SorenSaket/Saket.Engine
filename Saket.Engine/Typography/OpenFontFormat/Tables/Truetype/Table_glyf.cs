@@ -24,8 +24,8 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 		/// <summary>
 		/// Each glyph begins with this header. 
 		/// </summary>
-		public struct GlyphHeader
-		{
+		public struct GlyphHeader : IOFFSerializable
+        {
 			/// <summary>
 			/// If the number of contours is greater than or equal to zero, this is a
 			/// simple glyph; if negative, this is a composite glyph – the value -1
@@ -48,7 +48,22 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 			/// Maximum y for coordinate data. 
 			/// </summary>
 			public Int16 yMax;
-		}
+
+            public void Deserialize(OFFReader reader)
+            {
+				reader.LoadBytes(10);
+				reader.ReadInt16(ref numberOfContours);
+				reader.ReadInt16(ref xMin);
+				reader.ReadInt16(ref yMin);
+				reader.ReadInt16(ref xMax);
+				reader.ReadInt16(ref yMax);
+            }
+
+            public void Serialize(OFFWriter writer)
+            {
+                
+            }
+        }
 
 		public struct SimpleGlyph
 		{
@@ -140,10 +155,20 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 			/// Contour point y-coordinates. Coordinate for the first point is relative to (0,0); others are relative to previous point. 
 			/// </summary>
 			public Int16[] yCoordinates;
-		}
 
-		public struct CompositeGlyph
-		{
+            public void Serialize(OFFWriter writer)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void Deserialize(OFFReader reader, int numberOfContours)
+            {
+                
+            }
+        }
+
+		public struct CompositeGlyph : IOFFSerializable
+        {
 			[Flags]
 			public enum Flags : UInt16
 			{
@@ -205,7 +230,17 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 				/// </summary>
 				UNSCALED_COMPONENT_OFFSET = 0x1000
 			}
-		}
+
+			public void Deserialize(OFFReader reader)
+			{
+
+			}
+
+			public void Serialize(OFFWriter writer)
+            {
+                throw new NotImplementedException();
+            }
+        }
 
 		public override uint Tag => 0x676c7966;
 
@@ -225,7 +260,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 			}*/
         }
 
-        public override void Serialize(OFFWriter reader)
+        public override void Serialize(OFFWriter writer)
         {
             throw new NotImplementedException();
         }

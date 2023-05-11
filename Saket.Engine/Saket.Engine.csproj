@@ -45,7 +45,6 @@
 	  <Folder Include="Audio\" />
 	  <Folder Include="Math\Types\" />
 	  <Folder Include="Platform\Windows\" />
-	  <Folder Include="Typography\TrueType\" />
 	  <Folder Include="Typography\Rasterization\" />
 	</ItemGroup>
 

@@ -8,7 +8,7 @@ namespace Saket.Engine.Typography.OpenFontFormat.Serialization
 {
     internal interface IOFFSerializable
     {
-        public void Serialize(OFFWriter reader);
+        public void Serialize(OFFWriter writer);
         public void Deserialize(OFFReader reader);
     }
 }

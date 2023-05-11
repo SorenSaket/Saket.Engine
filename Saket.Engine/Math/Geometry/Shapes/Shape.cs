@@ -11,6 +11,10 @@ namespace Saket.Engine.Math.Geometry
         ///  <summary> Specifies whether the shape uses bottom-to-top (false) or top-to-bottom (true) Y coordinates. </summary>
         public bool InverseYAxis = false;
 
+        public Shape(IEnumerable<Spline2D> collection) : base(collection)
+        {
+        }
+
         /// <summary>
         /// Normalizes the shape geometry for distance field generation.
         /// If a contour only consists of one spline split in into thirds.

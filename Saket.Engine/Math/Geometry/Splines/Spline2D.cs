@@ -22,7 +22,12 @@ namespace Saket.Engine.Math.Geometry
         /// The list of points 
         /// </summary>
         public List<Vector2> points;
-        
+
+        public Spline2D( List<Vector2> points)
+        {
+            this.points = points;
+        }
+
         public ICurve2D this[int i]
         {
             get { return GetCurve(i); }
@@ -30,8 +35,8 @@ namespace Saket.Engine.Math.Geometry
 
         public QuadraticBezier GetCurve(int index)
         {
-            int si = index * 2 - 1;
-            return new QuadraticBezier(points[si], points[si + 1], points[si + 2]);
+            int si = index * 2;
+            return new QuadraticBezier(points[si], points[si + 1], points[(si + 2)%(points.Count)]);
         }
 
         /// <summary>
@@ -45,7 +50,7 @@ namespace Saket.Engine.Math.Geometry
         }
 
         /// <summary>
-        /// Computes the winding of the contour. Returns 1 if positive, -1 if negative.
+        /// Computes the winding of the contour. Returns 1 if clockwise, -1 if counter clockwise.
         /// </summary>
         /// <returns>Either -1, 1 depending on winding. returns 0 in case winding cannot be found.</returns>
         public int Winding()
@@ -53,59 +58,36 @@ namespace Saket.Engine.Math.Geometry
             if (Curves == 0)
                 return 0;
 
-            float total;
-
             switch (Curves)
             {
                 case 1:
-                    total = WindingSingle();
-                    break;
+                    {
+                        Vector2 a = this[0].Evaluate(0),
+                        b = this[0].Evaluate(1.0f / 3.0f),
+                        c = this[0].Evaluate(2.0f / 3.0f);
+                        return MathF.Sign(Shoelace(a, b) + Shoelace(b, c) + Shoelace(c, a));
+                    }
                 case 2:
-                    total = WindingDouble();
-                    break;
+                    {
+                        Vector2 a = this[0].Evaluate(0),
+                         b = this[0].Evaluate(.5f),
+                         c = this[1].Evaluate(0),
+                         d = this[1].Evaluate(.5f);
+
+                        return MathF.Sign(Shoelace(a, b) + Shoelace(b, c) + Shoelace(c, d) + Shoelace(d, a));
+                    }
                 default:
-                    total = WindingMultiple();
-                    break;
+                    var total = 0.0f;
+                    var prev = this[Curves - 1].Evaluate(0);
+                    foreach (var edge in this)
+                    {
+                        var cur = edge.Evaluate(0);
+                        total += Shoelace(prev, cur);
+                        prev = cur;
+                    }
+                    return MathF.Sign(total);
             }
-
-            return MathF.Sign(total);
         }
-
-        private float WindingMultiple()
-        {
-            throw new NotImplementedException();
-            var total = 0.0f;
-            /*var prev = this[Count - 1].Point(0);
-            foreach (var edge in this)
-            {
-                var cur = edge.Point(0);
-                total += Shoelace(prev, cur);
-                prev = cur;
-            }
-            */
-            return total;
-        }
-
-        private float WindingDouble()
-        {
-            throw new NotImplementedException();
-            /*
-            Vector2 a = this[0].Point(0),
-                b = this[0].Point(.5f),
-                c = this[1].Point(0),
-                d = this[1].Point(.5f);
-            return Shoelace(a, b) + Shoelace(b, c) + Shoelace(c, d) + Shoelace(d, a);*/
-        }
-
-        private float WindingSingle()
-        {
-            throw new NotImplementedException();
-            /*Vector2 a = this[0].Point(0),
-                 b = this[0].Point(1.0f / 3.0f),
-                 c = this[0].Point(2.0f / 3.0f);
-             return Shoelace(a, b) + Shoelace(b, c) + Shoelace(c, a);*/
-        }
-
         private static float Shoelace(Vector2 a, Vector2 b)
         {
             return (b.X - a.X) * (a.Y + b.Y);
@@ -171,10 +153,11 @@ namespace Saket.Engine.Math.Geometry
     }
 
 
-    public struct SplineEnumerator : IEnumerator<ICurve2D>
+    public struct SplineEnumerator : IEnumerator, IEnumerator<ICurve2D>
     {
         public object Current => spline.GetCurve(position);
- 
+        ICurve2D IEnumerator<ICurve2D>.Current => spline.GetCurve(position);
+
         int position = -1;
 
         private Spline2D spline;
@@ -193,6 +176,11 @@ namespace Saket.Engine.Math.Geometry
         public void Reset()
         {
             position = -1;
+        }
+
+        public void Dispose()
+        {
+            
         }
     }
 }

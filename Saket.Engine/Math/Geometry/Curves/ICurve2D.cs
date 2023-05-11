@@ -3,7 +3,9 @@ using System.Numerics;
 
 namespace Saket.Engine.Math.Geometry
 {
-
+    /// <summary>
+    /// A curve in two dimentions
+    /// </summary>
     public interface ICurve2D
     {
         /// <summary>
@@ -21,7 +23,7 @@ namespace Saket.Engine.Math.Geometry
         public Vector2 Direction(float t);
 
         /// <summary>
-        /// Returns the signed distance from spline to point
+        /// Returns the signed distance from curve to point
         /// </summary>
         /// <param name="point"></param>
         /// <param name="t">The t value for the closest point on the spline.</param>
@@ -32,14 +34,14 @@ namespace Saket.Engine.Math.Geometry
         /// Converts a previously retrieved signed distance from origin to pseudo-distance.
         /// </summary>
         /// <param name="distance"></param>
-        /// <param name="origin"></param>
-        /// <param name="param"></param>
-        public void DistanceToPseudoDistance(ref SignedDistance distance, Vector2 origin, float param)
+        /// <param name="point"></param>
+        /// <param name="t"></param>
+        public void DistanceToPseudoDistance(ref SignedDistance distance, Vector2 point, float t)
         {
-            if (param < 0)
+            if (t < 0)
             {
                 var dir = Vector2.Normalize(Direction(0));
-                var aq = origin - Evaluate(0);
+                var aq = point - Evaluate(0);
                 var ts = Vector2.Dot(aq, dir);
                 if (ts < 0)
                 {
@@ -51,10 +53,10 @@ namespace Saket.Engine.Math.Geometry
                     }
                 }
             }
-            else if (param > 1)
+            else if (t > 1)
             {
                 var dir = Vector2.Normalize(Direction(1));
-                var bq = origin - Evaluate(1);
+                var bq = point - Evaluate(1);
                 var ts = Vector2.Dot(bq, dir);
                 if (ts > 0)
                 {

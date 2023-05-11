@@ -14,8 +14,8 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 
 		public int n;
 		public Table_head.IndexToLocFormat locFormat;
-		public UInt16[] offsets_short;
-		public UInt32[] offsets_long;
+		public UInt16[]? offsets_short;
+		public UInt32[]? offsets_long;
 
 		public Table_loca(int numGlyphs, Table_head.IndexToLocFormat locFormat)
         {
@@ -27,7 +27,8 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 			if(locFormat == Table_head.IndexToLocFormat.@short)
 			{
 				offsets_short = new UInt16[n];
-				reader.LoadBytes(n*2);
+                offsets_long = null;
+                reader.LoadBytes(n*2);
 				for (int i = 0; i < n; i++)
 				{
 					reader.ReadOffset16(ref offsets_short[i]);
@@ -35,6 +36,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 			}
 			else
 			{
+				offsets_short = null;
 				offsets_long = new UInt32[n];
 				reader.LoadBytes(n*4);
 				for (int i = 0; i < n; i++)
@@ -45,7 +47,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 		
         }
 
-        public override void Serialize(OFFWriter reader)
+        public override void Serialize(OFFWriter writer)
         {
             throw new NotImplementedException();
         }

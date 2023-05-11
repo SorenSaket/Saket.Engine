@@ -64,7 +64,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 			reader.ReadUInt16(ref numberOfHMetrics);
 		}
 
-		public override void Serialize(OFFWriter reader)
+		public override void Serialize(OFFWriter writer)
 		{
 			throw new NotImplementedException();
 		}

@@ -4,11 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Saket.Engine.Typography.OpenFontFormat.Serialization;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 {
     /// <summary>
-    /// Horizontal metrics 
+    /// Maximum profile . This table establishes the memory requirements for this font. Fonts with CFF data must use Version 0.5 of this
+	/// table, specifying only the numGlyphs field.Fonts with TrueType outlines must use Version 1.0 of this table, where all data is required.
     /// </summary>
     public class Table_maxp : Table
 	{
@@ -75,7 +77,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 			}
 		}
 
-		public override void Serialize(OFFWriter reader)
+		public override void Serialize(OFFWriter writer)
 		{
 			throw new NotImplementedException();
 		}

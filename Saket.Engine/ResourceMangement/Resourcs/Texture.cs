@@ -22,9 +22,11 @@ namespace Saket.Engine
         public int handle = -1;
 
         public bool IsLoadedOnGPU;
-        public bool IsLoadedOnCPU => image != null;
+        public bool IsLoadedOnCPU => data != null;
 
-        public ImageResult image;
+        public byte[] data ;
+        public int width;
+        public int height;
 
         public void LoadToGPU()
         {
@@ -42,7 +44,7 @@ namespace Saket.Engine
             GL.BindTexture(TextureTarget.Texture2D, handle);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);
-            GL.TextureStorage2D(handle, 0, SizedInternalFormat.Rgba8, image.Width, image.Height);
+            GL.TextureStorage2D(handle, 0, SizedInternalFormat.Rgba8, width, height);
 
 
             // https://registry.khronos.org/OpenGL-Refpages/gl4/
@@ -50,10 +52,10 @@ namespace Saket.Engine
                 TextureTarget.Texture2D, 
                 0, 
                 PixelInternalFormat.Rgba,
-                image.Width, image.Height, 0, 
+                width, height, 0, 
                 OpenTK.Graphics.OpenGL4.PixelFormat.Rgba, 
                 PixelType.UnsignedByte,
-                image.Data
+                data
                 );
             
             GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
@@ -70,13 +72,24 @@ namespace Saket.Engine
 
         public void UnloadFromCPU()
         {
-            image = null;
+            data = null;
         }
+
+
 
 
         public Texture(ImageResult image)
         {
-            this.image = image;
+            this.data = image.Data;
+            this.width = image.Width;
+            this.height = image.Height;
+        }
+
+        public Texture(byte[] data, int width, int height)
+        {
+            this.data = data;
+            this.width = width;
+            this.height = height;
         }
     }
 }
