@@ -14,34 +14,39 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 
 		public int n;
 		public Table_head.IndexToLocFormat locFormat;
-		public UInt16[]? offsets_short;
-		public UInt32[]? offsets_long;
+		public UInt32[] offsets;
+
+
+		public uint GetLocation(int index)
+		{
+			return offsets[index];
+        }
 
 		public Table_loca(int numGlyphs, Table_head.IndexToLocFormat locFormat)
         {
 			this.locFormat = locFormat;
 			this.n = numGlyphs+1;
+			offsets= new uint[n];
         }
         public override void Deserialize(OFFReader reader)
         {
 			if(locFormat == Table_head.IndexToLocFormat.@short)
 			{
-				offsets_short = new UInt16[n];
-                offsets_long = null;
                 reader.LoadBytes(n*2);
-				for (int i = 0; i < n; i++)
+				ushort v = 0;
+
+                for (int i = 0; i < n; i++)
 				{
-					reader.ReadOffset16(ref offsets_short[i]);
-				}
+                    reader.ReadOffset16(ref v);
+					offsets[i] = (uint)(v << 1);
+                }
 			}
 			else
 			{
-				offsets_short = null;
-				offsets_long = new UInt32[n];
 				reader.LoadBytes(n*4);
 				for (int i = 0; i < n; i++)
 				{
-					reader.ReadOffset32(ref offsets_long[i]);
+					reader.ReadOffset32(ref offsets[i]);
 				}
 			}
 		

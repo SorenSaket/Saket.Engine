@@ -2,6 +2,7 @@
 using Saket.ECS;
 using Saket.Engine.Collections;
 using Saket.Engine.Components;
+using Saket.Engine.Math.Geometry;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -73,7 +74,9 @@ namespace Saket.Engine
         /// </summary>
         private SpriteElement[] elements;
 
-    
+
+
+        public Action<Shader>? ShaderFunction;
         /// <summary>
         ///  How many elements can fit into one batch.
         ///  The higher the value the more memory the buffers will take on cpu and gpu
@@ -88,14 +91,14 @@ namespace Saket.Engine
         private Queue<int> nextGroups = new();
         private Stack<int> renderedGroups = new();
 
-        public SpriteRenderer(int batchCount, Entity camera, Shader shader)
+        public SpriteRenderer(int batchCount, Entity camera, Shader shader, Action<Shader>? shaderFunction = null)
         {
             this.entity_camera = camera;
             this.batchCount = batchCount;
 
             // load the shader
             this.shader = shader;
-
+            this.ShaderFunction = shaderFunction;
             elements = new SpriteElement[batchCount];
 
             // create buffers
@@ -218,6 +221,8 @@ namespace Saket.Engine
             shader.SetMatrix4("view", cam.viewMatrix);
             shader.SetMatrix4("projection", cam.projectionMatrix);
 
+            ShaderFunction?.Invoke(shader);
+            
             // Query the world for matching enetities
             QueryResult entities = world.Query(query_spriteTransform);
             
@@ -276,8 +281,6 @@ namespace Saket.Engine
                
             } while (nextGroups.Count > 0);
         }
-
-
 
         public void DrawBatch(int targetTG, Texture texture, Sheet sheet, int count)
         {

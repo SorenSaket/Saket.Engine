@@ -32,10 +32,6 @@ namespace Saket.Engine.Typography
                 directories[i].Deserialize(reader);
             }
 
-
-
-
-
             for (int i = 0; i < offset.numTables; i++)
 			{
                 Table table;
@@ -70,28 +66,6 @@ namespace Saket.Engine.Typography
                 stream.Seek(directories[i].offset, SeekOrigin.Begin);
                 table.Deserialize(reader);
                 tables.Add(directories[i].tableName, table);
-            }
-
-
-            // Required Tables : cmap, head, hhea, hmtx, maxp, name, OS/2, post
-            Table_cmap cmap = (Table_cmap)tables["cmap"];
-            Table_head head = (Table_head)tables["head"];
-            Table_hhea hhea = (Table_hhea)tables["hhea"];
-            Table_hmtx hmtx = (Table_hmtx)tables["hmtx"];
-            Table_maxp maxp = (Table_maxp)tables["maxp"];
-            Table_name name = (Table_name)tables["name"];
-            Table_OS2 os2   = (Table_OS2)tables["os2"];
-
-            // Load Glyphs
-            if (directories.Any(x=>x.tableName == "glyf"))
-            {
-                Table_loca loca = new Table_loca(maxp.numGlyphs, head.indexToLocFormat);
-                stream.Seek(directories.First(x => x.tableName == "loca").offset, SeekOrigin.Begin);
-                loca.Deserialize(reader);
-
-
-                uint glyfOffset = directories.First(x => x.tableName == "glyf").offset;
-                
             }
         }
 

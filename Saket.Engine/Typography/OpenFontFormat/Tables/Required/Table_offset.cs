@@ -29,7 +29,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
         public UInt16 entrySelector;
 
         public UInt16 rangeShift;
-
+        
         public Table_offset(uint scalarType, ushort numTables, ushort searchRange, ushort entrySelector, ushort rangeShift)
         {
             this.scalarType = scalarType;

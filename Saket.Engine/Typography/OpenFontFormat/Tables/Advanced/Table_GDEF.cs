@@ -11,7 +11,7 @@ namespace Saket.Engine.Filetypes.Font.Tables
     /// Contains glyph definition data. Indicates glyph classes, caret locations for ligatures, and provides an attachment point cache. (Attachment points must be specified in GPOS too.)
     /// Reference: <see href="https://learn.microsoft.com/typography/opentype/spec/gdef"></see>
     /// </summary>
-    public struct Table_GDEF
+    public class Table_GDEF
     {
         /// <summary>
         /// Major version of the GDEF table

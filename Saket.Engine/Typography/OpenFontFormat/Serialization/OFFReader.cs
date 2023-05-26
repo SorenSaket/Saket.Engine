@@ -305,6 +305,6 @@ namespace Saket.Engine.Typography.OpenFontFormat.Serialization
                 }
             }
         }
-
+            
     }
 }

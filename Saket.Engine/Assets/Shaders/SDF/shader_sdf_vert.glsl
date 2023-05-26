@@ -2,6 +2,7 @@
 
 uniform mat4 view;
 uniform mat4 projection;
+uniform float time;
 
 // Generic data
 layout(location = 0) in vec2 quad;
@@ -23,7 +24,7 @@ layout(location = 6) in vec4 color;
 // Output
 layout(location = 0) out vec2 fsin_TexCoords;
 layout(location = 1) out vec4 fsin_Tint;
-
+layout(location = 2) out float fsin_Time;
 
 void main()
 {
@@ -34,4 +35,5 @@ void main()
     gl_Position = projection * view * vec4(pos.xy + srcQuad * size, pos.z, 1);
 	fsin_Tint = color;
 	fsin_TexCoords = (UV * boxes[box].zw) + boxes[box].xy;
+    fsin_Time = time;
 }

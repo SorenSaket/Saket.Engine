@@ -7,14 +7,11 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 {
     // Freetype implementations of cmap table fomats:
     // https://github.com/freetype/freetype/blob/29818e7ab436ae50d47c5e5a1cee41c5c12d5d69/src/sfnt/ttcmap.c
-    //
+
+    // Apple Truetype Reference Manual
+    // https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6cmap.html
 
     // The language field must be set to zero for all cmap subtables whose platform IDs are other than Macintosh (platform  ID  1).
-    //
-    //
-    //
-    //
-    //
 
 
     /// <summary>
@@ -38,23 +35,14 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 			public UInt16 language;
             public UInt16 length;
 
-			
 			public abstract void Serialize(OFFWriter writer);
 			public abstract void Deserialize(OFFReader reader);
 
 			/// <summary>
-			/// Lookup a single index from character code.
-			/// If the glyph does not exists 0 returns.
-			/// </summary>
-			/// <param name="characterCode"></param>
-			/// <returns></returns>
-			public abstract uint Lookup (uint characterCode);
-			/// <summary>
 			/// Returns a dictionary mapping charactercodes to glyph indexes.
 			/// </summary>
-			/// <param name="reader"></param>
 			/// <returns></returns>
-			public abstract Dictionary<int,int> MapToDictionary(OFFReader reader);
+			public abstract Dictionary<int,int> MapToDictionary();
 		}
 
         /// <summary>
@@ -70,13 +58,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
             /// </summary>
             public byte[] glyphIdArray;
 
-			public override uint Lookup(uint index)
-			{
-				if(index > byte.MaxValue)
-					return 0;
-
-				return glyphIdArray[index];
-			}
+			
 
 			public override void Serialize(OFFWriter writer)
 			{
@@ -96,13 +78,15 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 				}
 			}
 
-			public override Dictionary<int, int> MapToDictionary(OFFReader reader)
-			{
-				throw new NotImplementedException();
-			}
-		}
-
-        public struct CharacterMapFormat2
+            public override Dictionary<int, int> MapToDictionary()
+            {
+                throw new NotImplementedException();
+            }
+        }
+        /// <summary>
+        /// Format 2: High byte mapping through table
+        /// </summary>
+        public class CharacterMapFormat2
         {
             public UInt16 format;
             public UInt16 length;
@@ -117,17 +101,18 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
                 public UInt16 idRangeOffset;
             }
         }
-
-		/// <summary>
-		/// Format 4: Segment mapping to delta values.
-		/// 
-		/// </summary>
+        /// <summary>
+        /// Format 4: Segment mapping to delta values.
+        /// 
+        /// Each segment is described by a startCode, an endCode, an idDelta and an idRangeOffset. These are used for mapping the character codes in the segment. The segments are sorted in order of increasing endCode values.
+        /// 
+        /// Type 4 cmaps are required for backwards compatibility in Windows and are generally useful for BMP-only Unicode fonts. The redundancies in the header are for historical purposes—by pre-calculating these values, the performance of the lookup algorithm was substantially improved on older, slower processors.
+        /// </summary>
         public class CharacterMapFormat4 : CharacterMap
-
         {
-			public override UInt16 format => 4; 
+			public override UInt16 format => 4;
 
-			/// <summary> 2 x segCount </summary>
+            /// <summary> 2 x segCount </summary>
             public UInt16 segCountX2;
 			/// <summary> 2 x (2**floor(log2(segCount))) </summary>
             public UInt16 searchRange;
@@ -135,6 +120,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 			public UInt16 entrySelector;
 			/// <summary> 2 x segCount - searchRange </summary>
             public UInt16 rangeShift;
+
 			/// <summary> End characterCode for each segment, last=0xFFFF. </summary>
             public UInt16[] endCode;
 			/// <summary> Start character code for each segment. </summary>
@@ -143,10 +129,17 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
             public Int16[] idDelta;
 			/// <summary> Offsets into glyphIdArray or 0. </summary>
             public UInt16[] idRangeOffset;
+
 			/// <summary> Glyph index array (arbitrary length). </summary>
             public UInt16[] glyphIdArray;
-        
-			public override void Serialize(OFFWriter writer)
+
+            public override Dictionary<int, int> MapToDictionary() => mapping;
+
+
+            Dictionary<int, int> mapping = new();
+
+
+            public override void Serialize(OFFWriter writer)
 			{
 				throw new NotImplementedException();
 			}
@@ -180,9 +173,9 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 					reader.ReadInt16(ref idDelta[i]);
 
 				// The length of the glyphIdArray can be calculated by taking the 
-				//  sum of ranges which idRangeOffset is not equals zero 
+				// sum of ranges which idRangeOffset is not equals zero 
 				int glyphIdArrayLength = 0;
-
+                //var position_idRangeOffset = reader.BufferPosition;
 
 				idRangeOffset =  new ushort[segmentCount];
 				for (int i = 0; i < segmentCount; i++){
@@ -193,84 +186,59 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 						glyphIdArrayLength += endCode[i]-startCode[i]+1;
 					}
 				}
+                //var position_glyphIdArray = reader.BufferPosition;
 
-				reader.LoadBytes(glyphIdArrayLength*2);
+                reader.LoadBytes(glyphIdArrayLength*2);
 				glyphIdArray = new ushort[glyphIdArrayLength];
 				for (int i = 0; i < glyphIdArrayLength; i++){
 					reader.ReadUInt16(ref glyphIdArray[i]);
 				}
+
+                mapping = new();
+
+                // Add all mapppings
+                // https://stackoverflow.com/questions/57461636/how-to-correctly-understand-truetype-cmaps-subtable-format-4
+                // iterate trough all segements
+                for (int i = 0; i < segmentCount; i++)
+                {
+                    // If the idRangeOffset value for the segment is not 0, the mapping of the character codes relies on the glyphIndexArray. 
+                    if (idRangeOffset[i] != 0)
+                    {
+                        var end = endCode[i];
+                        var delta = idDelta[i];
+                        for (int index = startCode[i]; index <= end; index++)
+                        {
+                            var idIndex = (idRangeOffset[i] - (segmentCount * 2 - i * 2) + sizeof(ushort))/2;
+                            var glyphID = glyphIdArray[idIndex + index - startCode[i]] % ushort.MaxValue;
+                            
+                            if(glyphID != 0)
+                            {
+                                var glyphIndex = (glyphID + delta) % ushort.MaxValue;
+                                if (glyphIndex != 0)
+                                    mapping.Add(index, glyphIndex);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var end = endCode[i];
+                        var delta = idDelta[i];
+                        for (int index = startCode[i]; index <= end; index++)
+                        {
+                            var glyphIndex = (index + delta) % ushort.MaxValue;
+
+                            if (glyphIndex != 0)
+                                mapping.Add(index, glyphIndex);
+                        }
+                    }
+                }
 			}
-
-			public override uint Lookup (uint characterCode)
-			{
-				throw new NotImplementedException();
-			}
-			public override Dictionary<int,int> MapToDictionary(OFFReader reader)
-			{
-				throw new NotImplementedException();
-			}
-/*
-			public override uint Lookup (uint characterCode)
-			{
-				if(characterCode > ushort.MaxValue)
-					return 0;
-
-				
-				int i = Array.BinarySearch(endCode, (ushort)characterCode);
-				if(i < 0)
-					return 0;
-				if (startCode[i] > characterCode)
-				{
-					return 0;
-				}
-  			
-				
-				if (idRangeOffset[i] == 0)
-				{
-					return (ushort)((characterCode + idDelta[i]) % 65536);
-				}
-				else
-				{
-					
-				}
-
-
-
-				
-			}
-			public override Dictionary<int,int> MapToDictionary(OFFReader reader)
-			{
-				Dictionary<int,int> r = new();
-				// Add all mapppings
-				// iterate trough all segements
-				for (int i = 0; i < segCountX2/2; i++)
-				{
-					// If this range uses glyphIdArray for lookup
-					if(idRangeOffset[i] != 0)
-					{
-						var currentOffset = reader.stream.Position;
-						return glyphIndexArray[i - segCount + idRangeOffset[i]/2 + (c - startCode[i])]
-					}
-					// Simple range mapping
-					else
-					{
-						var end = endCode[i];
-						var delta = idDelta[i];
-						for (var index = startCode[i]; index <= end; index++) {
-							var glyphIndex = (index + idDelta[i]) % ushort.MaxValue;
-
-							if (glyphIndex != 0)
-								r.Add(index, glyphIndex);
-						}
-					}
-					reader.ReadUInt8(ref glyphIdArray[i]);
-				}
-			}*/
-
 
 		}
-
-        public struct CharacterMapFormat6
+        /// <summary>
+        /// 
+        /// </summary>
+        public class CharacterMapFormat6
         {
             public UInt16 format;
             public UInt16 length;
@@ -279,8 +247,10 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
             public UInt16 tryCount;
             public UInt16[] glyphIdArray;
         }
-
-        public struct CharacterMapFormat8
+        /// <summary>
+        /// 
+        /// </summary>
+        public class CharacterMapFormat8
         {
             public UInt16 format;
             public UInt16 reserved;
@@ -295,7 +265,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
         /// <summary>
         /// Format 10: Trimmed array
         /// </summary>
-        public struct CharacterMapFormat10
+        public class CharacterMapFormat10
         {
             public UInt16 format;
             public UInt16 reserved;
@@ -305,8 +275,10 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
             public UInt32 numChars;
             public UInt16[] glyphs;
         }
-
-        public struct CharacterMapFormat12
+        /// <summary>
+        /// 
+        /// </summary>
+        public class CharacterMapFormat12
         {
             public UInt16 format;
             public UInt16 reserved;
@@ -318,7 +290,7 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
         /// <summary>
         /// Format 13: Many-to-one range mappings 
         /// </summary>
-        public struct CharacterMapFormat13
+        public class CharacterMapFormat13
         {
             public UInt16 format;
             public UInt16 reserved;
@@ -327,11 +299,10 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
             public UInt32 numGroups;
             public MapGroup[] groups;
         }
-
         /// <summary>
         /// Format 14: Unicode variation sequences
         /// </summary>
-        public struct CharacterMapFormat14
+        public class CharacterMapFormat14
         {
             public UInt16 format;
             public UInt32 length;
@@ -415,11 +386,10 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 
         #endregion
 
-
-        ushort version;
-        ushort numTables;
-        EncodingRecord[] encodingRecords;
-		CharacterMap[] characterMaps;
+        public ushort version;
+        public ushort numTables;
+        public EncodingRecord[] encodingRecords;
+		public CharacterMap[] characterMaps;
 
 
         public override void Serialize(OFFWriter writer)
@@ -463,10 +433,9 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 						characterMaps[i].Deserialize(reader);
 						break;
 					default:
-						throw new NotImplementedException("Other cmap subformats coming soon.");
+						throw new NotImplementedException("Cmap subformat not supported");
 				}
             }
         }
-        
     }
 }
