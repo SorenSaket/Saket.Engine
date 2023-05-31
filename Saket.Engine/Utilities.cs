@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlTypes;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Timers;
 
 namespace Saket.Engine
 {
+    /// <summary>
+    /// Utilities and extensions
+    /// </summary>
     public static class Utilities
     {
         public static bool Unwrap<T>(this Nullable<T> nullable, out T value) where T : struct
@@ -52,6 +49,14 @@ namespace Saket.Engine
 		}
 
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="enumerable"></param>
+        /// <param name="predicate"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static bool FirstOrFalse<T>(this IEnumerable<T> enumerable, Predicate<T> predicate, out T value)
         {
             foreach (var item in enumerable)
@@ -63,6 +68,8 @@ namespace Saket.Engine
                 }
 
             }
+            // Value will be null if returns false
+            // Ignore with !
             value = default(T)!;
             return false;
         }

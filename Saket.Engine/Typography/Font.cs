@@ -6,10 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using Saket.Engine.Typography.TrueType;
 using System.Numerics;
 
 namespace Saket.Engine.Typography
@@ -23,7 +19,7 @@ namespace Saket.Engine.Typography
         // Character mapping, glyphs
         // Layout info
 
-        public Dictionary<char,Shape> glyphs = new Dictionary<char,Shape>();
+        public Dictionary<char, Shape> glyphs = new Dictionary<char, Shape>();
 
 
         public void LoadFromOFF(Stream stream)
@@ -41,7 +37,6 @@ namespace Saket.Engine.Typography
                 d.Deserialize(reader);
                 directories.Add(d.tableName, d);
             }
-
 
             T LoadTable<T>(string name, T table) where T : Table
             {
@@ -83,15 +78,11 @@ namespace Saket.Engine.Typography
             glyphs.Add('a', ReadGlyth(reader));
         }
 
-
-        
         public Shape ReadGlyth(OFFReader reader)
         {
             // Read header of glyph
             Table_glyf.GlyphHeader gh = new Table_glyf.GlyphHeader();
             gh.Deserialize(reader);
-
-
 
             if (gh.numberOfContours >= 0)
             {
@@ -138,16 +129,12 @@ namespace Saket.Engine.Typography
                     splines[i] = new Spline2D(points);
                 }
 
-
-
                 return new Shape(splines);
             }
             else
             {
                 // Composite Glyph
             }
-
-
 
             return null;
         }

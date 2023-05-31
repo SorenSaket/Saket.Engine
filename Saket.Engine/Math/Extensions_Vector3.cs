@@ -6,7 +6,6 @@ namespace Saket.Engine
 {
     public static class Extensions_Vector3
     {
-
         // Math
         public static Vector3 Abs(this Vector3 v)
         {

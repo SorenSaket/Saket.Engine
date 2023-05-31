@@ -6,7 +6,9 @@ using System.Numerics;
 
 namespace Saket.Engine
 {
-    // A simple class meant to help create shaders.
+    /// <summary>
+    /// A simple class meant to help create shaders.
+    /// </summary>
     public class Shader 
     {
         public readonly int Handle;

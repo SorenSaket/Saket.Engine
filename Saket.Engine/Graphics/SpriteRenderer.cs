@@ -167,7 +167,6 @@ namespace Saket.Engine
             GL.BufferData(BufferTarget.ShaderStorageBuffer, batchCount * sizeof(float) * 4, IntPtr.Zero, BufferUsageHint.DynamicDraw);
         }
 
-
         public void SystemSpriteAnimation(World world)
         {
 
@@ -190,7 +189,6 @@ namespace Saket.Engine
                 entity.Set(animator);
             }
         }
-
 
 
         /// <summary>

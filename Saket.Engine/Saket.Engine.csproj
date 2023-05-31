@@ -43,7 +43,6 @@
 	  <Folder Include="Image\PNG\" />
 	  <Folder Include="IMGUI\" />
 	  <Folder Include="Audio\" />
-	  <Folder Include="Math\Types\" />
 	  <Folder Include="Platform\Windows\" />
 	  <Folder Include="Typography\Rasterization\" />
 	</ItemGroup>

@@ -65,10 +65,15 @@ namespace Saket.Engine.Example
         protected override void OnLoad()
         {
             // Font testing
-            var stream = File.Open("C:\\Users\\saket\\data\\projects\\Saket.Engine\\Saket.Engine\\Assets\\Fonts\\OpenSans-Regular.ttf", FileMode.Open);
-
-            font = new Font();
-            font.LoadFromOFF(stream);
+            if(resources.TryGetStream("OpenSans-Regular.ttf", out var stream))
+            {
+                font = new Font();
+                font.LoadFromOFF(stream);
+            }
+            else
+            {
+                throw new Exception("Font not found");
+            }
 
             
 

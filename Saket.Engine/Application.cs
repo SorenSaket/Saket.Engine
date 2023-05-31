@@ -9,7 +9,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
 namespace Saket.Engine
 {
     public struct ApplicationInfo
@@ -26,7 +25,7 @@ namespace Saket.Engine
     }
 
     /// <summary>
-    /// derive you application entry point from here
+    /// Derive you application entry point from here
     /// </summary>
     public abstract class Application : GameWindow
     {

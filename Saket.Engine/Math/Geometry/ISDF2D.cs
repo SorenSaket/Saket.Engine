@@ -4,6 +4,6 @@ namespace Saket.Engine.Math.Geometry
 {
     public interface ISDF2D
     {
-        public float Distance(Vector2 point);
+        public float SignedDistance(Vector2 point);
     }
 }

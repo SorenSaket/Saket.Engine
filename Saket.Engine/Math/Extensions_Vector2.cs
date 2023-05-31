@@ -1,4 +1,5 @@
 using Newtonsoft.Json.Linq;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
@@ -35,6 +36,18 @@ namespace Saket.Engine
         {
             var len = value.Length();
             return len == 0f ? new Vector2(0f, -1f) : new Vector2(value.Y / len, -value.X / len);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector2 Floor(this Vector2 vector)
+        {
+            return new Vector2(MathF.Floor(vector.X), MathF.Floor(vector.Y));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector2 Round(this Vector2 vector)
+        {
+            return new Vector2(MathF.Round(vector.X), MathF.Round(vector.Y));
         }
     }
 }
