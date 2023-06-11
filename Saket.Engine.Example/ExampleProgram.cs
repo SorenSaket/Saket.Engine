@@ -49,7 +49,7 @@ namespace Saket.Engine.Example
 
         ResourceManager resources;
 
-
+        float fill = -0.5f;
         Font font;
 
         public ExampleProgram(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings) : base(gameWindowSettings, nativeWindowSettings)
@@ -58,8 +58,10 @@ namespace Saket.Engine.Example
             resources.databases.Add(new DatabaseEmbedded(Assembly.GetExecutingAssembly()));
             resources.RegisterLoader(new LoaderTexture());
             resources.RegisterLoader(new LoaderShader());
-        }
 
+
+        }
+        
         protected override void OnLoad()
         {
             world = new World();
@@ -122,12 +124,14 @@ namespace Saket.Engine.Example
                     generator.GenerateSDF(g, dataAsSpan, size, atlas[index_atlas].Position, atlas[index_atlas].Size, 1, new Vector2(ppu), Vector2.Zero);
                     index_atlas++;
                 }
-
+                var a = GL.GetError();
                 var handle = data.Pin();
                 unsafe
                 {
                     texture.Upload((nint)handle.Pointer);
+                    texture.Replace((nint)handle.Pointer);
                 }
+
                 handle.Dispose();
                 // ---- Texture Loading
                 {
@@ -151,14 +155,14 @@ namespace Saket.Engine.Example
             // Initialize graphics resources
             spriteRenderer = new SpriteRenderer(1000, entity_camera, resources.Load<Shader>("sdf"), (shader) =>
             {
-                shader.SetFloat("time", 0);
+                shader.SetFloat("time", fill);
             });
 
 
 
             var teste = world.CreateEntity();
             teste.Add(new Sprite(0, 0, int.MaxValue));
-            teste.Add(new Transform2D(0f, 0f, 0, 0, 1, 1));
+            teste.Add(new Transform2D(0f, 0f, 0, 0, 10, 10));
 
             Stage stage_update = new Stage();
             //stage_update.Add()
@@ -190,10 +194,10 @@ namespace Saket.Engine.Example
                         ImGui.EndMenu();
                     }
                     ImGui.EndMenuBar();
-                }/*
+                }
                 ImGui.SliderFloat("Fill Percentage", ref fill, -1, 1);
                 //ImGui.GetWindowDrawList().AddImage()
-                if (ImGui.SliderFloat2("Offset",ref offset, -sdfSize, sdfSize)){
+                /*if (ImGui.SliderFloat2("Offset",ref offset, -sdfSize, sdfSize)){
                     GenerateSDF();
                 }
                 if (ImGui.SliderFloat("Scale", ref scale, 0, 1))
@@ -219,7 +223,7 @@ namespace Saket.Engine.Example
                         ImGui.EndTable();
                     }
                 }*/
-           
+
 
 
                 ImGui.End();

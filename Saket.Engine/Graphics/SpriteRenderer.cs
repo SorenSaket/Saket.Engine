@@ -164,7 +164,7 @@ namespace Saket.Engine
 
 
 
-            GL.BufferData(BufferTarget.ShaderStorageBuffer, batchCount * sizeof(float) * 4, IntPtr.Zero, BufferUsageHint.DynamicDraw);
+            //GL.BufferData(BufferTarget.ShaderStorageBuffer, batchCount * sizeof(float) * 4, IntPtr.Zero, BufferUsageHint.DynamicDraw);
         }
 
         public void SystemSpriteAnimation(World world)

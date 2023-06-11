@@ -58,7 +58,6 @@ namespace Saket.Engine
             }
             else
             {
-                GL.Enable(EnableCap.Texture2D);
                 handle = GL.GenTexture();
                 GL.ActiveTexture(TextureUnit.Texture0);
 
@@ -68,10 +67,10 @@ namespace Saket.Engine
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)filter);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)filter);
 
-                GL.TextureStorage2D(handle, 0, sizedInternalFormat, width, height);
+                GL.TextureStorage2D(handle, 1, sizedInternalFormat, width, height);
 
                 // https://registry.khronos.org/OpenGL-Refpages/gl4/
-                GL.TexImage2D(
+                /*GL.TexImage2D(
                     TextureTarget.Texture2D,
                     0,
                     pixelInternalFormat,
@@ -79,9 +78,9 @@ namespace Saket.Engine
                     pixelFormat,
                     pixelType,
                     dataPtr
-                    );
+                    );*/
 
-                GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+                //GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
             }
         }
 
