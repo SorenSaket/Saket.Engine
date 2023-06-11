@@ -1,3 +1,4 @@
+using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
 
@@ -63,7 +64,7 @@ namespace Saket.Engine.Math.Geometry
         /// Computes the shape's bounding box.
         /// </summary>
         /// <param name="box"></param>
-        public void Bounds(float[] box)
+        public Vector4 Bounds()
         {
             throw new NotImplementedException();
             /*

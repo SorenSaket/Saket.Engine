@@ -15,11 +15,12 @@ namespace Saket.Engine.Typography
     /// </summary>
     public class Font
     {
+        public int unitsPerEm;
+
 		// This should store everything nessary to render the text
         // Character mapping, glyphs
         // Layout info
-
-        public Dictionary<char, Shape> glyphs = new Dictionary<char, Shape>();
+        public Dictionary<char, Glyph> glyphs = new Dictionary<char, Glyph>();
 
 
         public void LoadFromOFF(Stream stream)
@@ -53,6 +54,9 @@ namespace Saket.Engine.Typography
             Table_maxp maxp = LoadTable("maxp", new Table_maxp());
 
             Table_head head = LoadTable("head", new Table_head());
+
+            unitsPerEm = head.unitsPerEm;
+
             //Table_hhea hhea = LoadTable("hhea", new Table_hhea()); 
             //Table_hmtx hmtx = LoadTable("hmtx", new Table_hmtx()); 
             //Table_name name = LoadTable("name", new Table_name()); 
@@ -67,22 +71,41 @@ namespace Saket.Engine.Typography
 
             Dictionary<int, int> mapping = cmap.characterMaps[0].MapToDictionary();
 
-            int index = mapping[66];
-            uint location = loca.GetLocation(index);
 
-            stream.Seek(offset_glyftable+ location, SeekOrigin.Begin);
+            foreach (var item in mapping)
+            {
+                uint location = loca.GetLocation(item.Value);
+
+                stream.Seek(offset_glyftable + location, SeekOrigin.Begin);
+
+                Glyph g = ReadShape(reader);
+                
+                if(g != null)
+                {
+                    // Adjust for Unitsperem
+                    for (int q = 0; q < g.Count; q++)
+                    {
+                        for (int w = 0; w < g[q].points.Count; w++)
+                        {
+                            g[q].points[w] /= unitsPerEm;
+                        }
+                    }
+                    g.width /= unitsPerEm;
+                    g.height /= unitsPerEm;
+                }
 
 
-
-
-            glyphs.Add('a', ReadGlyth(reader));
+                glyphs.Add((char)item.Key, g);
+            }
         }
 
-        public Shape ReadGlyth(OFFReader reader)
+
+        public Glyph ReadShape(OFFReader reader)
         {
             // Read header of glyph
             Table_glyf.GlyphHeader gh = new Table_glyf.GlyphHeader();
             gh.Deserialize(reader);
+
 
             if (gh.numberOfContours >= 0)
             {
@@ -108,7 +131,7 @@ namespace Saket.Engine.Typography
                         if ((sg.flags[y] & Table_glyf.SimpleGlyph.Flags.ON_CURVE_POINT) == 
                             (flags_previous & Table_glyf.SimpleGlyph.Flags.ON_CURVE_POINT) && y != last)
                         {
-                            points.Add((position + (delta+position) )/2);
+                            points.Add((position + (delta+position) )/2 );
                         }
 
                         position += delta;
@@ -129,7 +152,7 @@ namespace Saket.Engine.Typography
                     splines[i] = new Spline2D(points);
                 }
 
-                return new Shape(splines);
+                return new Glyph(new Shape(splines),( gh.xMax - gh.xMin), (gh.yMax - gh.yMin));
             }
             else
             {
@@ -138,9 +161,6 @@ namespace Saket.Engine.Typography
 
             return null;
         }
-
-        
-
 
     }
 }

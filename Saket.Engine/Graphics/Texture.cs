@@ -20,14 +20,13 @@ namespace Saket.Engine
     {
         public int handle = -1;
 
-        public bool IsLoadedOnGPU;
-        public bool IsLoadedOnCPU => data != null;
+        public bool IsLoadedOnGPU => handle != -1;
         
-
-        // Texture Data
+        
         public byte[] data;
         public int width;
         public int height;
+
         public TextureMinFilter filter;
 
         /// <summary>
@@ -50,73 +49,68 @@ namespace Saket.Engine
         public PixelType pixelType;
 
 
-        public void LoadToGPU()
+
+        public void Upload(IntPtr dataPtr)
         {
-            if (!IsLoadedOnCPU)
-                throw new Exception("Texture is not loaded");
-            if (IsLoadedOnGPU)
-                throw new Exception("Texture is already loaded");
-           
-            IsLoadedOnGPU = true;
+            if(IsLoadedOnGPU)
+            {
+                Replace(dataPtr);
+            }
+            else
+            {
+                GL.Enable(EnableCap.Texture2D);
+                handle = GL.GenTexture();
+                GL.ActiveTexture(TextureUnit.Texture0);
 
-            GL.Enable(EnableCap.Texture2D);
-            handle = GL.GenTexture();
-            GL.ActiveTexture(TextureUnit.Texture0);
+                GL.BindTexture(TextureTarget.Texture2D, handle);
 
-            GL.BindTexture(TextureTarget.Texture2D, handle);
+                // These filters determine how the image scales
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)filter);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)filter);
 
-            // These filters determine how the image scales
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)filter);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)filter);
+                GL.TextureStorage2D(handle, 0, sizedInternalFormat, width, height);
 
-            GL.TextureStorage2D(handle, 0, sizedInternalFormat, width, height);
+                // https://registry.khronos.org/OpenGL-Refpages/gl4/
+                GL.TexImage2D(
+                    TextureTarget.Texture2D,
+                    0,
+                    pixelInternalFormat,
+                    width, height, 0,
+                    pixelFormat,
+                    pixelType,
+                    dataPtr
+                    );
 
-
-            // https://registry.khronos.org/OpenGL-Refpages/gl4/
-            GL.TexImage2D(
-                TextureTarget.Texture2D, 
-                0,
-                pixelInternalFormat,
-                width, height, 0,
-                pixelFormat,
-                pixelType,
-                data
-                );
-            
-            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+                GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+            }
         }
 
-        public void UnloadFromGPU()
+
+        public void Replace(IntPtr dataPtr, int xoffset = 0, int yoffset = 0, int width = 0, int height = 0)
         {
             if (!IsLoadedOnGPU)
-                throw new Exception("Cannot Unload Texture: texture is not loaded");
-            // Unload
-            GL.DeleteTexture(handle);
-            handle = -1;
-        }
+                throw new Exception("Texture not uploaded to gpu");
 
-        public void UnloadFromCPU()
-        {
-            data = null;
-        }
+            if(width == 0 || height == 0)
+            {
+                width = this.width;
+                height = this.height;
+            }
 
-        public void Replace(byte[] data)
-        {
             GL.BindTexture(TextureTarget.Texture2D, handle);
-            GL.TextureSubImage2D(handle, 0, 0, 0, width, height, pixelFormat, pixelType, data);
-
+            GL.TextureSubImage2D(handle, 0, xoffset, yoffset, width, height, pixelFormat, pixelType, dataPtr);
             GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
         }
 
 
-        public Texture(byte[] data, int width, int height, 
+
+        public Texture(int width, int height, 
             TextureMinFilter filter = TextureMinFilter.Linear,
             SizedInternalFormat sizedInternalFormat = SizedInternalFormat.Rgba8, 
             PixelInternalFormat pixelInternalFormat = PixelInternalFormat.Rgba,
             PixelFormat pixelFormat = PixelFormat.Rgba, 
             PixelType pixelType = PixelType.UnsignedByte )
         {
-            this.data = data;
             this.width = width;
             this.height = height;
 

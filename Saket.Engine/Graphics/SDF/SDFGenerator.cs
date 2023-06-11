@@ -1,5 +1,6 @@
 ﻿using Saket.Engine.Math;
 using Saket.Engine.Math.Geometry;
+using Saket.Engine.Math.Types;
 using Saket.Graphics;
 using System;
 using System.Collections.Generic;
@@ -37,7 +38,7 @@ namespace Saket.Engine.Graphics.SDF
         public struct Settings
         {
             /// <summary>  </summary>
-            public SDFType type = SDFType.MDSF;
+            public SDFType type = SDFType.SDF;
 
             /// <summary> Whether or not to use the psudo distance </summary>
             /// <remarks> Using Psudo Distance usually yields better results</remarks>
@@ -99,13 +100,18 @@ namespace Saket.Engine.Graphics.SDF
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="output"></param>
-        /// <param name="outputWidth"></param>
-        /// <param name="shape"></param>
+        /// <param name="shape">The shape to generate the SDF from</param>
+
+        /// <param name="output">The output distance</param>
+        /// <param name="outputWidth">the width of the output data</param>
+
+        ///
+
+
         /// <param name="range"></param>
         /// <param name="scale"></param>
         /// <param name="translation"></param>
-        public void GenerateSDF(Settings settings, float[] output, int outputWidth, Shape shape, float range, Vector2 scale, Vector2 translation)
+        public void GenerateSDF(Shape shape, Span<float> output, int outputWidth, Int2 offset, Int2 size, float range, Vector2 scale, Vector2 translation, Settings settings = default)
         {
             // resize temp data to fit
             if (Windings.Length < shape.Count)
@@ -122,21 +128,14 @@ namespace Saket.Engine.Graphics.SDF
                 Windings[i] = shape[i].Winding();
             }
 
-            // height in pixels
-            int height = output.Length / outputWidth;
-
-
             if (settings.type == SDFType.SDF)
             {
                 // iterate all pixels
                 // Multithread here. Compute shader possibility
-                for (var y = 0; y < height; ++y)
+                for (var y = 0; y < size.Y; ++y)
                 {
-                    int row = settings.inverseY ? height - y - 1 : y;
-                    for (var x = 0; x < outputWidth; ++x)
+                    for (var x = 0; x < size.X; ++x)
                     {
-                        int column = settings.inverseX ? outputWidth-x-1 : x;
-                        
                         var context = new InstanceContext
                         {
                             P = new Vector2(x + .5f, y + .5f) / scale - translation,
@@ -162,7 +161,9 @@ namespace Saket.Engine.Graphics.SDF
                             }
                         }
                         float v = minDistance.Distance / range;
-                        output[column + row * outputWidth] = v;
+
+                        output[offset.X + x + (offset.Y+ y)*outputWidth] = v;
+
                         /*
                         float v = ComputeSDFPixel(shape, ref context) / range + 0.5f;
                         output[column + row * outputWidth] = v;*/

@@ -9,6 +9,7 @@
 		<PublishSingleFile Condition="'$(Configuration)' == 'Release'">true</PublishSingleFile>
 		<SelfContained>true</SelfContained>
 		<PublishReadyToRun>true</PublishReadyToRun>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		
 	</PropertyGroup>
 

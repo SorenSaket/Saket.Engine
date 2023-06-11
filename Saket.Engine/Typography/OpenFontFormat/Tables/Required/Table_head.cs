@@ -135,11 +135,11 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
         /// <summary>
         /// Number  of  seconds  since  12:00  midnight  that  started January 1st, 1904, in GMT/UTC time zone. 64-bit integer
         /// </summary>
-        public UInt64 created;
+        public Int64 created;
         /// <summary>
         /// Number  of  seconds  since  12:00  midnight  that  started January 1st, 1904, in GMT/UTC time zone. 64-bit integer
         /// </summary>
-        public UInt64 modified;
+        public Int64 modified;
 
         // For all glyph bounding boxes.
 
@@ -163,34 +163,49 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 
         public Int16 glyphDataFormat = 0;
 
-        
-		public override uint Tag => 0x68656164;
 
-		public Table_head()
+        public override uint Tag => 0x68656164;
+
+        public Table_head()
         {
         }
 
 
         public override void Deserialize(OFFReader reader)
-        {/*
+        {
+            UInt16 uv = 0;
+            Int16 v = 0;
+            reader.LoadBytes(2 * 2 + 4 * 3 + 2 * 2 + 8 * 2 + 2 * 9);
             reader.ReadUInt16(ref majorVersion);
             reader.ReadUInt16(ref minorVersion);
-            fontRevision = reader.ReadUInt32(),
-            checkSumAdjustment = reader.ReadUInt32(),
-            magicNumber = reader.ReadUInt32(),
-            flags = (Flags)reader.ReadUInt16(),
-            unitsPerEm = reader.ReadUInt16(),
-            created = reader.ReadUInt64(),
-            modified = reader.ReadUInt64(),
-            xMin = reader.ReadInt16(),
-            yMin = reader.ReadInt16(),
-            xMax = reader.ReadInt16(),
-            yMax = reader.ReadInt16(),
-            macStyle = (MacStyle)reader.ReadUInt16(),
-            lowestRecPPEM = reader.ReadUInt16(),
-            fontDirectionHint = (FontDirectionHint)reader.ReadInt16(),
-            indexToLocFormat = (IndexToLocFormat)reader.ReadInt16(),
-            glyphDataFormat = reader.ReadInt16()*/
+            reader.ReadUInt32(ref fontRevision);
+            reader.ReadUInt32(ref checkSumAdjustment);
+            reader.ReadUInt32(ref magicNumber);
+
+            reader.ReadUInt16(ref uv);
+            flags = (Flags)uv;
+
+            reader.ReadUInt16(ref unitsPerEm);
+            reader.ReadLONGDATETIME(ref created);
+            reader.ReadLONGDATETIME(ref modified);
+            reader.ReadInt16(ref xMin);
+            reader.ReadInt16(ref yMin);
+            reader.ReadInt16(ref yMin);
+            reader.ReadInt16(ref yMax);
+
+            
+            reader.ReadUInt16(ref uv);
+            macStyle = (MacStyle)v;
+
+            reader.ReadUInt16(ref lowestRecPPEM);
+
+            reader.ReadInt16(ref v);
+            fontDirectionHint = (FontDirectionHint)v;
+
+            reader.ReadInt16(ref v);
+            indexToLocFormat = (IndexToLocFormat)v;
+
+            reader.ReadInt16(ref glyphDataFormat);
         }
 
         public override void Serialize(OFFWriter writer)
