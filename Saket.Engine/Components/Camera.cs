@@ -3,6 +3,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using Saket.ECS;
+using System.Runtime.CompilerServices;
 
 namespace Saket.Engine
 {
@@ -51,11 +52,24 @@ namespace Saket.Engine
         Perspective,
     }
     
-    public struct CameraOrthographic
+
+    public interface ICamera
+    {
+        public Matrix4x4 ViewMatrix { get; }
+        public Matrix4x4 ProjectionMatrix { get; }
+
+    }
+
+    public struct CameraOrthographic : ICamera
     {
         public float size;
         public float near;
         public float far;
+
+      
+        public Matrix4x4 ViewMatrix { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => viewMatrix; }
+        public Matrix4x4 ProjectionMatrix { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => ProjectionMatrix; }
+
 
         public Matrix4x4 viewMatrix;
         public Matrix4x4 projectionMatrix;
@@ -68,6 +82,8 @@ namespace Saket.Engine
             this.viewMatrix = Matrix4x4.Identity;
             this.projectionMatrix = Matrix4x4.CreateOrthographic(size, size, 0.1f, 100f);
         }
+
+     
 
         public Vector3 ScreenToWorldPoint(Vector3 position)
         {
@@ -84,6 +100,7 @@ namespace Saket.Engine
             return transformedWorldPosition.XYZ();*/
         }
 
+
         public Vector3 WorldToScreenPoint(Vector3 position)
         {
            throw new NotImplementedException();
@@ -91,8 +108,6 @@ namespace Saket.Engine
         }
 
     }
-
-
 
     [StructLayout(LayoutKind.Explicit)]
     public struct CameraPerspective

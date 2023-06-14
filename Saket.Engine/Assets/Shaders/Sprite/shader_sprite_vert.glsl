@@ -17,8 +17,8 @@ layout(std430, binding = 0) buffer boxBuffer
 layout(location = 2) in vec3 pos;
 layout(location = 3) in float rotation;
 layout(location = 4) in vec2 size;
-layout(location = 5) in int	box;
 layout(location = 6) in vec4 color;
+layout(location = 5) in int	box;
 
 // Output
 layout(location = 0) out vec2 fsin_TexCoords;

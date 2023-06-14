@@ -58,9 +58,12 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
             /// </summary>
             public byte[] glyphIdArray;
 
-			
+            public override Dictionary<int, int> MapToDictionary() => mapping;
 
-			public override void Serialize(OFFWriter writer)
+
+            Dictionary<int, int> mapping = new();
+
+            public override void Serialize(OFFWriter writer)
 			{
 				throw new NotImplementedException();
 			}
@@ -78,10 +81,6 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 				}
 			}
 
-            public override Dictionary<int, int> MapToDictionary()
-            {
-                throw new NotImplementedException();
-            }
         }
         /// <summary>
         /// Format 2: High byte mapping through table
@@ -432,8 +431,8 @@ namespace Saket.Engine.Filetypes.Font.OpenFontFormat.Tables
 						characterMaps[i] = new CharacterMapFormat4();
 						characterMaps[i].Deserialize(reader);
 						break;
-					default:
-						throw new NotImplementedException("Cmap subformat not supported");
+					/*default:
+						throw new NotImplementedException("Cmap subformat not supported");*/
 				}
             }
         }

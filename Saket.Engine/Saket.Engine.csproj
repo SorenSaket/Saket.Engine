@@ -37,6 +37,7 @@
 	  <Folder Include="Audio\MP3\" />
 	  <Folder Include="Audio\FLAC\" />
 	  <Folder Include="Audio\WAV\" />
+	  <Folder Include="Graphics\Renderers\" />
 	  <Folder Include="Image\ICO\" />
 	  <Folder Include="Image\SVG\" />
 	  <Folder Include="Image\QOI\" />

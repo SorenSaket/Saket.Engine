@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Saket.Engine.Resources.Loaders
-{
+{/*
     public class LoaderSheet : ResourceLoader<Sheet>
     {
         public override Sheet Load(string name, ResourceManager resourceManager)
@@ -26,5 +26,5 @@ namespace Saket.Engine.Resources.Loaders
 
             throw new Exception("Failed to load sheet");
         }
-    }
+    }*/
 }

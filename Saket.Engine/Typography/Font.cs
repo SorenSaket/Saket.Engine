@@ -68,8 +68,20 @@ namespace Saket.Engine.Typography
             //Table_glyf glyf = LoadTable("loca", new Table_glyf(maxp.numGlyphs));
             uint offset_glyftable = directories["glyf"].offset;
 
+            // Get suitable mapping
 
-            Dictionary<int, int> mapping = cmap.characterMaps[0].MapToDictionary();
+
+            Dictionary<int, int> mapping = null;
+
+
+            for (int i = 0; i < cmap.characterMaps.Length; i++)
+            {
+                if (cmap.characterMaps[i]?.format == 4)
+                {
+                    mapping = cmap.characterMaps[0].MapToDictionary();
+                }
+            }
+           
 
 
             foreach (var item in mapping)
@@ -77,36 +89,36 @@ namespace Saket.Engine.Typography
                 uint location = loca.GetLocation(item.Value);
 
                 stream.Seek(offset_glyftable + location, SeekOrigin.Begin);
+                // Read header of glyph
+                Table_glyf.GlyphHeader gh = new Table_glyf.GlyphHeader();
+                gh.Deserialize(reader);
 
-                Glyph g = ReadShape(reader);
+                Shape shape = ReadShape(gh, reader);
                 
-                if(g != null)
+                if(shape != null)
                 {
                     // Adjust for Unitsperem
-                    for (int q = 0; q < g.Count; q++)
+                    for (int q = 0; q < shape.Count; q++)
                     {
-                        for (int w = 0; w < g[q].points.Count; w++)
+                        for (int w = 0; w < shape[q].points.Count; w++)
                         {
-                            g[q].points[w] /= unitsPerEm;
+                            shape[q].points[w] -= new Vector2(gh.xMin, gh.yMin);
+                            shape[q].points[w] /= unitsPerEm;
                         }
                     }
-                    g.width /= unitsPerEm;
-                    g.height /= unitsPerEm;
                 }
 
-
-                glyphs.Add((char)item.Key, g);
+                glyphs.Add((char)item.Key, 
+                    new Glyph(shape,
+                    ((gh.xMax - gh.xMin) / (float)unitsPerEm),
+                    ((gh.yMax - gh.yMin) / (float)unitsPerEm))
+                    );
             }
         }
 
 
-        public Glyph ReadShape(OFFReader reader)
+        public Shape ReadShape(Table_glyf.GlyphHeader gh, OFFReader reader)
         {
-            // Read header of glyph
-            Table_glyf.GlyphHeader gh = new Table_glyf.GlyphHeader();
-            gh.Deserialize(reader);
-
-
             if (gh.numberOfContours >= 0)
             {
                 Table_glyf.SimpleGlyph sg = new Table_glyf.SimpleGlyph();
@@ -152,7 +164,7 @@ namespace Saket.Engine.Typography
                     splines[i] = new Spline2D(points);
                 }
 
-                return new Glyph(new Shape(splines),( gh.xMax - gh.xMin), (gh.yMax - gh.yMin));
+                return new Shape(splines);
             }
             else
             {

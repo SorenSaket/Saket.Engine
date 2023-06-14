@@ -50,14 +50,12 @@ namespace Saket.Engine
 
 
 
-        public void Upload(IntPtr dataPtr)
+        public void Create()
         {
-            if(IsLoadedOnGPU)
-            {
-                Replace(dataPtr);
-            }
-            else
-            {
+            if (IsLoadedOnGPU)
+                return;
+            
+            
                 handle = GL.GenTexture();
                 GL.ActiveTexture(TextureUnit.Texture0);
 
@@ -69,23 +67,23 @@ namespace Saket.Engine
 
                 GL.TextureStorage2D(handle, 1, sizedInternalFormat, width, height);
 
-                // https://registry.khronos.org/OpenGL-Refpages/gl4/
-                /*GL.TexImage2D(
-                    TextureTarget.Texture2D,
-                    0,
-                    pixelInternalFormat,
-                    width, height, 0,
-                    pixelFormat,
-                    pixelType,
-                    dataPtr
-                    );*/
+            // https://registry.khronos.org/OpenGL-Refpages/gl4/
+            /*GL.TexImage2D(
+                 TextureTarget.Texture2D,
+                 0,
+                 pixelInternalFormat,
+                 width, height, 0,
+                 pixelFormat,
+                 pixelType,
+                 dataPtr
+                 );
 
-                //GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
-            }
+             GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);*/
+            
         }
 
 
-        public void Replace(IntPtr dataPtr, int xoffset = 0, int yoffset = 0, int width = 0, int height = 0)
+        public void Upload(IntPtr dataPtr, int xoffset = 0, int yoffset = 0, int width = 0, int height = 0)
         {
             if (!IsLoadedOnGPU)
                 throw new Exception("Texture not uploaded to gpu");

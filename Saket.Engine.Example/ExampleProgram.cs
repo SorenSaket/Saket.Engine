@@ -22,12 +22,11 @@ using Saket.Engine.Math.Geometry;
 using System.Collections;
 using System.Linq;
 using ImGuiNET;
-using System.ComponentModel;
 using System.IO;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using Saket.Engine.Graphics;
 using Saket.Engine.Graphics.Packing;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
 
 namespace Saket.Engine.Example
 {
@@ -38,9 +37,8 @@ namespace Saket.Engine.Example
         
         World world;
 
-        Document document;
 
-        SpriteRenderer spriteRenderer;
+        RendererSpriteSimple spriteRenderer;
 
         Pipeline pipeline_update = new Pipeline();
         Pipeline pipeline_render = new Pipeline();
@@ -58,33 +56,29 @@ namespace Saket.Engine.Example
             resources.databases.Add(new DatabaseEmbedded(Assembly.GetExecutingAssembly()));
             resources.RegisterLoader(new LoaderTexture());
             resources.RegisterLoader(new LoaderShader());
-
-
         }
         
         protected override void OnLoad()
         {
             world = new World();
 
-
             // Font testing
             {
-
-                if (resources.TryGetStream("OpenSans-Regular.ttf", out var stream))
-                {
-                    font = new Font();
-                    font.LoadFromOFF(stream);
-                }
-                else
-                {
-                    throw new Exception("Font not found");
-                }
-
                 float ppu = 64;
+                int tilePadding = 1;
+                var settings_packer = new Packer.SettingsPacker()
+                {
+                    padding =0,
+                    margin = 0,
+                };
+
                 int size = 512;
+                char from = 'A';
+                char to = 'z';
 
-                Memory<float> data = new float[size * size];
-
+                // Atlas creation
+                float[] data = new float[size * size];
+                Span<float> dataAsSpan = new Span<float>(data);
 
                 // Create the main sdf game texture with float values
                 Texture texture = new Texture(size, size,
@@ -94,56 +88,99 @@ namespace Saket.Engine.Example
                        PixelFormat.Red,
                        PixelType.Float);
 
-                Atlas atlas = new Atlas(texture, 256);
+                TextureAtlas atlas = new TextureAtlas(texture, 256);
 
-                // For each character to add to atlas
-                for (int i = 'A'; i < 'z'; i++)
+
+                // Font loading
                 {
-                    Glyph g = font.glyphs[(char)i];
-                    // A lot of rounding is happening here
-                    // TODO: Look into if hinting would produce better quality SDFs
-                    atlas.Add(new Tile((int)(g.width * ppu), (int)(g.height * ppu)));
+                    if (resources.TryGetStream("OpenSans-Regular.ttf", out var stream))
+                    {
+                        font = new Font();
+                        font.LoadFromOFF(stream);
+                    }
+                    else
+                    {
+                        throw new Exception("Font not found");
+                    }
+                    // For each character to add to atlas
+                    for (int i = from; i < to; i++)
+                    {
+                        Glyph g = font.glyphs[(char)i];
+                        // A lot of rounding is happening here
+                        // TODO: Look into if hinting would produce better quality SDFs
+                        atlas.tiles.Add(
+                            new Tile(
+                                ((g.width * ppu)),
+                                ((g.height * ppu) )
+
+                            ));
+                    }
+                }
+                
+                // packing
+                {
+                    Packer packer = new Packer();
+
+                    bool packed = packer.TryPack(CollectionsMarshal.AsSpan(atlas.tiles), size,size, settings_packer);
+
+                    if (!packed)
+                        throw new Exception("Not enough space on atlas!!");
+                }
+             
+                // Generate sdf
+                {
+                    int index_atlas = 0;
+                    SDFGenerator generator = new SDFGenerator();
+
+
+                    float increment = 1f / ((int)to - from);
+                    float v = increment;
+
+                    for (int i = from; i < to; i++)
+                    {/*
+                        {
+                            for (int y = 0; y < atlas[index_atlas].Size.Y; y++)
+                            {
+                                for (int x = 0; x < atlas[index_atlas].Size.X; x++)
+                                {
+                                    dataAsSpan[atlas[index_atlas].Position.X + x + (atlas[index_atlas].Position.Y + y) * size] = v;
+                                }
+                            }
+                        }*/
+                        Glyph g = font.glyphs[(char)i];
+
+                        generator.GenerateSDF(g.Shape, dataAsSpan, size, (atlas.tiles[index_atlas].Position).RoundToInt2(), (atlas.tiles[index_atlas].Size ).RoundToInt2(), 1, new Vector2(ppu), Vector2.Zero);
+
+
+                        v += increment;
+                        index_atlas++;
+                    }
                 }
 
-                Packer packer = new Packer();
-
-                bool packed = packer.TryPack(CollectionsMarshal.AsSpan(atlas), atlas.texture.width, atlas.texture.height);
-
-                if (!packed)
-                    throw new Exception("Not enough space on atlas!!");
-
-                SDFGenerator generator = new SDFGenerator();
-
-                Span<float> dataAsSpan = data.Span;
-
-                int index_atlas = 0;
-                for (int i = 'A'; i < 'z'; i++)
+                // Upload
                 {
-                    Glyph g = font.glyphs[(char)i];
+                    var a = GL.GetError();
+                    
+                    unsafe
+                    {
+                        fixed(void* ptr = dataAsSpan)
+                        {
 
-                    generator.GenerateSDF(g, dataAsSpan, size, atlas[index_atlas].Position, atlas[index_atlas].Size, 1, new Vector2(ppu), Vector2.Zero);
-                    index_atlas++;
+                            texture.Create();
+                            texture.Upload((nint)ptr);
+                        }
+                    }
+
+                    // ---- Texture Loading
+                    {
+                        List<TextureAtlas> groups = new()
+                        {
+                            new (texture, 1,1)
+                        };
+
+                        world.SetResource(groups);
+                    }
                 }
-                var a = GL.GetError();
-                var handle = data.Pin();
-                unsafe
-                {
-                    texture.Upload((nint)handle.Pointer);
-                    texture.Replace((nint)handle.Pointer);
-                }
-
-                handle.Dispose();
-                // ---- Texture Loading
-                {
-                    TextureGroups groups = new();
-
-                    var sheet = new Sheet(1, 1, 1);
-                    groups.Add(texture, sheet);
-
-                    world.SetResource(groups);
-                }
-
-
             }
 
 
@@ -153,16 +190,14 @@ namespace Saket.Engine.Example
             entity_camera.Add(new CameraOrthographic(32, 0.1f, 100f));
             controller_ui = new Dear_ImGui_Sample.ImGuiController(1280, 720);
             // Initialize graphics resources
-            spriteRenderer = new SpriteRenderer(1000, entity_camera, resources.Load<Shader>("sdf"), (shader) =>
+            spriteRenderer = new RendererSpriteSimple(1000, entity_camera, resources.Load<Shader>("sdf"), (shader) =>
             {
                 shader.SetFloat("time", fill);
             });
 
-
-
             var teste = world.CreateEntity();
             teste.Add(new Sprite(0, 0, int.MaxValue));
-            teste.Add(new Transform2D(0f, 0f, 0, 0, 10, 10));
+            teste.Add(new Transform2D(0f, 0f, 0, 0, 20, 20));
 
             Stage stage_update = new Stage();
             //stage_update.Add()
@@ -181,8 +216,6 @@ namespace Saket.Engine.Example
             controller_ui.Update(this, delta);
             
             {
-                
-
                 ImGui.Begin("Window", ImGuiWindowFlags.MenuBar);
                 if (ImGui.BeginMenuBar())
                 {

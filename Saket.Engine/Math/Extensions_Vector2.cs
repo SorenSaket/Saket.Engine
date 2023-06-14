@@ -1,4 +1,5 @@
 using Newtonsoft.Json.Linq;
+using Saket.Engine.Math.Types;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -49,5 +50,12 @@ namespace Saket.Engine
         {
             return new Vector2(MathF.Round(vector.X), MathF.Round(vector.Y));
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int2 RoundToInt2(this Vector2 vector)
+        {
+            return new Int2((int)MathF.Round(vector.X), (int)MathF.Round(vector.Y));
+        }
+
     }
 }

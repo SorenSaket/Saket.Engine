@@ -4,17 +4,17 @@ using System.Numerics;
 
 namespace Saket.Engine.Typography
 {
-    public class Glyph : Shape
+    public class Glyph
     {
         public float width;
-        public float height;  
+        public float height;
+        public Shape Shape;
 
-
-        public Glyph(IEnumerable<Spline2D> collection, int width, int height) : base(collection)
+        public Glyph(Shape shape, float width, float height)
         {
-            this.width= width;
+            this.Shape = shape;
+            this.width = width;
             this.height= height;
-
         }
     }
 }

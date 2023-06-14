@@ -10,17 +10,18 @@ namespace Saket.Engine.Graphics.Packing
     {
         public struct SettingsPacker
         {
-            public int width;
-            public int height;
             /// <summary>
             /// The padding to use in between tiles
             /// </summary>
-            public int padding;
+            public float padding;
 
+            /// <summary>
+            /// The space around 
+            /// </summary>
+            public float margin;
 
             public Rotation rotation;
             
-
 
             public enum Rotation
             {
@@ -46,12 +47,10 @@ namespace Saket.Engine.Graphics.Packing
 
         }
 
-
         public Packer()
         {
             emptySpaces = new List<Tile>(128);
         }
-
 
         List<Tile> emptySpaces;
 
@@ -60,13 +59,13 @@ namespace Saket.Engine.Graphics.Packing
         /// note this modifies the position of the tiles but not the ordering.
         /// </summary>
         /// <param name="tiles"></param>
-        public bool TryPack(Span<Tile> tiles, int width, int height)
+        public bool TryPack(Span<Tile> tiles, float width, float height, SettingsPacker settings = default)
         {
             /// Pure function. Always adds the bigger split v first
             bool TryFitAndSplit(ref Tile t, Tile slot, in Span<Tile> splits, out int splitCount)
             {
-                int freeWidth = slot.Width - t.Width;
-                int freeHeight = slot.Height - t.Height;
+                float freeWidth = slot.Width - t.Width;
+                float freeHeight = slot.Height - t.Height;
 
                 // It doesn't fit
                 if (freeWidth < 0 || freeHeight < 0)
@@ -77,7 +76,6 @@ namespace Saket.Engine.Graphics.Packing
 
                 t.X = slot.X;
                 t.Y = slot.Y;
-
 
                 // It fits exactly 
                 if (freeWidth == 0 && freeHeight == 0)
@@ -101,41 +99,41 @@ namespace Saket.Engine.Graphics.Packing
                     return true;
                 }
 
-
-                // If the there is more horizontal space than vetical
-                if (freeWidth > freeHeight)
+                // 
+                if (freeWidth < freeHeight)
                 {
                     // Bigger split
-                    splits[0] = new Tile(freeWidth, slot.Height, slot.X + t.Width, slot.Y);
+                    splits[0] = new Tile(slot.Width, freeHeight, slot.X, slot.Y + t.Height);
                     // Smaller Split
-                    splits[1] = new Tile(t.Width, freeHeight, slot.X, slot.Y + t.Height);
-
+                    splits[1] = new Tile(freeWidth, t.Height, slot.X + t.Width, slot.Y);
                     splitCount = 2;
                     return true;
                 }
 
                 // Bigger split
-                splits[0] = new Tile(slot.Width, freeHeight, slot.X, slot.Y + t.Height);
+                splits[0] = new Tile(freeWidth, slot.Height, slot.X + t.Width, slot.Y);
                 // Smaller Split
-                splits[1] = new Tile(freeWidth, t.Height, slot.X+t.Width, slot.Y);
+                splits[1] = new Tile(t.Width, freeHeight, slot.X, slot.Y + t.Height);
+
                 splitCount = 2;
                 return true;
             }
 
             // Create a span of the indicies
-            Span<int> sortedIndices = stackalloc int[tiles.Length];
-            for (int i = 0; i < tiles.Length; i++)
-            {
-                sortedIndices[i] = i;
-            }
+            //Span<int> sortedIndices = stackalloc int[tiles.Length];
+            //for (int i = 0; i < tiles.Length; i++)
+            //{
+            //sortedIndices[i] = i;
+            // }
 
             // Sort the indicies based on the area of the tiles
             // Dont think caching area is worth it since its a simple computation
-            MemoryExtensions.Sort(tiles, sortedIndices, (x, y) => x.Area().CompareTo(y.Area()));
+            // TODO make sorting method that only sorts sortedIndices based on tiles
+            //MemoryExtensions.Sort(tiles, sortedIndices, (x, y) => y.Height.CompareTo(x.Height));
 
             emptySpaces.Clear();
             // Add the first area that fills the entire canvas
-            emptySpaces.Add(new Tile(width, height, 0, 0));
+            emptySpaces.Add(new Tile(width- settings.margin * 2, height - settings.margin*2, settings.margin, settings.margin));
 
 
             Span<Tile> splits = stackalloc Tile[2];
@@ -144,7 +142,7 @@ namespace Saket.Engine.Graphics.Packing
             for (int i = 0; i < tiles.Length; i++)
             {
                 // ref local to the tile
-                ref Tile t = ref tiles[sortedIndices[i]];
+                ref Tile t = ref tiles[i];
                 bool success = false;
                 // Get an empty space which the tile fits into
                 for (int k = emptySpaces.Count-1; k >= 0; k--)
@@ -168,7 +166,6 @@ namespace Saket.Engine.Graphics.Packing
 
             return true;
         }
-
 
     }
 }

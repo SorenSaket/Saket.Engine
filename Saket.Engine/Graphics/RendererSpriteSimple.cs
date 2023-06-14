@@ -2,13 +2,15 @@
 using Saket.ECS;
 using Saket.Engine.Collections;
 using Saket.Engine.Components;
+using Saket.Engine.Graphics;
 using Saket.Engine.Math.Geometry;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Xml.Linq;
+
 
 
 namespace Saket.Engine
@@ -22,9 +24,26 @@ namespace Saket.Engine
     // TODO manual sprite rendering without the need of entities
     // 
 
-    public class SpriteRenderer
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public class RendererSpriteSimple
     {
-        public Shader shader;
+        /// <summary>
+        /// Query all entities with Sprite and Transform
+        /// </summary>
+        static readonly Query query_spriteTransform = new Query().With<(Sprite, Transform2D)>();
+
+        /// <summary>
+        /// Query all entities with Sprite and Transform
+        /// </summary>
+        static readonly Query query_spriteAnimator = new Query().With<(Sprite, SpriteAnimator)>();
+
+        /// <summary>
+        /// The shader to use for rendering
+        /// </summary>
+        public Shader Shader;
        
         // VAO
         private int _vertexArrayObject;
@@ -37,43 +56,12 @@ namespace Saket.Engine
         private int buffer_elements;
 
 
-        private Dictionary<int,int> buffer_boxes = new();
-
-
-        // CCW winding order
-        // TL---TR
-        // | \  |
-        // |  \ |
-        // BL---BR
-        const float size = 0.5f;
-        float[] quadVertices = new float[]{
-			// positions  // UVS
-			-size, -size, 0,0, // BL
-             size, -size, 1,0, // BR
-            -size,  size, 0,1, // TL
-
-            -size, size, 0,1,  // TL
-             size, -size, 1,0, // BR
-            size,  size,1,1, // TR
-        };
-
         /// <summary>
-        /// Query all entities with Sprite and Transform
+        /// A Dictionary containing tgindicies and gl buffer indicies 
         /// </summary>
-        static readonly Query query_spriteTransform = new Query().With<(Sprite, Transform2D)>();
+        private Dictionary<TextureAtlas, int> buffer_boxes = new();
 
-        /// <summary>
-        /// Query all entities with Sprite and Transform
-        /// </summary>
-        static readonly Query query_spriteAnimator = new Query().With<(Sprite, SpriteAnimator)>();
-
-
-        public SpriteElement[] Elements => elements;
-        /// <summary>
-        /// Array of elements in batch to be dispatched to gpu
-        /// </summary>
-        private SpriteElement[] elements;
-
+        SpriteElement[] Elements;
 
 
         public Action<Shader>? ShaderFunction;
@@ -91,15 +79,15 @@ namespace Saket.Engine
         private Queue<int> nextGroups = new();
         private Stack<int> renderedGroups = new();
 
-        public SpriteRenderer(int batchCount, Entity camera, Shader shader, Action<Shader>? shaderFunction = null)
+        public RendererSpriteSimple(int batchCount, Entity camera, Shader shader, Action<Shader>? shaderFunction = null)
         {
             this.entity_camera = camera;
             this.batchCount = batchCount;
 
             // load the shader
-            this.shader = shader;
+            this.Shader = shader;
             this.ShaderFunction = shaderFunction;
-            elements = new SpriteElement[batchCount];
+            Elements = new SpriteElement[batchCount];
 
             // create buffers
             _vertexArrayObject = GL.GenVertexArray();
@@ -111,9 +99,35 @@ namespace Saket.Engine
 
             // QuadVert buffer
             {
-                _quadBufferObject = GL.GenBuffer();
-                GL.BindBuffer(BufferTarget.ArrayBuffer, _quadBufferObject);
-                GL.BufferData(BufferTarget.ArrayBuffer, sizeof(float) * quadVertices.Length, quadVertices, BufferUsageHint.StaticDraw);
+                // Is there a way to do this would a buffer?
+                // Maybe directly in the shader
+
+
+                // CCW winding order
+                // TL---TR
+                // | \  |
+                // |  \ |
+                // BL---BR
+                const float size = 0.5f;
+                ReadOnlySpan<float> quadVertices = stackalloc float[]{
+			        // positions  // UVS
+			        -size, -size, 0,0, // BL
+                     size, -size, 1,0, // BR
+                    -size,  size, 0,1, // TL
+
+                    -size, size, 0,1,  // TL
+                     size, -size, 1,0, // BR
+                    size,  size,1,1, // TR
+                };
+                unsafe
+                {
+                    fixed (void* ptr = quadVertices)
+                    {
+                        _quadBufferObject = GL.GenBuffer();
+                        GL.BindBuffer(BufferTarget.ArrayBuffer, _quadBufferObject);
+                        GL.BufferData(BufferTarget.ArrayBuffer, sizeof(float) * quadVertices.Length, (nint)ptr, BufferUsageHint.StaticDraw);
+                    }
+                }
 
                 // POS
                 GL.VertexAttribPointer(layoutLocation, 2, VertexAttribPointerType.Float, false, sizeof(float) * 4, 0);
@@ -124,6 +138,11 @@ namespace Saket.Engine
                 GL.VertexAttribPointer(layoutLocation, 2, VertexAttribPointerType.Float, false, sizeof(float) * 4, sizeof(float) * 2);
                 GL.EnableVertexAttribArray(layoutLocation);
             }
+           
+            
+
+              
+           
             
             
             buffer_elements = GL.GenBuffer();
@@ -167,6 +186,70 @@ namespace Saket.Engine
             //GL.BufferData(BufferTarget.ShaderStorageBuffer, batchCount * sizeof(float) * 4, IntPtr.Zero, BufferUsageHint.DynamicDraw);
         }
 
+        public void ReadyShader(Shader shader, ICamera camera)
+        {
+            this.Shader = shader;
+            // Use the current shader
+            Shader.Use();
+            // Enable depth testing
+            GL.DepthMask(true);
+            GL.Enable(EnableCap.DepthTest);
+            GL.ColorMask(true, true, true, true);
+            Shader.SetMatrix4("view", camera.ViewMatrix);
+            Shader.SetMatrix4("projection", camera.ProjectionMatrix);
+        }
+
+        /// <summary>
+        /// Draw a Spritebatch 
+        /// </summary>
+        /// <param name="targetTG"></param>
+        /// <param name="texture"></param>
+        /// <param name="atlas"></param>
+        /// <param name="count"></param>
+        /// <exception cref="ArgumentException"></exception>
+        public void DrawBatch(SpriteElement[] sprites, TextureAtlas atlas, int count)
+        {
+            if (count == 0|| atlas == null )
+                throw new ArgumentException();
+
+            // Bind the element buffer
+            GL.BindBuffer(BufferTarget.ArrayBuffer, buffer_elements);
+            GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)0, SpriteElement.size, sprites);
+        
+
+            ReadOnlySpan<Tile> tiles = CollectionsMarshal.AsSpan(atlas.tiles);
+
+            unsafe
+            {
+                fixed (void* ptr = tiles)
+                {
+                    // Create or Bind Box buffer
+                    if (!buffer_boxes.ContainsKey(atlas))
+                    {
+                        int nb = GL.GenBuffer();
+                        GL.BindBuffer(BufferTarget.ShaderStorageBuffer, nb);
+                        GL.BufferData(BufferTarget.ShaderStorageBuffer, atlas.tiles.Count * Marshal.SizeOf<Tile>(), (nint)ptr , BufferUsageHint.DynamicDraw);
+                        GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 0, nb);
+                        buffer_boxes.Add(atlas, nb);
+                    }
+                    else
+                    {
+                        // TODO: FIX buffers cant expand? the sheet.rects can be longer than it was when intially created
+                        GL.BindBuffer(BufferTarget.ShaderStorageBuffer, buffer_boxes[atlas]);
+                        GL.BufferSubData(BufferTarget.ShaderStorageBuffer, (IntPtr)0, atlas.tiles.Count * Marshal.SizeOf<Tile>(), (nint)ptr);
+                        GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 0, buffer_boxes[atlas]);
+                    }
+                }
+            }
+           
+
+            GL.BindTexture(TextureTarget.Texture2D, atlas.texture.handle);
+
+            GL.DrawArraysInstanced(PrimitiveType.Triangles, 0, 6, count);
+        }
+
+
+
         public void SystemSpriteAnimation(World world)
         {
 
@@ -197,13 +280,12 @@ namespace Saket.Engine
         /// <param name="world"></param>
         public void SystemSpriteRenderer(World world)
         {
-            var textureGroups = world.GetResource<TextureGroups>();
+            var textureGroups = world.GetResource<List<TextureAtlas>>();
             if (textureGroups == null)
                 return;
 
-
             // Use the current shader
-            shader.Use();
+            Shader.Use();
 
             //GL.Enable(EnableCap.Blend);
             //GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
@@ -216,10 +298,10 @@ namespace Saket.Engine
             GL.ColorMask(true, true, true, true);
             // Todo. Camera based rendering
             var cam = entity_camera.Get<CameraOrthographic>();
-            shader.SetMatrix4("view", cam.viewMatrix);
-            shader.SetMatrix4("projection", cam.projectionMatrix);
+            Shader.SetMatrix4("view", cam.viewMatrix);
+            Shader.SetMatrix4("projection", cam.projectionMatrix);
 
-            ShaderFunction?.Invoke(shader);
+            ShaderFunction?.Invoke(Shader);
             
             // Query the world for matching enetities
             QueryResult entities = world.Query(query_spriteTransform);
@@ -233,6 +315,8 @@ namespace Saket.Engine
 
             // Loops through all sprites as many times that there different textures
             // Each loop only draws one texture
+            // This is probably stupid. It incurs a lot of chache misses since it has to loop through memory N times.
+            // Instead build up a data structure that stores the individual batches and only loop once
             do
             {
                 i = 0;
@@ -241,24 +325,21 @@ namespace Saket.Engine
 
                 foreach (var entity in entities)
                 {
-                    elements[i].sprite = entity.Get<Sprite>();
+                    Elements[i].sprite = entity.Get<Sprite>();
 
                     // decide whether to batch or wait for next iteration
                     if (targetTG == -1)
                     {
-                        targetTG = elements[i].sprite.tex;
+                        targetTG = Elements[i].sprite.tex;
                     }
-                    else if (targetTG != elements[i].sprite.tex)
+                    else if (targetTG != Elements[i].sprite.tex)
                     {
-                        if (!nextGroups.Contains(elements[i].sprite.tex) && !renderedGroups.Contains(elements[i].sprite.tex))
-                            nextGroups.Enqueue(elements[i].sprite.tex);
+                        if (!nextGroups.Contains(Elements[i].sprite.tex) && !renderedGroups.Contains(Elements[i].sprite.tex))
+                            nextGroups.Enqueue(Elements[i].sprite.tex);
                         continue;
                     }
 
-                    elements[i].transform = entity.Get<Transform2D>();
-
-                    // TODO: do this in shader
-                    elements[i].transform.Scale *= textureGroups.groups[targetTG].sheet.scale;
+                    Elements[i].transform = entity.Get<Transform2D>();
 
                     i++;
 
@@ -266,7 +347,7 @@ namespace Saket.Engine
                     {
                         // Dispatch draw call
                         renderedGroups.Push(targetTG);
-                        DrawBatch(targetTG, textureGroups.groups[targetTG].tex, textureGroups.groups[targetTG].sheet, i);
+                        DrawBatch(Elements, textureGroups[targetTG], i);
                         i = 0;
                     }
                 }
@@ -274,41 +355,12 @@ namespace Saket.Engine
                 { 
                     // Dispatch draw call for the remaining elements
                     renderedGroups.Push(targetTG);
-                    DrawBatch(targetTG, textureGroups.groups[targetTG].tex, textureGroups.groups[targetTG].sheet, i);
+                    DrawBatch(Elements, textureGroups[targetTG], i);
                 }
                
             } while (nextGroups.Count > 0);
         }
 
-        public void DrawBatch(int targetTG, Texture texture, Sheet sheet, int count)
-        {
-            if (count == 0 || texture == null || sheet == null || targetTG < 0)
-                throw new ArgumentException();
-
-            // Bind the element buffer
-            GL.BindBuffer(BufferTarget.ArrayBuffer, buffer_elements);
-            GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)0, count * SpriteElement.size, elements);
-
-            // Create or Bind Box buffer
-            if (!buffer_boxes.ContainsKey(targetTG))
-            {
-                int nb = GL.GenBuffer();
-                GL.BindBuffer(BufferTarget.ShaderStorageBuffer, nb);
-                GL.BufferData(BufferTarget.ShaderStorageBuffer, sheet.rects.Length * Marshal.SizeOf<SheetElement>(), sheet.rects, BufferUsageHint.DynamicDraw);
-                GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 0, nb);
-                buffer_boxes.Add(targetTG, nb);
-            }
-            else
-            {
-                GL.BindBuffer(BufferTarget.ShaderStorageBuffer, buffer_boxes[targetTG]);
-                GL.BufferSubData(BufferTarget.ShaderStorageBuffer, (IntPtr)0, sheet.rects.Length * Marshal.SizeOf<SheetElement>(), sheet.rects);
-                GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 0, buffer_boxes[targetTG]);
-            }
-
-            GL.BindTexture(TextureTarget.Texture2D, texture.handle);
-
-            GL.DrawArraysInstanced(PrimitiveType.Triangles, 0, 6, count);
-        }
 
         [StructLayout(LayoutKind.Sequential)]
         public struct SpriteElement
