@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Saket.Engine.Collections
 {
-    public ref struct SpanRingBuffer<T>where T : unmanaged
+    public ref struct SpanRingBuffer<T> where T : unmanaged
     {
         public int Capacity => buffer.Length;
         public int Count => count;

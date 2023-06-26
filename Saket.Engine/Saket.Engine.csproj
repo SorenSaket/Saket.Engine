@@ -17,6 +17,9 @@
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Publish|AnyCPU'">
 	  <LangVersion>preview</LangVersion>
 	</PropertyGroup>
+	<ItemGroup>
+	  <None Remove="Platform\Windows\README.md" />
+	</ItemGroup>
 	
 	<!-- References -->
 
@@ -24,6 +27,7 @@
 		<PackageReference Include="ImGui.NET" Version="1.87.3" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
 		<PackageReference Include="OpenTK" Version="4.7.5" />
+		<PackageReference Include="PInvoke.User32" Version="0.7.124" />
 		<PackageReference Include="StbImageSharp" Version="2.27.12" />
 	</ItemGroup>
 
@@ -44,7 +48,6 @@
 	  <Folder Include="Image\PNG\" />
 	  <Folder Include="IMGUI\" />
 	  <Folder Include="Audio\" />
-	  <Folder Include="Platform\Windows\" />
 	  <Folder Include="Typography\Rasterization\" />
 	</ItemGroup>
 

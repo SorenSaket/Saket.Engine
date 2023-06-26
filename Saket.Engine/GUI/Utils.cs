@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Saket.UI
+namespace Saket.Engine.GUI
 {
     public static class Utils
     {

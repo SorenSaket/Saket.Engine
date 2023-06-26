@@ -7,15 +7,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Saket.UI
+namespace Saket.Engine.GUI
 {
-    [StructLayout(LayoutKind.Sequential)]
-    public struct Button
-    {
-        public int text;
-        public int box;
-    }
-
     public struct StyleSheet
     {
         public List<Style> styles;

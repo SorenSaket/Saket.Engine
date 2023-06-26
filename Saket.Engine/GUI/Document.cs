@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Saket.UI
+namespace Saket.Engine.GUI
 {
     public class Document
     {

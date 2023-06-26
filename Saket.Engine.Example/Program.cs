@@ -13,6 +13,9 @@ namespace Saket.Engine.Example
 		[STAThread]
 		static void Main()
         {
+            //var a = new Program_DInvoke();
+            
+            
             GameWindowSettings gameWindowSettings = new GameWindowSettings();
           
             NativeWindowSettings nativeWindowSettings = new NativeWindowSettings();

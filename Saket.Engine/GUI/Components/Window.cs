@@ -26,8 +26,6 @@ namespace Saket.Engine.GUI
             UIEvent e = world.GetResource<UIEvent>();
 
             var result = world.Query(query_window);
-
-
         }
     }
 }
