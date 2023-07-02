@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Saket.Engine.Math.Geometry
 {
-    public interface IAABB2D
+    public interface IBounds2D
     {
         public BoundingBox2D Bounds();
     }

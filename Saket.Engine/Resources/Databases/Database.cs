@@ -13,6 +13,6 @@ namespace Saket.Engine.Resources.Databases
         protected bool initialized;
         public abstract void Initialize();
         public abstract HashSet<string> AvaliableResources { get; }
-        public abstract Stream? LoadResource(string name);
+        public abstract Stream? TryGetStream(string name);
     }
 }

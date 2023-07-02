@@ -24,7 +24,7 @@ namespace Saket.Engine.Resources.Databases
             
         }
 
-        public override Stream? LoadResource(string name)
+        public override Stream? TryGetStream(string name)
         {
             return assembly.GetManifestResourceStream(name);
         }

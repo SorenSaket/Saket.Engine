@@ -12,10 +12,6 @@ namespace Saket.Engine.GUI
         
     }
 
-    public static partial class Components
-    {
-        
-    }
 
     public static partial class Systems
     {

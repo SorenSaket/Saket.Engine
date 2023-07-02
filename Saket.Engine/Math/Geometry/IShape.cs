@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Saket.Engine.GUI
+namespace Saket.Engine.Math.Geometry
 {
-    public struct Button
+    public interface IShape : ISDF2D, IBounds2D
     {
+
     }
 }

@@ -6,7 +6,7 @@ namespace Saket.Engine.Math.Geometry
     /// <summary>
     /// A curve in two dimentions
     /// </summary>
-    public interface ICurve2D
+    public interface ICurve2D : IShape
     {
         /// <summary>
         /// Returns a point on the spline at specfic t value
@@ -29,6 +29,13 @@ namespace Saket.Engine.Math.Geometry
         /// <param name="t">The t value for the closest point on the spline.</param>
         /// <returns></returns>
         public SignedDistance SignedDistance(Vector2 point, out float t);
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="point"></param>
+        /// <returns></returns>
+         SignedDistance ISDF2D.GetSignedDistance(Vector2 point) => SignedDistance(point, out _);
 
         /// <summary>
         /// Converts a previously retrieved signed distance from origin to pseudo-distance.
@@ -70,10 +77,5 @@ namespace Saket.Engine.Math.Geometry
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns>AABB of the extremidies of the spline</returns>
-        public BoundingBox2D Bounds();
     }
 }

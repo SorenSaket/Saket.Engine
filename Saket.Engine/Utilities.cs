@@ -91,5 +91,17 @@ namespace Saket.Engine
             return false;
         }
 
+        public static int AddUnique<T>(this IList<T> list, T itemToAdd)
+        {
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i].Equals(itemToAdd))
+                {
+                    return i;
+                }
+            }
+            list.Add(itemToAdd); 
+            return list.Count-1;
+        }
     }
 }

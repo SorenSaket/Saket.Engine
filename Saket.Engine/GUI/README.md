@@ -59,16 +59,20 @@ document.add(new UIElement("id","class1 class2"))
 
 
 Goals for a my GUI framework:
-Retained mode. Possibility of artist facing editor.
-Fast: Data oriented. Fast iteration and update of DOM.
-Interfacing with custom Windowing and drawing
-Docking
-Animation
-Simple and powerful layout engine
-Thinking about multithreaded operations
-Renderer Agnostic
+<ul>
+<li>Retained mode. Possibility of artist facing editor.</li>
+
+<li>Fast: Data oriented. Fast iteration and update of DOM.</li>
+<li>Interfacing with custom Windowing and drawing</li>
+<li>Docking </li>
+<li>Animation</li>
+<li>Simple and powerful layout engine</li>
+<li>Thinking about multithreaded operations</li>
+<li>Renderer Agnostic</li>
+</ul>
 
 Dependencies: Saket.ECS
+
 
 Data flow:
 XML + CSS -- Parse and Spawn --> Widgets -- Spawn --> LayoutElement -- Simple Transform --> Primitives -- gl.subBuffer --> Rendering 
@@ -99,6 +103,12 @@ sad
 
 ### Layouting Details
 Constraints being passed down to children. Geometry being passed up to parents
+
+Layouting starts from a root node with a fixed size. Then 
+
+
+
+
 
 
 ### Styling

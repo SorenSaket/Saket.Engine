@@ -27,6 +27,10 @@ using Saket.Engine.Graphics;
 using Saket.Engine.Graphics.Packing;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
+using Saket.Engine.Math.Geometry.Shapes;
+using System.Drawing;
+using Saket.Engine.Math.Types;
+using Saket.Engine.GUI;
 
 namespace Saket.Engine.Example
 {
@@ -56,14 +60,17 @@ namespace Saket.Engine.Example
             resources.databases.Add(new DatabaseEmbedded(Assembly.GetExecutingAssembly()));
             resources.RegisterLoader(new LoaderTexture());
             resources.RegisterLoader(new LoaderShader());
+            resources.RegisterLoader(new LoaderShape());
         }
         
         protected override void OnLoad()
         {
             world = new World();
 
+            //Shape s = resources.Load<Shape>("test");
+
             // Font testing
-            {
+            if(false){
                 float ppu = 64;
                 int tilePadding = 1;
                 var settings_packer = new Packer.SettingsPacker()
@@ -95,8 +102,7 @@ namespace Saket.Engine.Example
                 {
                     if (resources.TryGetStream("OpenSans-Regular.ttf", out var stream))
                     {
-                        font = new Font();
-                        font.LoadFromOFF(stream);
+                        font = new Font(stream);
                     }
                     else
                     {
@@ -183,6 +189,63 @@ namespace Saket.Engine.Example
                 }
             }
 
+            // Shape testing
+            if(true){
+                int size = 128;
+                // Atlas creation
+                float[] data = new float[size * size];
+                Span<float> dataAsSpan = new Span<float>(data);
+
+                // Create the main sdf game texture with float values
+                Texture texture = new Texture(size, size,
+                       TextureMinFilter.Linear,
+                       SizedInternalFormat.R32f,
+                       PixelInternalFormat.R32f,
+                       PixelFormat.Red,
+                       PixelType.Float);
+
+
+                StyledShapeCollection shape = new(
+                    new()
+                    {
+                        new Circle(11.5f, 0, 2),
+                        new Circle(0, 0, 10)
+                    },
+                    new()
+                    {
+                        new ShapeStyle()
+                    }
+                );
+
+                SDFGenerator generator = new SDFGenerator();
+
+                generator.GenerateSDF(shape, dataAsSpan, size, new Int2(0), new Int2(size), 10, Vector2.One, Vector2.One*(size/2));
+
+                {
+                    var a = GL.GetError();
+
+                    unsafe
+                    {
+                        fixed (void* ptr = dataAsSpan)
+                        {
+
+                            texture.Create();
+                            texture.Upload((nint)ptr);
+                        }
+                    }
+
+                    // ---- Texture Loading
+                    {
+                        List<TextureAtlas> groups = new()
+                        {
+                            new (texture, 1,1)
+                        };
+
+                        world.SetResource(groups);
+                    }
+                }
+            }
+
 
 
             var entity_camera = world.CreateEntity();
@@ -199,6 +262,7 @@ namespace Saket.Engine.Example
             teste.Add(new Sprite(0, 0, int.MaxValue));
             teste.Add(new Transform2D(0f, 0f, 0, 0, 20, 20));
 
+
             Stage stage_update = new Stage();
             //stage_update.Add()
             pipeline_update.AddStage(stage_update);
@@ -207,8 +271,6 @@ namespace Saket.Engine.Example
             stage_render.Add(spriteRenderer.SystemSpriteRenderer);
             pipeline_render.AddStage(stage_render);
         }
-
-
 
         protected override void OnUpdateFrame(FrameEventArgs args)
         {

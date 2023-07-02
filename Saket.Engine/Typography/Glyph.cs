@@ -8,9 +8,9 @@ namespace Saket.Engine.Typography
     {
         public float width;
         public float height;
-        public Shape Shape;
+        public StyledShapeCollection Shape;
 
-        public Glyph(Shape shape, float width, float height)
+        public Glyph(StyledShapeCollection shape, float width, float height)
         {
             this.Shape = shape;
             this.width = width;

@@ -249,7 +249,6 @@ namespace Saket.Engine
         }
 
 
-
         public void SystemSpriteAnimation(World world)
         {
 
@@ -362,13 +361,15 @@ namespace Saket.Engine
         }
 
 
-        [StructLayout(LayoutKind.Sequential)]
-        public struct SpriteElement
-        {
-            public static readonly int size = 36; // this is prone to error. Just do marshal.sizeof(), sizeof()
-            // Size = 32*6 + 32*3
-            public Transform2D transform;
-            public Sprite sprite;
-        }
+       
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct SpriteElement
+    {
+        public static readonly int size = 36; // this is prone to error. Just do marshal.sizeof(), sizeof()
+                                              // Size = 32*6 + 32*3
+        public Transform2D transform;
+        public Sprite sprite;
     }
 }

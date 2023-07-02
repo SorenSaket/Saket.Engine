@@ -1,19 +1,28 @@
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Saket.Engine.Math.Geometry
 {
     /// <summary>
 	/// Vector shape representation.
 	/// </summary>
-    public class Shape : List<Spline2D>
+    public class StyledShapeCollection : List<IShape>, IShape
     {
-        ///  <summary> Specifies whether the shape uses bottom-to-top (false) or top-to-bottom (true) Y coordinates. </summary>
-        public bool InverseYAxis = false;
-
-        public Shape(IEnumerable<Spline2D> collection) : base(collection)
+        public List<IShape> Shapes => this;
+        public List<ShapeStyle> Styles;
+        public StyledShapeCollection(List<IShape> shapes, List<ShapeStyle> styles) : base(shapes)
         {
+            Styles = styles;
+        }
+        public StyledShapeCollection() : base()
+        {
+            Styles = new List<ShapeStyle>();
+        }
+        public StyledShapeCollection(List<IShape> collection) : base(collection)
+        {
+            Styles = new List<ShapeStyle>(collection.Count);
         }
 
         /// <summary>
@@ -70,6 +79,16 @@ namespace Saket.Engine.Math.Geometry
             /*
             foreach (var contour in this)
                 contour.Bounds(box);*/
+        }
+
+        public SignedDistance GetSignedDistance(System.Numerics.Vector2 point)
+        {
+            return SignedDistance.GetShortest(Shapes, point);
+        }
+
+        BoundingBox2D IBounds2D.Bounds()
+        {
+            throw new NotImplementedException();
         }
     }
 }

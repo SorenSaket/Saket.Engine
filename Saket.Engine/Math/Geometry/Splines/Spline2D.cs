@@ -3,7 +3,7 @@ using System.Numerics;
 using System.Collections.Generic;
 using System.Collections;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
+
 
 namespace Saket.Engine.Math.Geometry
 {
@@ -11,7 +11,7 @@ namespace Saket.Engine.Math.Geometry
     /// A single continuous contour of a shape.
     /// Made of quadratic bezier splines.
     /// </summary>
-    public class Spline2D : IEnumerable<ICurve2D>
+    public class Spline2D : IEnumerable<ICurve2D>, IShape
     {
         /// <summary>
         /// The number of cures in this spline. There are 
@@ -149,6 +149,11 @@ namespace Saket.Engine.Math.Geometry
         IEnumerator IEnumerable.GetEnumerator()
         {
             return new SplineEnumerator(this);
+        }
+
+        public SignedDistance GetSignedDistance(Vector2 point)
+        {
+            return SignedDistance.GetShortest(this, point);
         }
     }
 

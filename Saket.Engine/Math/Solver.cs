@@ -41,7 +41,6 @@ namespace Saket.Engine
             return 1;
         }
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int SolveQuadratic(float a, float b, float c, out float intersection1, out float intersection2)
         {

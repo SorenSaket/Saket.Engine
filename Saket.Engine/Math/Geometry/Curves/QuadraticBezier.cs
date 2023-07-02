@@ -11,31 +11,31 @@ namespace Saket.Engine.Math.Geometry
         /// <summary>
         /// Starting point
         /// </summary>
-        public Vector2 start;
+        public Vector2 Start;
         /// <summary>
         /// Control point
         /// </summary>
-        public Vector2 control;
+        public Vector2 Control;
         /// <summary>
         /// End point
         /// </summary>
-        public Vector2 end;
+        public Vector2 End;
 
         public QuadraticBezier(Vector2 a, Vector2 b, Vector2 c)
         {
-            start = a;
-            control = b;
-            end = c;
+            Start = a;
+            Control = b;
+            End = c;
         }
 
         public Vector2 Evaluate(float t)
         {
-            return Vector2.Lerp(Vector2.Lerp(start, control, t), Vector2.Lerp(control, end, t), t);
+            return Vector2.Lerp(Vector2.Lerp(Start, Control, t), Vector2.Lerp(Control, End, t), t);
         }
 
         public Vector2 Direction(float t)
         {
-            return Vector2.Lerp(control - start, end - control, t);
+            return Vector2.Lerp(Control - Start, End - Control, t);
         }
 
         public SignedDistance SignedDistance(Vector2 origin, out float t)
@@ -43,9 +43,9 @@ namespace Saket.Engine.Math.Geometry
             // todo check validity of code
             // Figure out how it works
 
-            Vector2 qa = start - origin;
-            Vector2 ab = control - start;
-            Vector2 br = end - control - ab;
+            Vector2 qa = Start - origin;
+            Vector2 ab = Control - Start;
+            Vector2 br = End - Control - ab;
 
             int intersectionCount = Solver.SolveCubic(
                 Vector2.Dot(br, br),
@@ -65,13 +65,13 @@ namespace Saket.Engine.Math.Geometry
 
             {
                 epDir = Direction(1);
-                float distance =  (end - origin).Length(); // distance from B
+                float distance =  (End - origin).Length(); // distance from B
                 if (MathF.Abs(distance) < MathF.Abs(minDistance))
                 {
-                    minDistance = Mathf.NonZeroSign(Extensions_Vector2.Cross(epDir, end - origin)) *distance  ;
+                    minDistance = Mathf.NonZeroSign(Extensions_Vector2.Cross(epDir, End - origin)) *distance  ;
 
                     // taking a vector dot product of itself is equal to the square of its magnitude
-                    t = Vector2.Dot(origin - control, epDir) / Vector2.Dot(epDir, epDir);
+                    t = Vector2.Dot(origin - Control, epDir) / Vector2.Dot(epDir, epDir);
                 }
             }
 
@@ -96,22 +96,22 @@ namespace Saket.Engine.Math.Geometry
                 return new SignedDistance(minDistance, 0);
             if (t < 0.5f)
                 return new SignedDistance(minDistance, MathF.Abs(Vector2.Dot(Vector2.Normalize(Direction(0)), Vector2.Normalize(qa))));
-            return new SignedDistance(minDistance, MathF.Abs(Vector2.Dot(Vector2.Normalize(Direction(1)), Vector2.Normalize(end - origin))));
+            return new SignedDistance(minDistance, MathF.Abs(Vector2.Dot(Vector2.Normalize(Direction(1)), Vector2.Normalize(End - origin))));
         }
 
         //TODO doc
         public BoundingBox2D Bounds()
         {
             BoundingBox2D bounds = BoundingBox2D.Infinite;
-            bounds.AddPoint(start);
-            bounds.AddPoint(end);
+            bounds.AddPoint(Start);
+            bounds.AddPoint(End);
 
-            Vector2 bot = control - start - (end - control);
+            Vector2 bot = Control - Start - (End - Control);
 
             // null division guard
             if (bot.X != 0f)
             {
-                var param = (control.X - start.X) / bot.X;
+                var param = (Control.X - Start.X) / bot.X;
 
                 if (param > 0f && param < 1f)
                     bounds.AddPoint(Evaluate(param));
@@ -119,7 +119,7 @@ namespace Saket.Engine.Math.Geometry
 
             if (bot.Y != 0f)
             {
-                var param = (control.Y - start.Y) / bot.Y;
+                var param = (Control.Y - Start.Y) / bot.Y;
                 if (param > 0f && param < 1f)
                     bounds.AddPoint(Evaluate(param));
             }
@@ -139,5 +139,6 @@ namespace Saket.Engine.Math.Geometry
             part3 = new QuadraticBezier(Color, Point(2.0 / 3.0), Arithmetic.Mix(c, b, 2.0 / 3.0), b);
         */
         }
+
     }
 }

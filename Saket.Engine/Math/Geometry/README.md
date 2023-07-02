@@ -7,8 +7,7 @@ Contours
 
 Spline
 	"a continuous curve constructed so as to pass through a given set of points and have a certain number of continuous derivatives."
-	Simply a list of vector2's that can be interpreted in different ways.
-
+	Simply a list of vector2's that can be interpreted in different ways. A collection of curves
 Curve
 	"an abstract term used to describe the path of a continuously moving point"
 

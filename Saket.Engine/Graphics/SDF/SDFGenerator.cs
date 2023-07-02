@@ -84,7 +84,7 @@ namespace Saket.Engine.Graphics.SDF
         {
             Windings = Array.Empty<int>();
             SplineSignedDistances = Array.Empty<float>();
-            
+
         }
 
 
@@ -100,7 +100,7 @@ namespace Saket.Engine.Graphics.SDF
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="shape">The shape to generate the SDF from</param>
+        /// <param name="shapeCollection">The shape to generate the SDF from</param>
 
         /// <param name="output">The output distance</param>
         /// <param name="outputWidth">the width of the output data</param>
@@ -111,22 +111,22 @@ namespace Saket.Engine.Graphics.SDF
         /// <param name="range"></param>
         /// <param name="scale"></param>
         /// <param name="translation"></param>
-        public void GenerateSDF(Shape shape, Span<float> output, int outputWidth, Int2 offset, Int2 size, float range, Vector2 scale, Vector2 translation, Settings settings = default)
+        public void GenerateSDF(StyledShapeCollection shapeCollection, Span<float> output, int outputWidth, Int2 offset, Int2 size, float range, Vector2 scale, Vector2 translation, Settings settings = default)
         {
             // resize temp data to fit
-            if (Windings.Length < shape.Count)
+           /* if (Windings.Length < shapeCollection.Count)
             {
-                Array.Resize(ref Windings, shape.Count);
-            }
-            if (SplineSignedDistances.Length < shape.Count)
+                Array.Resize(ref Windings, shapeCollection.Count);
+            }*/
+            if (SplineSignedDistances.Length < shapeCollection.Count)
             {
-                Array.Resize(ref SplineSignedDistances, shape.Count);
+                Array.Resize(ref SplineSignedDistances, shapeCollection.Count);
             }
             // Get windings for each contour
-            for (int i = 0; i < shape.Count; i++)
+           /* for (int i = 0; i < shapeCollection.Count; i++)
             {
-                Windings[i] = shape[i].Winding();
-            }
+                Windings[i] = shapeCollection[i].Winding();
+            }*/
 
             if (settings.type == SDFType.SDF)
             {
@@ -147,22 +147,9 @@ namespace Saket.Engine.Graphics.SDF
                         // there must be some acceleration structure we can use here to speed up the generation
                         // ín chumskys implementation it iterates each contour and edge for each pixel.
                         // Maybe see Journal of Computer Graphics Techniques Vol. 6, No. 2, 2017
-                        SignedDistance minDistance = SignedDistance.Infinite;
-
-                        foreach (var spline in shape)
-                        {
-                            foreach (var curve in spline)
-                            {
-                                SignedDistance distance = curve.SignedDistance(context.P, out _);
-                                // operator overloaded smaller than.
-                                // If the absolute distance smaller than
-                                if (distance < minDistance)
-                                    minDistance = distance;
-                            }
-                        }
+                        SignedDistance minDistance = shapeCollection.GetSignedDistance(context.P);
                         float v = minDistance.Distance / range;
-
-                        output[offset.X + x + (offset.Y+ y)*outputWidth] = v;
+                        output[offset.X + x + (offset.Y + y) * outputWidth] = v;
 
                         /*
                         float v = ComputeSDFPixel(shape, ref context) / range + 0.5f;
@@ -175,7 +162,7 @@ namespace Saket.Engine.Graphics.SDF
                 throw new NotImplementedException();
 
                 // 1. Edge coloring
-                Generate_EdgeColors(shape, EdgeColors);
+                //Generate_EdgeColors(shapeCollection, EdgeColors);
             }
         }
 
@@ -194,8 +181,10 @@ namespace Saket.Engine.Graphics.SDF
         /// </summary>
         /// <param name="shape"></param>
         /// <returns></returns>
-        private void Generate_EdgeColors(Shape shape, List<EdgeColor> edgecolors)
+        private void Generate_EdgeColors(StyledShapeCollection shape, List<EdgeColor> edgecolors)
         {
+            throw new NotImplementedException();
+#if false
             foreach (var spline in shape)
             {
                 // TODO ADD threshhold
@@ -220,6 +209,7 @@ namespace Saket.Engine.Graphics.SDF
                         break;
                 }
             }
+#endif
         }
 
 
@@ -324,27 +314,25 @@ namespace Saket.Engine.Graphics.SDF
             seed >>= 1;
         }
 
-        #endregion
+#endregion
 
         #region SDF
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected float ComputeSDFPixel(Shape shape, ref InstanceContext ctx)
+        protected float ComputeSDFPixel(StyledShapeCollection shapeCollection, ref InstanceContext ctx)
         {
             int i = 0;
-            foreach (var spline in shape)
+            foreach (var shape in shapeCollection)
             {
                 // minDistance is the shortest distance to the spline
                 SignedDistance minDistance = SignedDistance.Infinite;
 
-                // Iterate all curves to find the nearest (smallest distance)
-                foreach (var curve in spline)
-                {
-                    SignedDistance distance = curve.SignedDistance(ctx.P, out _);
-                    // operator overloaded smaller than.
-                    // If the absolute distance smaller than
-                    if (distance < minDistance)
-                        minDistance = distance;
-                }
+               
+                SignedDistance distance = shape.GetSignedDistance(ctx.P);
+                // operator overloaded smaller than.
+                // If the absolute distance smaller than
+                if (distance < minDistance)
+                    minDistance = distance;
+               
 
                 // Update the spline min distance
                 SplineSignedDistances[i] = minDistance.Distance;
@@ -355,7 +343,7 @@ namespace Saket.Engine.Graphics.SDF
                 i++;
             }
 
-            return (float)(ComputeSignedDistance(shape, float.PositiveInfinity, ref ctx));
+            return (float)(ComputeSignedDistance(shapeCollection, float.PositiveInfinity, ref ctx));
         }
 
 #if false
@@ -565,10 +553,10 @@ namespace Saket.Engine.Graphics.SDF
         /// <param name="context"></param>
         /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected float ComputeSignedDistance(Shape shape, float signedDistance, ref InstanceContext context)
+        protected float ComputeSignedDistance(StyledShapeCollection shape, float signedDistance, ref InstanceContext context)
         {
             // This function is to add overlap support
-           //
+            //
 
             //  if is an inside pixel
             if (context.PosDist >= 0 && MathF.Abs(context.PosDist) <= MathF.Abs(context.NegDist))
@@ -596,17 +584,17 @@ namespace Saket.Engine.Graphics.SDF
 
 
 
-                for (var i = 0; i < shape.Count; ++i)
+            for (var i = 0; i < shape.Count; ++i)
+            {
+                if (Windings[i] != context.Winding &&
+                    MathF.Abs(SplineSignedDistances[i]) < MathF.Abs(signedDistance))
                 {
-                    if (Windings[i] != context.Winding &&
-                        MathF.Abs(SplineSignedDistances[i]) < MathF.Abs(signedDistance))
-                    {
-                        signedDistance = SplineSignedDistances[i];
-                    }
+                    signedDistance = SplineSignedDistances[i];
                 }
+            }
 
-                return signedDistance;
-            
+            return signedDistance;
+
         }
 
 
@@ -643,4 +631,4 @@ namespace Saket.Engine.Graphics.SDF
     }
 #endif
 
-}
+        }

@@ -16,8 +16,7 @@ namespace Saket.Engine.Resources.Loaders
         {
             if(resourceManager.TryGetStream(name, out var stream))
             {
-                //var r = OpenFont.LoadFromStream(stream);
-
+                return new Font(stream);
             }
 
             throw new Exception("Failed to load font");

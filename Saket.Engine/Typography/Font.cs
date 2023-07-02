@@ -23,7 +23,7 @@ namespace Saket.Engine.Typography
         public Dictionary<char, Glyph> glyphs = new Dictionary<char, Glyph>();
 
 
-        public void LoadFromOFF(Stream stream)
+        public Font(Stream stream)
         {
             var reader = new OFFReader(stream);
 
@@ -93,8 +93,8 @@ namespace Saket.Engine.Typography
                 Table_glyf.GlyphHeader gh = new Table_glyf.GlyphHeader();
                 gh.Deserialize(reader);
 
-                Shape shape = ReadShape(gh, reader);
-                
+                StyledShapeCollection shape = ReadShape(gh, reader);
+                /*
                 if(shape != null)
                 {
                     // Adjust for Unitsperem
@@ -106,7 +106,7 @@ namespace Saket.Engine.Typography
                             shape[q].points[w] /= unitsPerEm;
                         }
                     }
-                }
+                }*/
 
                 glyphs.Add((char)item.Key, 
                     new Glyph(shape,
@@ -117,15 +117,15 @@ namespace Saket.Engine.Typography
         }
 
 
-        public Shape ReadShape(Table_glyf.GlyphHeader gh, OFFReader reader)
+        public static StyledShapeCollection ReadShape(Table_glyf.GlyphHeader gh, OFFReader reader)
         {
             if (gh.numberOfContours >= 0)
             {
                 Table_glyf.SimpleGlyph sg = new Table_glyf.SimpleGlyph();
                 sg.Deserialize(reader, gh.numberOfContours);
 
-                Spline2D[] splines = new Spline2D[gh.numberOfContours];
-
+                List<IShape> splines = new (gh.numberOfContours);
+                
                 Vector2 position = Vector2.Zero;
                 Table_glyf.SimpleGlyph.Flags flags_previous = new Table_glyf.SimpleGlyph.Flags();
                 int last = 0;
@@ -164,7 +164,7 @@ namespace Saket.Engine.Typography
                     splines[i] = new Spline2D(points);
                 }
 
-                return new Shape(splines);
+                return new StyledShapeCollection(splines);
             }
             else
             {

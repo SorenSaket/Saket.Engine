@@ -15,6 +15,8 @@ namespace Saket.Engine.Math.Curves
         public Vector2 end;
 
 
+
+
         public BoundingBox2D Bounds()
         {
             throw new NotImplementedException();
@@ -22,21 +24,12 @@ namespace Saket.Engine.Math.Curves
 
         public Vector2 Direction(float t)
         {
-            throw new NotImplementedException();
-            /*
-            var tangent = Mathf.LerpUnclamped(
+            Vector2 tangent = Mathf.LerpUnclamped(
                 Mathf.LerpUnclamped(controlA - start, controlB - controlA, t),
                 Mathf.LerpUnclamped(controlB - controlA, end - controlB, t), 
                 t);
-            if (!tangent)
-            {
-                if (t == 0) 
-                    return _p[2] - _p[0];
-                if (t == 1) 
-                    return end - _p[1];
-            }
-
-            return tangent;*/
+            
+            return tangent;
         }
 
         public Vector2 Evaluate(float t)
@@ -62,5 +55,6 @@ namespace Saket.Engine.Math.Curves
         {
             throw new NotImplementedException();
         }
+
     }
 }

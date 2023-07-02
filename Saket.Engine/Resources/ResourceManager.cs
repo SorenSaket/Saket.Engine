@@ -101,12 +101,12 @@ namespace Saket.Engine
             {
                 if (databases[i].AvaliableResources.Contains(name))
                 {
-                    stream = databases[i].LoadResource(name);
+                    stream = databases[i].TryGetStream(name)!;
                     if(stream != null)
                         return true;
                 }
             }
-            stream = null;
+            stream = null!;
             return false;
         }
 
