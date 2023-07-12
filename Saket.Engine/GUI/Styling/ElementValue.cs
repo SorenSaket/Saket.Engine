@@ -9,9 +9,15 @@
 
     public struct ElementValue
     {
+        public ElementValue(float value, Measurement measurement = Measurement.Pixels)
+        {
+            Value = value;
+            Measurement = measurement;
+        }
         public float Value { get; set; }
 
         public Measurement Measurement { get; set; }
+
     }
 
     public enum Measurement : byte

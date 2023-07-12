@@ -10,8 +10,47 @@ using System.Threading.Tasks;
 
 namespace Saket.Engine.GUI
 {
+    public enum EventType
+    {
+        Enter,
+        Stay,
+        Exit,
+        Click,
+        Hold,
+    }
+
+
+    // Do some kind of union shit here
+    // which we had rust style enums or something
+    public struct Event
+    {
+        public EventType type;
+
+        public ulong data;
+    }
+
+
+
+    public ref struct GUIEntityInfo
+    {
+        public ECSPointer parent;
+        public string id;
+        public Style style;
+
+        public GUIEntityInfo(ECSPointer parent = default, string id = default, Style style = default)
+        {
+            this.parent = parent;
+            this.id = id;
+            this.style = style;
+        }
+    }
+
     public class Document
     {
+        public event Action<EventType, Entity> OnGUIEvent;
+
+
+
         // IDS and classes should be common across document instances
         /// <summary>
         /// Hashcode -> index
@@ -21,8 +60,20 @@ namespace Saket.Engine.GUI
         /// Hashcode -> Hashset<index>
         /// </summary>
         public static Dictionary<int, HashSet<int>> classGroups = new();
+        public static int GetID(string id)
+        {
+            if (id == null)
+                return -1;
 
-        public static int GetAndRegisterID(string id)
+            int hash = id.GetHashCode();
+
+            if (idshashes.ContainsKey(hash))
+                return idshashes[hash];
+
+            return -1;
+        }
+
+        protected static int GetAndRegisterID(string id)
         {
             if (id == null)
                 return -1;
@@ -38,8 +89,8 @@ namespace Saket.Engine.GUI
                 return value;
             }
         }
-        
-        public static int GetAndRegisterClassGroup(Span<string> classes)
+
+        protected static int GetAndRegisterClassGroup(Span<string> classes)
         {
             if (classes == null || classes.Length == 0) return -1;
 
@@ -72,25 +123,10 @@ namespace Saket.Engine.GUI
 
         public World world;
         public StyleSheet styles;
+
         public Document(World world)
         {
             this.world = world;
-        }
-
-
-        public ref struct GUIEntityInfo
-        {
-            public ECSPointer parent;
-            public string id;
-            public Span<string> classes;
-
-
-            public GUIEntityInfo(ECSPointer parent = default, string id = default, Span<string> classes = default)
-            {
-                this.parent = parent;
-                this.id = id;
-                this.classes = classes;
-            }
         }
 
         public Entity CreateGUIEntity(GUIEntityInfo info)
@@ -101,7 +137,6 @@ namespace Saket.Engine.GUI
             entity.Add(new Widget()
             {
                 id = GetAndRegisterID(info.id),
-                classGroup = GetAndRegisterClassGroup(info.classes),
             });
             
             entity.Add(new LayoutElement());
@@ -109,9 +144,24 @@ namespace Saket.Engine.GUI
 
             entity.Add(new HierarchyEntity(info.parent));
             // TODO handle HierarchyEntity referenes
-            
+
+            // Add style directly since it can be considered a component
+            entity.Add(info.style);
+
             return entity;
         }
+
+        public Entity AddText(Entity entity, string text)
+        {
+            entity.Add(new Text(strings.Count));
+            strings.Add(text);
+            return entity;
+        }
+
+        
+
+
+
 
         public void Render(RendererSpriteSimple renderer)
         {

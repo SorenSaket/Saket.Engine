@@ -1,6 +1,5 @@
 using System;
 using System.Runtime.InteropServices;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Saket.Engine.Platform
 {
@@ -29,16 +28,13 @@ namespace Saket.Engine.Platform
             return Windows.LoadLibraryW(libraryName);
         }
 
-        public static T LoadFunction<T>(IntPtr library, string function, bool throwIfNotFound = false)
+        public static T LoadFunction<T>(IntPtr library, string function)
         {
             var ret = Windows.GetProcAddress(library, function);
 
             if (ret == IntPtr.Zero)
             {
-                if (throwIfNotFound)
-                    throw new EntryPointNotFoundException(function);
-
-                return default(T);
+                throw new EntryPointNotFoundException(function);
             }
            
             return Marshal.GetDelegateForFunctionPointer<T>(ret);

@@ -2,53 +2,78 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Saket.Engine.GUI.Styling
 {
-    [Flags]
-    public enum ElementFlags : uint
-    {
-        Direction = 0,
-        SelfDirected
-    }
-
-    // Todo research alternative to nullable
-    // value orderings for packing? 
- 
+    /// <summary>
+    /// Contains all styling for all GUI elements. 
+    /// a zero/default value means that it's unset. should inhert values from parent?
+    /// </summary>
     public struct Style
     {
+        // Todo research alternative to nullable
+        // value orderings for packing? 
+
+        [Flags]
+        public enum StyleFlags : uint
+        {
+            /// <summary>
+            /// 0 = horizontal, 1 = vertical
+            /// </summary>
+            Direction,
+            /// <summary>
+            /// 0 = parent directed, 1 = self directed
+            /// </summary>
+            SelfDirected,
+
+
+        }
+
         public bool Vertical
         {
-            get => Flags.HasFlag(ElementFlags.Direction);
-            set { Flags = value ? Flags |= ElementFlags.Direction : Flags &= ~ElementFlags.Direction;  }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => Flags.HasFlag(StyleFlags.Direction);
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set { Flags = value ? Flags |= StyleFlags.Direction : Flags &= ~StyleFlags.Direction;  }
         }
+
         public bool SelfDirected
         {
-            get => Flags.HasFlag(ElementFlags.SelfDirected);
-            set { Flags = value ? Flags |= ElementFlags.SelfDirected : Flags &= ~ElementFlags.SelfDirected; }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => Flags.HasFlag(StyleFlags.SelfDirected);
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set { Flags = value ? Flags |= StyleFlags.SelfDirected : Flags &= ~StyleFlags.SelfDirected; }
         }
 
+        public StyleFlags Flags;
 
-        public ElementFlags Flags;
-
-        public ElementValue? width;
-        
-        public ElementValue? height;
+        public ElementValue Width;
+        public ElementValue Height;
 
         /// <summary>
         /// Padding
         /// </summary>
-        public ElementValue? innerSpacing;
+        public ElementValue innerSpacing;
 
         /// <summary>
         /// outer spacing / Margin
         /// </summary>
-        public ElementValue? outerSpacing;
+        public ElementValue outerSpacing;
 
-        public Color? color;
-        public Color? background_color;
+        public Color color;
+        public Color background_color;
+
+        public int font;
+        public int background_texture;
+
+        public Style() 
+        {
+            color = Color.Black;
+            background_color = Color.White;
+        }
 
         public void Combine(Style style)
         {

@@ -15,3 +15,10 @@ https://github.com/microsoft/win32metadata
 https://github.com/dotnet/pinvoke
 
 https://github.com/microsoft/CsWin32
+
+
+
+
+https://learn.microsoft.com/en-us/windows/win32/apiindex/windows-api-list
+
+https://learn.microsoft.com/en-us/dotnet/framework/interop/default-marshalling-for-strings

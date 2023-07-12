@@ -4,6 +4,7 @@ using Saket.Engine.Net;
 using Saket.Engine.Net.Snapshotting;
 using Saket.Engine.Net.Snapshotting.A;
 using Saket.Serialization;
+using Saket.Serialization.Byte;
 using System;
 using System.Numerics;
 

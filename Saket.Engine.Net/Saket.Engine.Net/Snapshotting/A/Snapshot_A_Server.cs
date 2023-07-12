@@ -1,6 +1,7 @@
 ﻿using Saket.ECS;
 using System;
 using Saket.Serialization;
+using Saket.Serialization.Byte;
 
 namespace Saket.Engine.Net.Snapshotting.A
 {

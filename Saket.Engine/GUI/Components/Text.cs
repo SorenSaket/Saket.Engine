@@ -11,6 +11,10 @@ namespace Saket.Engine.GUI
     public struct Text
     {
         public int textIndex;
-        public int horizontalAlignment;
+
+        public Text(int textIndex)
+        {
+            this.textIndex = textIndex;
+        }
     }
 }

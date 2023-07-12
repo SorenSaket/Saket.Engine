@@ -8,6 +8,7 @@ using System.Security.AccessControl;
 using Saket.Engine.Net.Rollback;
 using Saket.Engine.Collections;
 using Saket.Serialization;
+using Saket.Serialization.Byte;
 
 namespace Saket.Engine.Net.Snapshotting.A
 {

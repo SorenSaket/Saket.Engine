@@ -26,15 +26,20 @@ using Saket.Engine.Graphics;
 using Saket.Engine.Graphics.Packing;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
+using Saket.Engine.GUI;
+using Saket.Engine.GUI.Styling;
 
 namespace Saket.Engine.Example
 {
 
     class UIProgram : Application
     {
+        World world;
+        Document document;
+
+
         float aspectRatio;
 
-        World world;
 
 
         RendererSpriteSimple spriteRenderer;
@@ -59,19 +64,65 @@ namespace Saket.Engine.Example
 
         protected override void OnLoad()
         {
+            // Create a new world
+            // This is where everything is stored
             world = new World();
 
+            // We have to give the document reference to the world since GUI elements are regular entities
+            // Optionally can give the document a seperate world so that it's seperate from gameplay entities
+            document = new Document(world);
 
-            var window = world.CreateEntity();
-
-
-
-
-
+            // Load a font and add it to the document
 
 
+            // Root entity that will act as our window
+            // a window will automatically be created for each root entity?
+            var window = document.CreateGUIEntity(new GUIEntityInfo(default, "window_main", new()
+            {
+                Width = new(1280),
+                Height = new(720)
+            }));
+            
+            // Create a gui entity that will act as a button
+            // There are no buildt in components by default 
+            // Everything can act as a button
+            var button = document.CreateGUIEntity(new GUIEntityInfo(window.EntityPointer, "button_exitapp", new Style()
+            {
+                background_color = Color.Red,
+                color = Color.White,
+                Width = new ElementValue(128, Measurement.Pixels),
+                Height = new(48, Measurement.Pixels),
+            }));
 
-           
+            // Add text to the button
+            document.AddText(button, "Exit The Application");
+
+
+            // TODO Add on hover effects            
+            // All animation can be created through the engines animation system since GUIelements are part of the ECS system
+            //
+
+
+            // This gets invoked every time an event occurs
+            // Do all logic in here
+            document.OnGUIEvent += (@event, entity) =>
+            {
+                if (@event != EventType.Click)
+                    return;
+                // GetID is static so id indexes are consistent across documents
+                //
+                if (entity.Get<Widget>().id != Document.GetID("button_exitapp"))
+                    return;
+
+                // perform logic
+                Environment.Exit(0);
+            };
+
+
+
+
+
+
             var entity_camera = world.CreateEntity();
             entity_camera.Add(new Transform2D());
             entity_camera.Add(new CameraOrthographic(32, 0.1f, 100f));

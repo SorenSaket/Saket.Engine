@@ -1,5 +1,6 @@
 ﻿using Saket.ECS;
 using Saket.Serialization;
+using Saket.Serialization.Byte;
 using System;
 using System.Collections.Generic;
 using System.Drawing;

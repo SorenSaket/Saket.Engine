@@ -24,13 +24,10 @@
 	<!-- References -->
 
 	<ItemGroup>
-		<PackageReference Include="ExCSS" Version="4.2.0" />
 		<PackageReference Include="ImGui.NET" Version="1.87.3" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
 		<PackageReference Include="OpenTK" Version="4.7.5" />
-		<PackageReference Include="PInvoke.User32" Version="0.7.124" />
 		<PackageReference Include="StbImageSharp" Version="2.27.12" />
-		<PackageReference Include="SvgPathProperties" Version="1.1.2" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -52,5 +49,11 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\Saket.ECS\Saket.ECS\Saket.ECS.csproj" />
 	  <ProjectReference Include="..\Saket.Serialization\Saket.Serialization\Saket.Serialization.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="wgpu_native.dll">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
 	</ItemGroup>
 </Project>

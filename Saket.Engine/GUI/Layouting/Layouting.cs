@@ -15,11 +15,12 @@ namespace Saket.Engine.GUI.Layouting
         static Query query = new Query().With<(Widget, HierarchyEntity, LayoutElement, Style)>();
 
 
+        // temp storage for calculations
         HashSet<ECSPointer> children;
 
         public void Layout(World world)
         {
-            // get all roots
+            // TODO get all roots
 
             // iterate roots
             // layout
@@ -29,21 +30,17 @@ namespace Saket.Engine.GUI.Layouting
             {
                 var h = root.Get<HierarchyEntity>();
                 var style = root.Get<Style>();
-
+                
                 // Iterate all children and combine their widths/heights
-                //world.GetEntity(h.first_child)
-
-
-              /*  while ()
+                if (style.Vertical)
                 {
 
                 }
-
-                if (style.)
+                else
                 {
 
-                }*/
-
+                    //world.GetEntity(h.first_child)
+                }
             }
         }
 

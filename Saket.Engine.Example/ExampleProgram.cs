@@ -41,7 +41,6 @@ namespace Saket.Engine.Example
         
         World world;
 
-
         RendererSpriteSimple spriteRenderer;
 
         Pipeline pipeline_update = new Pipeline();
@@ -190,7 +189,7 @@ namespace Saket.Engine.Example
             }
 
             // Shape testing
-            if(true){
+            if(false){
                 int size = 128;
                 // Atlas creation
                 float[] data = new float[size * size];
@@ -245,7 +244,6 @@ namespace Saket.Engine.Example
                     }
                 }
             }
-
 
 
             var entity_camera = world.CreateEntity();
