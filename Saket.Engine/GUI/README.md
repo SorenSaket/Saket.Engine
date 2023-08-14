@@ -1,4 +1,15 @@
-# Saket.UI
+# Saket.GUI
+
+Saket.GUI is a Graphical User Interface library made for Saket.Engine. 
+It's currently based of a ECS architecture.
+
+- High Performance when rendering many GUI elements
+- Smooth Animations
+- Multiple Window support (Desktop)
+- Rich Standard GUI element toolset
+
+
+
 
 ## User Guide
 
@@ -144,14 +155,6 @@ XML Widget File format
 
 ## Reference Material
 
-
-
-https://docs.flutter.dev/resources/inside-flutter
-
-https://www.alibabacloud.com/blog/exploration-of-the-flutter-rendering-mechanism-from-architecture-to-source-code_597285
-
-
-
 Data Oriented GUI in Rust by Raph Levien - Bay Area Rust Meetup:
 https://www.youtube.com/watch?v=4YTfxresvS8&t=1940s&ab_channel=Rust
 
@@ -213,6 +216,26 @@ https://github.com/fyne-io/fyne
 
 
 ### Layouting
+
+https://www.youtube.com/watch?v=VVe8RKiBsnM
+https://blog.nornagon.net/ui-layout-algorithms/
+
+
+https://stackoverflow.com/questions/53911631/gui-layout-algorithms-overview
+Flutter layouting algorithm infomation:
+- https://docs.flutter.dev/ui/layout/constraints
+- https://docs.flutter.dev/resources/architectural-overview#rendering-and-layout
+- https://docs.flutter.dev/resources/inside-flutter
+- https://www.alibabacloud.com/blog/exploration-of-the-flutter-rendering-mechanism-from-architecture-to-source-code_597285
+- https://www.youtube.com/watch?v=UUfXWzp0-DU
+- https://api.flutter.dev/flutter/widgets/Flex-class.html
+
+
+https://github.com/randrew/layout
+
+
+https://doc.qt.io/qt-5/layout.html
+
 https://github.com/facebook/yoga
 
 https://proandroiddev.com/understanding-flutter-layout-box-constraints-292cc0d5e807

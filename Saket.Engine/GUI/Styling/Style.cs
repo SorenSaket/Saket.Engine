@@ -1,13 +1,45 @@
 ﻿using Saket.Graphics;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Saket.Engine.GUI.Styling
 {
+    [Flags]
+    public enum StyleFlags : uint
+    {
+        /// <summary>
+        /// 0 = horizontal, 1 = vertical
+        /// </summary>
+        Direction,
+        /// <summary>
+        /// 0 = parent directed, 1 = self directed
+        /// </summary>
+        SelfDirected,
+        /// <summary>
+        /// 0 = nowrap, 1 = wrap
+        /// </summary>
+        Wrap,
+    }
+
+    public enum AlignItems : byte
+    {
+        start,
+        end,
+        center,
+        stretch
+    }
+
+    public enum AlignContent : byte
+    {
+        start,
+        end,
+        center,
+        stretch,
+        space_between,
+        space_around
+    }
+
     /// <summary>
     /// Contains all styling for all GUI elements. 
     /// a zero/default value means that it's unset. should inhert values from parent?
@@ -17,27 +49,22 @@ namespace Saket.Engine.GUI.Styling
         // Todo research alternative to nullable
         // value orderings for packing? 
 
-        [Flags]
-        public enum StyleFlags : uint
+        #region Flag Accesors
+
+        public bool Wrap
         {
-            /// <summary>
-            /// 0 = horizontal, 1 = vertical
-            /// </summary>
-            Direction,
-            /// <summary>
-            /// 0 = parent directed, 1 = self directed
-            /// </summary>
-            SelfDirected,
-
-
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => Flags.HasFlag(StyleFlags.Wrap) ? true : false;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set { Flags = value ? Flags |= StyleFlags.Wrap : Flags &= ~StyleFlags.Wrap; }
         }
 
-        public bool Vertical
+        public Axis Axis
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Flags.HasFlag(StyleFlags.Direction);
+            get => Flags.HasFlag(StyleFlags.Direction) ? Axis.Horizontal : Axis.Vertical;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set { Flags = value ? Flags |= StyleFlags.Direction : Flags &= ~StyleFlags.Direction;  }
+            set { Flags = value == Axis.Horizontal ? Flags |= StyleFlags.Direction : Flags &= ~StyleFlags.Direction;  }
         }
 
         public bool SelfDirected
@@ -48,10 +75,30 @@ namespace Saket.Engine.GUI.Styling
             set { Flags = value ? Flags |= StyleFlags.SelfDirected : Flags &= ~StyleFlags.SelfDirected; }
         }
 
+        #endregion
+
+
+
         public StyleFlags Flags;
+
+        public AlignItems AlignItems;
+        public AlignContent AlignContent;
+
+
+        // 
 
         public ElementValue Width;
         public ElementValue Height;
+
+        public ElementValue MinWidth;
+        public ElementValue MinHeight;
+        
+        public ElementValue MaxWidth;
+        public ElementValue MaxHeight;
+
+
+
+
 
         /// <summary>
         /// Padding

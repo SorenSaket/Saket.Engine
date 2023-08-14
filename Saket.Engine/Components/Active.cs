@@ -11,6 +11,8 @@ namespace Saket.Engine.Components
     [StructLayout(LayoutKind.Sequential)]
     public struct Active
     {
-        public bool active;
+        public bool IsActive { get => active == 1; set { active = (byte) (value ? 0b_1 : 0b_0); } }
+
+        private byte active;
     }
 }

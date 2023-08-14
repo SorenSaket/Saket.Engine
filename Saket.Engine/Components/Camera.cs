@@ -10,7 +10,6 @@ namespace Saket.Engine
     public static class Camera
     {
         public static Query query = new Query().With<CameraOrthographic>();
-
         public static void CameraSystemOrthographic(World world)
         {
             var entities = world.Query(query);
@@ -57,7 +56,6 @@ namespace Saket.Engine
     {
         public Matrix4x4 ViewMatrix { get; }
         public Matrix4x4 ProjectionMatrix { get; }
-
     }
 
     public struct CameraOrthographic : ICamera
@@ -80,10 +78,8 @@ namespace Saket.Engine
             this.near = near;
             this.far = far;
             this.viewMatrix = Matrix4x4.Identity;
-            this.projectionMatrix = Matrix4x4.CreateOrthographic(size, size, 0.1f, 100f);
+            this.projectionMatrix = Matrix4x4.CreateOrthographic(size, size, near, far);
         }
-
-     
 
         public Vector3 ScreenToWorldPoint(Vector3 position)
         {
@@ -99,7 +95,6 @@ namespace Saket.Engine
 
             return transformedWorldPosition.XYZ();*/
         }
-
 
         public Vector3 WorldToScreenPoint(Vector3 position)
         {
@@ -180,5 +175,4 @@ namespace Saket.Engine
             CalcuateViewMatrix();
         }*/
     }
-
 }

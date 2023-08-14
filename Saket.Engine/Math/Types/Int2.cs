@@ -14,7 +14,7 @@ namespace Saket.Engine.Math.Types
     {
         public int X; 
         public int Y;
-       
+        
         public Int2(int value) : this(value, value)
         {
         }

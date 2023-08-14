@@ -13,7 +13,6 @@ using Saket.Engine;
 
 using Saket.Engine.Resources.Databases;
 using Saket.Engine.Resources.Loaders;
-using Saket.Engine.Typography;
 
 using Saket.ECS;
 using Saket.Engine.Graphics.SDF;
@@ -28,6 +27,7 @@ using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using Saket.Engine.GUI;
 using Saket.Engine.GUI.Styling;
+using Saket.Engine.Graphics.Text;
 
 namespace Saket.Engine.Example
 {

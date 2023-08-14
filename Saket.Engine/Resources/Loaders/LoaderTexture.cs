@@ -9,14 +9,14 @@ using StbImageSharp;
 
 namespace Saket.Engine.Resources.Loaders
 {
-    public class LoaderTexture : ResourceLoader<Texture>
+    public class LoaderTexture : ResourceLoader<Image>
     {
         public LoaderTexture() : base()
         {
             
         }
 
-        public override Texture Load(string textureName, ResourceManager resourceManager)
+        public override Image Load(string textureName, ResourceManager resourceManager)
         {
             string path = "texture_" + textureName + ".png";
 
@@ -27,7 +27,7 @@ namespace Saket.Engine.Resources.Loaders
                     StbImage.stbi_set_flip_vertically_on_load(1);
                     ImageResult image = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
                     
-                    Texture tex = new Texture(image.Width, image.Height);
+                    Image tex = new Image(image.Width, image.Height);
                     tex.data = image.Data;
                     return tex;
                 }

@@ -27,7 +27,7 @@
         /// </summary>
         Pixels = 0,
         /// <summary>
-        /// Percentage of parent
+        /// Percentage of parents inner size
         /// </summary>
         Percentage = 1,
         /// <summary>

@@ -1,9 +1,13 @@
-﻿using OpenTK.Graphics.OpenGL4;
+﻿
 using Saket.ECS;
 using Saket.Engine.Collections;
 using Saket.Engine.Components;
 using Saket.Engine.Graphics;
 using Saket.Engine.Math.Geometry;
+using Saket.Engine.Typography.TrueType;
+using Saket.WebGPU;
+using Saket.WebGPU.Native;
+using Saket.WebGPU.Objects;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -40,6 +44,115 @@ namespace Saket.Engine
         /// </summary>
         static readonly Query query_spriteAnimator = new Query().With<(Sprite, SpriteAnimator)>();
 
+        readonly Transform2D[] elements_transform;
+        readonly nint buffer_transform;
+        readonly ulong size_bufferTransform;
+
+        readonly Sprite[] elements_sprite;
+        readonly nint buffer_sprite;
+        readonly ulong size_bufferSprite;
+
+        readonly uint batchCount;
+
+        public unsafe RendererSpriteSimple(uint batchCount, Device device)
+        {
+            this.batchCount = batchCount;
+
+            // Transform buffer 
+            {
+                // Allocate cpu side array
+                elements_transform = new Transform2D[batchCount];
+                // Cache the size of the array
+                size_bufferTransform = (ulong)(batchCount * sizeof(Transform2D));
+
+                // Create the gpu side buffer
+                WebGPU.WGPUBufferDescriptor bufferDescriptor = new()
+                {
+                    usage = WGPUBufferUsage.CopyDst | WGPUBufferUsage.Vertex,
+                    size = size_bufferTransform,
+                };
+                buffer_transform = wgpu.DeviceCreateBuffer(device.Handle, bufferDescriptor);
+
+            }
+
+            // Sprite buffer 
+            {
+                elements_sprite = new Sprite[batchCount];
+                size_bufferSprite = (ulong)(batchCount * sizeof(Sprite));
+
+                WebGPU.WGPUBufferDescriptor bufferDescriptor = new()
+                {
+                    usage = WGPUBufferUsage.CopyDst | WGPUBufferUsage.Vertex,
+                    size = size_bufferTransform
+                };
+
+                buffer_sprite = wgpu.DeviceCreateBuffer(device.Handle, bufferDescriptor);
+            }
+        }
+
+        public unsafe void SetbuffersAndDraw(nint RenderPassEncoder, uint instanceCount)
+        {
+            wgpu.RenderPassEncoderSetVertexBuffer(RenderPassEncoder, 0, buffer_transform, 0, size_bufferTransform);
+            wgpu.RenderPassEncoderSetVertexBuffer(RenderPassEncoder, 1, buffer_sprite, 0, size_bufferSprite);
+            wgpu.RenderPassEncoderDraw(RenderPassEncoder, 6, instanceCount, 0, 0);
+        }
+
+
+        List<Archetype> archetypes = new ();
+
+        /// <summary>
+        ///  
+        /// </summary>
+        /// <param name="world"></param>
+        public void IterateForRender(World world, Action<uint> RenderAction, Query? query = null)
+        {
+            if (query != null)
+            {
+                if (!query.Inclusive.Contains(typeof(Transform2D)) || !query.Inclusive.Contains(typeof(Sprite))) {
+                    throw new Exception("Query needs to contain Transform2D and Sprite");
+                }
+                // Query the world for matching enetities
+                world.QueryArchetypes(query, ref archetypes, out _);
+            }
+            else
+            {
+                // Query the world for matching enetities
+                world.QueryArchetypes(query_spriteTransform, ref archetypes, out _);
+            }
+
+            uint count = 0;
+            unsafe
+            {
+                foreach (var archetype in archetypes)
+                {
+                    Transform2D* transforms = archetype.GetUnsafe<Transform2D>(0);
+                    Sprite*     sprites = archetype.GetUnsafe<Sprite>(0);
+
+                    foreach (var index_entity in archetype)
+                    {
+                        elements_transform[count]   = transforms[index_entity];
+                        elements_sprite[count]      = sprites[index_entity];
+                        count++;
+
+                        if(count >= batchCount)
+                        {
+                            RenderAction(count);
+                            count = 0;
+                        }
+                    }
+                }
+            }
+            // Render remaining
+            if (count >= 0)
+            {
+                RenderAction(count);
+            }
+        }
+
+        
+
+
+#if false
         /// <summary>
         /// The shader to use for rendering
         /// </summary>
@@ -360,16 +473,9 @@ namespace Saket.Engine
             } while (nextGroups.Count > 0);
         }
 
+#endif
 
-       
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    public struct SpriteElement
-    {
-        public static readonly int size = 36; // this is prone to error. Just do marshal.sizeof(), sizeof()
-                                              // Size = 32*6 + 32*3
-        public Transform2D transform;
-        public Sprite sprite;
-    }
+    
 }

@@ -37,7 +37,7 @@ namespace Saket.Engine.GUI
         public string id;
         public Style style;
 
-        public GUIEntityInfo(ECSPointer parent = default, string id = default, Style style = default)
+        public GUIEntityInfo(ECSPointer parent = default, string id = null, Style style = default)
         {
             this.parent = parent;
             this.id = id;
@@ -115,11 +115,11 @@ namespace Saket.Engine.GUI
         }
 
 
-        static Query query = new Query().With<(Widget, LayoutElement)>();
+        static Query query = new Query().With<(Widget, GUILayout)>();
         // string are managed because you cannot store variable data sizes in an ECS
         public List<string> strings = new List<string>();
 
-        public List<SpriteElement> batch;
+        //public List<SpriteElement> batch;
 
         public World world;
         public StyleSheet styles;
@@ -139,7 +139,7 @@ namespace Saket.Engine.GUI
                 id = GetAndRegisterID(info.id),
             });
             
-            entity.Add(new LayoutElement());
+            entity.Add(new GUILayout());
             
 
             entity.Add(new HierarchyEntity(info.parent));
@@ -158,18 +158,14 @@ namespace Saket.Engine.GUI
             return entity;
         }
 
-        
-
-
-
-
+        /* 
         public void Render(RendererSpriteSimple renderer)
         {
             var widgets = world.Query(query);
             foreach (var entity in widgets)
             {
                 var widget = entity.Get<Widget>();
-                var layoutElement = entity.Get<LayoutElement>();
+                var layoutElement = entity.Get<GUILayout>();
 
 
 
@@ -177,6 +173,6 @@ namespace Saket.Engine.GUI
 
 
             }
-        }
+        }*/
     }
 }

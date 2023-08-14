@@ -1,12 +1,11 @@
-﻿using OpenTK.Graphics.OpenGL4;
-using OpenTK.Windowing.Desktop;
-using Saket.Engine;
-using Saket.Engine.Platform.Windows;
+﻿using Saket.Engine;
+using Saket.Engine.Platform.Win;
 using System;
 using System.Runtime.InteropServices;
-using Saket.Engine.WebGPU;
+using Saket.WebGPU;
 using System.Threading.Tasks;
 using System.Text;
+using Saket.WebGPU.Native;
 
 namespace Saket.Engine.Example
 {
@@ -14,15 +13,15 @@ namespace Saket.Engine.Example
 
     public static class Program
     {
-        static byte[] shaderSource = Encoding.UTF8.GetBytes("@vertex\r\nfn vs_main(@builtin(vertex_index) in_vertex_index: u32) -> @builtin(position) vec4<f32> {\r\n\tvar p = vec2<f32>(0.0, 0.0);\r\n\tif (in_vertex_index == 0u) {\r\n\t\tp = vec2<f32>(-0.5, -0.5);\r\n\t} else if (in_vertex_index == 1u) {\r\n\t\tp = vec2<f32>(0.5, -0.5);\r\n\t} else {\r\n\t\tp = vec2<f32>(0.0, 0.5);\r\n\t}\r\n\treturn vec4<f32>(p, 0.0, 1.0);\r\n}\r\n\r\n@fragment\r\nfn fs_main() -> @location(0) vec4<f32> {\r\n    return vec4<f32>(0.0, 0.4, 1.0, 1.0);\r\n}");
-
-       [STAThread]
+        static string shaderSource = "@vertex\r\nfn vs_main(@builtin(vertex_index) in_vertex_index: u32) -> @builtin(position) vec4<f32> {\r\n\tvar p = vec2<f32>(0.0, 0.0);\r\n\tif (in_vertex_index == 0u) {\r\n\t\tp = vec2<f32>(-0.5, -0.5);\r\n\t} else if (in_vertex_index == 1u) {\r\n\t\tp = vec2<f32>(0.5, -0.5);\r\n\t} else {\r\n\t\tp = vec2<f32>(0.0, 0.5);\r\n\t}\r\n\treturn vec4<f32>(p, 0.0, 1.0);\r\n}\r\n\r\n@fragment\r\nfn fs_main() -> @location(0) vec4<f32> {\r\n    return vec4<f32>(0.0, 0.4, 1.0, 1.0);\r\n}";
+        
+        [STAThread]
 		static unsafe void Main()
         {
             // Create the instance
 
-            WebGPU.WGPUInstanceDescriptor desc = new WebGPU.WGPUInstanceDescriptor() { };
-            nint instance = wgpu.CreateInstance(ref desc);
+            WGPUInstanceDescriptor desc = new WGPUInstanceDescriptor() { };
+            nint instance = wgpu.CreateInstance(desc);
 
             if (instance == 0)
                 throw new Exception("Could not initialize WebGPU");
@@ -82,14 +81,14 @@ namespace Saket.Engine.Example
             WGPURequestAdapterOptions options = new WGPURequestAdapterOptions() { 
                 compatibleSurface = surface
             };
-            nint adapter = WebGPU.Helper.RequestAdapter(instance, ref options);
+            nint adapter = WebGPU.Helper.RequestAdapter(instance, options);
             if(adapter == 0)
                 throw new Exception("Could not initialize WebGPU");
             
             
             // Create Device
             var descriptor = new WGPUDeviceDescriptor(){};
-            nint device = WebGPU.Helper.RequestDevice(adapter, ref descriptor);
+            nint device = WebGPU.Helper.RequestDevice(adapter, descriptor);
             if (device == 0)
                 throw new Exception("Could not initialize WebGPU");
 
@@ -116,8 +115,8 @@ namespace Saket.Engine.Example
                 presentMode = WGPUPresentMode.Fifo
             };
 
-            nint swapchain = wgpu.DeviceCreateSwapChain(device, surface, ref swapChainDescriptor);
-
+            nint swapchain = wgpu.DeviceCreateSwapChain(device, surface, swapChainDescriptor);
+            
             if (swapchain == 0)
                 throw new Exception("Could not initialize WebGPU");
            
@@ -129,33 +128,30 @@ namespace Saket.Engine.Example
 
             // Create shader
             nint shaderModule = 0;
-            fixed(byte* ptr = shaderSource)
+           
+            WGPUShaderModuleWGSLDescriptor shaderCodeDesc = new()
             {
-                WGPUShaderModuleWGSLDescriptor shaderCodeDesc = new()
-                {
-                    chain = new WGPUChainedStruct() { next = null, sType = WGPUSType.ShaderModuleWGSLDescriptor },
-                    code = (char*)ptr,
-                };
-                WGPUShaderModuleDescriptor shaderDesc = new WGPUShaderModuleDescriptor() { 
-                    hintCount = 0,
-                    hints = null,
-                    nextInChain = &shaderCodeDesc.chain
-                };
+                chain = new WGPUChainedStruct() { next = null, sType = WGPUSType.ShaderModuleWGSLDescriptor },
+                code = shaderSource,
+            };
+            WGPUShaderModuleDescriptor shaderDesc = new WGPUShaderModuleDescriptor() { 
+                hintCount = 0,
+                hints = null,
+                nextInChain = &shaderCodeDesc.chain
+            };
 
-                shaderModule = wgpu.DeviceCreateShaderModule(device, ref shaderDesc);
+            shaderModule = wgpu.DeviceCreateShaderModule(device, shaderDesc);
 
-                if (shaderModule == 0)
-                    throw new Exception("failed to create shader");
-            }
+            if (shaderModule == 0)
+                throw new Exception("failed to create shader");
+            
 
             // Create pipeline
             nint pipeline = 0;
-            fixed (byte* entrypoint_vertex = "vs_main"u8)
-            fixed (byte* entrypoint_fragment = "fs_main"u8)
-
             {
-                WGPUPipelineLayoutDescriptor layoutDesc = new();
-                nint layout = wgpu.DeviceCreatePipelineLayout(device, ref layoutDesc);
+                WGPUPipelineLayoutDescriptor layoutDesc = new() { 
+                };
+                nint layout = wgpu.DeviceCreatePipelineLayout(device, layoutDesc);
 
                 WGPUBlendState blendState = new()
                 {
@@ -182,7 +178,7 @@ namespace Saket.Engine.Example
 
                 WGPUFragmentState fragment = new()
                 {
-                    entryPoint = (char*)entrypoint_fragment,
+                    entryPoint = "fs_main",
                     module = shaderModule,
                     targets = &colorTarget,
                     targetCount = 1
@@ -193,7 +189,7 @@ namespace Saket.Engine.Example
                     vertex = new()
                     {
                         module = shaderModule,
-                        entryPoint = (char*) entrypoint_vertex,
+                        entryPoint = "vs_main",
                     },
                     primitive = new()
                     {
@@ -236,7 +232,7 @@ namespace Saket.Engine.Example
                 {
 
                 };
-                nint encoder = wgpu.DeviceCreateCommandEncoder(device, ref encoderDesc);
+                nint encoder = wgpu.DeviceCreateCommandEncoder(device, encoderDesc);
 
                 // RenderPass
                 WGPURenderPassColorAttachment renderPassColorAttachment = new()
@@ -256,7 +252,7 @@ namespace Saket.Engine.Example
                     timestampWrites = null,
                     nextInChain = null,
                 };
-                nint renderPass = wgpu.CommandEncoderBeginRenderPass(encoder, ref renderPassDesc);
+                nint renderPass = wgpu.CommandEncoderBeginRenderPass(encoder, renderPassDesc);
 
                 // Set the pipline for the renderpass
                 wgpu.RenderPassEncoderSetPipeline(renderPass, pipeline);
@@ -275,7 +271,7 @@ namespace Saket.Engine.Example
                 };
 
                 nint command = wgpu.CommandEncoderFinish(encoder, ref cmdBufferDesc);
-                wgpu.QueueSubmit(queue, 1, ref command);
+                wgpu.QueueSubmit(queue, 1, command);
                 
                 // 
                 wgpu.SwapChainPresent(swapchain);
@@ -283,9 +279,6 @@ namespace Saket.Engine.Example
 
 
             #endregion
-
-
-
 
             #region Run Window
 
@@ -318,7 +311,7 @@ namespace Saket.Engine.Example
             #endregion
 
 
-
+            // cleanup
             wgpu.SwapChainRelease(swapchain);
             wgpu.DeviceRelease(device);
             wgpu.AdapterRelease(adapter);
@@ -326,79 +319,6 @@ namespace Saket.Engine.Example
 
             Platform_Windows_PInvoke.DestroyWindow(windowHandle);
 
-
-
-
-
-
-
-
-            /*
-            GameWindowSettings gameWindowSettings = new GameWindowSettings();
-          
-            NativeWindowSettings nativeWindowSettings = new NativeWindowSettings();
-            nativeWindowSettings.Size = new OpenTK.Mathematics.Vector2i(1280, 720);
-            nativeWindowSettings.Flags = OpenTK.Windowing.Common.ContextFlags.Debug;
-
-                
-            var game = new ExampleProgram(gameWindowSettings, nativeWindowSettings);
-#if DEBUG
-            GL.DebugMessageCallback(OnDebugMessage, IntPtr.Zero);
-            GL.Enable(EnableCap.DebugOutput);
-            GL.Enable(EnableCap.DebugOutputSynchronous);
-#endif
-            game.Run();*/
-        }
-
-
-
-
-       
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        private static void OnDebugMessage(
-        DebugSource source,     // Source of the debugging message.
-        DebugType type,         // Type of the debugging message.
-        int id,                 // ID associated with the message.
-        DebugSeverity severity, // Severity of the message.
-        int length,             // Length of the string in pMessage.
-        IntPtr pMessage,        // Pointer to message string.
-        IntPtr pUserParam)      // The pointer you gave to OpenGL, explained later.
-        {
-            // In order to access the string pointed to by pMessage, you can use Marshal
-            // class to copy its contents to a C# string without unsafe code. You can
-            // also use the new function Marshal.PtrToStringUTF8 since .NET Core 1.1.
-            string message = Marshal.PtrToStringAnsi(pMessage, length);
-
-            // The rest of the function is up to you to implement, however a debug output
-            // is always useful.
-            Console.WriteLine("[{0} source={1} type={2} id={3}] {4}", severity, source, type, id, message);
-
-            // Potentially, you may want to throw from the function for certain severity
-            // messages.
-            if (type == DebugType.DebugTypeError)
-            {
-                throw new Exception(message);
-            }
         }
     }
 }

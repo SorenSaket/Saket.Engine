@@ -13,7 +13,6 @@ using Saket.Engine;
 
 using Saket.Engine.Resources.Databases;
 using Saket.Engine.Resources.Loaders;
-using Saket.Engine.Typography;
 
 using Saket.ECS;
 using Saket.Engine.Graphics.SDF;
@@ -31,6 +30,7 @@ using Saket.Engine.Math.Geometry.Shapes;
 using System.Drawing;
 using Saket.Engine.Math.Types;
 using Saket.Engine.GUI;
+using Saket.Engine.Graphics.Text;
 
 namespace Saket.Engine.Example
 {
@@ -87,7 +87,7 @@ namespace Saket.Engine.Example
                 Span<float> dataAsSpan = new Span<float>(data);
 
                 // Create the main sdf game texture with float values
-                Texture texture = new Texture(size, size,
+                Image texture = new Texture(size, size,
                        TextureMinFilter.Linear,
                        SizedInternalFormat.R32f,
                        PixelInternalFormat.R32f,
@@ -196,7 +196,7 @@ namespace Saket.Engine.Example
                 Span<float> dataAsSpan = new Span<float>(data);
 
                 // Create the main sdf game texture with float values
-                Texture texture = new Texture(size, size,
+                Image texture = new Texture(size, size,
                        TextureMinFilter.Linear,
                        SizedInternalFormat.R32f,
                        PixelInternalFormat.R32f,

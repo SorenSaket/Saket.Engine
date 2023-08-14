@@ -8,6 +8,6 @@ namespace Saket.Engine.Platform
 {
     public interface IPlatform
     {
-        public void CreateWindow();
+        public Window CreateWindow();
     }
 }

@@ -6,7 +6,7 @@ namespace Saket.Engine
     [StructLayout(LayoutKind.Sequential)]
     public struct Sprite
     {
-        /// <summary> OpenGL Texture Handle </summary>
+        /// <summary> Texture Handle </summary>
         public Int32 tex;
         /// <summary> Sheet Element Index </summary>
         public Int32 spr;

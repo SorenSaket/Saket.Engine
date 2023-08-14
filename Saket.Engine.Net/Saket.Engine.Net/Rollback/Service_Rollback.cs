@@ -65,7 +65,7 @@ namespace Saket.Engine.Net.Rollback
         public void StoreNetworkedGameState(World world)
         {
             // Iterate over all archetypes
-            foreach (var archetype in world.archetypes)
+            foreach (var archetype in world.Archetypes)
             {
                 // Only handle archetypes with NetworkedEntities
                 if (!archetype.Has<NetworkedEntity>())

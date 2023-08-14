@@ -14,9 +14,8 @@ namespace Saket.Engine.Graphics
         public float X, Y;
         public float Width, Height;
 
-
-        public Vector2 Position => new Vector2(X, Y);
-        public Vector2 Size => new Vector2(Width, Height);
+        public readonly Vector2 Position    => new(X, Y);
+        public readonly Vector2 Size        => new(Width, Height);
 
         public Tile(float width, float height, float x = 0, float y = 0)
         {
@@ -25,8 +24,8 @@ namespace Saket.Engine.Graphics
             X = x;
             Y = y;
         }
-
+        // Why is this a method?
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float Area (){ return Width * Height; }
+        public readonly float Area (){ return Width * Height; }
     }
 }

@@ -12,6 +12,8 @@ namespace Saket.Engine.Resources.Loaders
 {
     public class LoaderShape : ResourceLoader<StyledShapeCollection>
     {
+        
+
         public override StyledShapeCollection Load(string name, ResourceManager resourceManager)
         {
             string path = name + ".svg";

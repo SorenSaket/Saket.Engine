@@ -4,9 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-
 using Saket.Engine.Platform;
-using Saket.Engine.Platform.Windows;
 
 //https://gist.github.com/AlexanderBaggett/d1504da93727a1778e8b5b3453946fc1
 namespace Saket.Engine.Example

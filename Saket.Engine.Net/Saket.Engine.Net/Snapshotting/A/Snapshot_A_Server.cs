@@ -8,13 +8,13 @@ namespace Saket.Engine.Net.Snapshotting.A
     public static class Snapshot_A_Server
     {
         public static void WriteSnapShot(
-            ByteWriter writer,
+            IWriter writer,
             World state_base,
             Schema schema,
             out int sizeInBytes,
             int group = 0)
         {
-            int startingOffset = writer.AbsolutePosition;
+            int startingOffset = writer.Position;
 
             uint numberOfEntities = 0;
 
@@ -24,7 +24,7 @@ namespace Saket.Engine.Net.Snapshotting.A
             // ---- Populate snapshot with new data ----
 
             // Iterate over all archetypes to find networked objects
-            foreach (var archetype in state_base.archetypes)
+            foreach (var archetype in state_base.Archetypes)
             {
                 // Only handle archetypes with NetworkedEntities
                 if (!archetype.Has<NetworkedEntity>())
@@ -56,7 +56,7 @@ namespace Saket.Engine.Net.Snapshotting.A
                     writer.Write(id_objectType);
 
                     // For each component/storage on archetype
-                    int basePosition = writer.AbsolutePosition;
+                    int basePosition = writer.Position;
 
                     // Iterate the storages non ordered
                     // 
@@ -74,7 +74,7 @@ namespace Saket.Engine.Net.Snapshotting.A
                             throw new Exception($"Component of type {store.Key} doesn't exist for on object schema with id_type: {id_objectType}");
                         }
 
-                        writer.AbsolutePosition = basePosition + schema_object.componentOffsets[index_component];
+                        writer.Position = basePosition + schema_object.componentOffsets[index_component];
 
                         unsafe
                         {
@@ -82,18 +82,18 @@ namespace Saket.Engine.Net.Snapshotting.A
                         }
                     }
                     // Restore writer position for next object
-                    writer.AbsolutePosition = basePosition + schema_object.sizeInBytes;
+                    writer.Position = basePosition + schema_object.sizeInBytes;
                 }
             }
 
-            var endPosition = writer.AbsolutePosition;
+            var endPosition = writer.Position;
 
             // Overwrite the wrong numberOfEntities
-            writer.AbsolutePosition = startingOffset;
+            writer.Position = startingOffset;
             writer.Write(numberOfEntities);
 
             // Restore writer position to continue
-            writer.AbsolutePosition = endPosition;
+            writer.Position = endPosition;
             sizeInBytes = endPosition - startingOffset;
         }
 

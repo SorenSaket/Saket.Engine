@@ -1,21 +1,108 @@
-﻿using System;
-using System.Collections.Generic;
-using OpenTK.Graphics.OpenGL4;
-using System.Diagnostics;
-using System.Numerics;
+﻿using Saket.WebGPU;
+using Saket.WebGPU.Native;
+using Saket.WebGPU.Objects;
+using System;
 
 namespace Saket.Engine
 {
+
+    public unsafe ref struct SaketShaderDescriptor
+    {
+        public ReadOnlySpan<byte> label;
+        public ReadOnlySpan<byte> shaderSource;
+
+        public ReadOnlySpan<byte> vertex_entryPoint;
+        public ReadOnlySpan<WGPUConstantEntry> vertex_constants;
+        public ReadOnlySpan<WGPUVertexBufferLayout> vertex_VertexBufferLayouts;
+
+        public ReadOnlySpan<byte> fragment_entryPoint;
+        public ReadOnlySpan<WGPUConstantEntry> fragment_constants;
+        public ReadOnlySpan<WGPUColorTargetState> fragment_colorTargets;
+
+        public WGPUPrimitiveState primitiveState;
+        public WGPUMultisampleState multisampleState;
+
+        public WGPUDepthStencilState* depthStencilState;
+        public nint pipelineLayout;
+    }
+
+
     /// <summary>
     /// A simple class meant to help create shaders.
     /// </summary>
     public class Shader 
     {
-        public readonly int Handle;
+        public readonly nint shaderModule;
+        public readonly nint pipeline;
 
-        private readonly Dictionary<string, int> _uniformLocations;
+        public unsafe Shader(Device device, in SaketShaderDescriptor shaderDescriptor)
+        { 
+            // Create shader Module
+            fixed (byte* ptr_shaderSource = shaderDescriptor.shaderSource)
+            {
+                WGPUShaderModuleWGSLDescriptor shaderCodeDesc = new()
+                {
+                    chain = new WGPUChainedStruct() { next = null, sType = WGPUSType.ShaderModuleWGSLDescriptor },
+                    code = (char*)ptr_shaderSource,
+                };
+                WGPUShaderModuleDescriptor shaderDesc = new ()
+                {
+                    hintCount = 0,
+                    hints = null,
+                    nextInChain = &shaderCodeDesc.chain
+                };
+
+                shaderModule = wgpu.DeviceCreateShaderModule(device.Handle, shaderDesc);
+
+                if (shaderModule == 0)
+                    throw new Exception("failed to create shader");
+            }
+
+            // convert to utf8 byte array and pin a pointer to it
+            fixed (WGPUConstantEntry* ptr_vertex_constants = shaderDescriptor.vertex_constants)
+            fixed (WGPUConstantEntry* ptr_fragment_constants = shaderDescriptor.fragment_constants)
+            fixed (WGPUVertexBufferLayout* ptr_vertex_bufferLayouts = shaderDescriptor.vertex_VertexBufferLayouts)
+            fixed (WGPUColorTargetState* ptr_fragment_colorTargets = shaderDescriptor.fragment_colorTargets)
+            fixed (byte* ptr_fragment_entrypoint    = shaderDescriptor.fragment_entryPoint)
+            fixed (byte* ptr_vertex_entrypoint  = shaderDescriptor.vertex_entryPoint)
+            {
+                WGPUFragmentState f = new()
+                {
+                    constants = ptr_fragment_constants,
+                    constantCount = (uint)shaderDescriptor.fragment_constants.Length,
+                    entryPoint = (char*)ptr_fragment_entrypoint,
+                    module = shaderModule,
+                    targets = ptr_fragment_colorTargets,
+                    targetCount = (uint)shaderDescriptor.fragment_colorTargets.Length,
+                };
+                
+                WGPURenderPipelineDescriptor piplineDescriptor = new ()
+                {
+                    // TODO figure out layout auto?
+                    layout = shaderDescriptor.pipelineLayout,
+                    vertex = new()
+                    {
+                        constants = ptr_vertex_constants,
+                        constantCount = (uint)shaderDescriptor.vertex_constants.Length,
+                        entryPoint = (char*)ptr_vertex_entrypoint,
+                        module = shaderModule,
+                        buffers = ptr_vertex_bufferLayouts,
+                        bufferCount = (uint)shaderDescriptor.vertex_VertexBufferLayouts.Length
+                    },
+                    primitive = shaderDescriptor.primitiveState,
+                    depthStencil = shaderDescriptor.depthStencilState,
+                    multisample = shaderDescriptor.multisampleState,
+                    fragment = &f
+                };
+
+                pipeline = wgpu.DeviceCreateRenderPipeline(device.Handle, piplineDescriptor);
+            }
+        }
 
 
+
+
+#if false
         internal Shader(string vertexcode, string fragmentcode, string? geometrycode = null)
         {
             Handle = GL.CreateProgram();
@@ -185,6 +272,6 @@ namespace Saket.Engine
         {
             GL.DeleteProgram(Handle);
         }
-
+#endif
     }
 }

@@ -20,7 +20,7 @@ namespace Saket.Engine
         /// <param name="n"></param>
         /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int NonZeroSign(double n)
+        public static int NonZeroSign(float n)
         {
             return n >= 0 ? 1 : -1;
         }

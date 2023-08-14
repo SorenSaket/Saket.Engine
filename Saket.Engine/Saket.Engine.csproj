@@ -2,7 +2,7 @@
 	<!-- Settings -->
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
-		<TargetFramework>net7.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<Platforms>AnyCPU</Platforms>
@@ -18,15 +18,12 @@
 	  <LangVersion>preview</LangVersion>
 	</PropertyGroup>
 	<ItemGroup>
-	  <None Remove="Platform\Windows\README.md" />
+	  <None Remove="Platform\Win\README.md" />
 	</ItemGroup>
 	
 	<!-- References -->
 
 	<ItemGroup>
-		<PackageReference Include="ImGui.NET" Version="1.87.3" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-		<PackageReference Include="OpenTK" Version="4.7.5" />
 		<PackageReference Include="StbImageSharp" Version="2.27.12" />
 	</ItemGroup>
 
@@ -41,19 +38,14 @@
 	  <Folder Include="Audio\FLAC\" />
 	  <Folder Include="Audio\WAV\" />
 	  <Folder Include="Graphics\Renderers\" />
-	  <Folder Include="IMGUI\" />
 	  <Folder Include="Audio\" />
-	  <Folder Include="Typography\Rasterization\" />
+	  <Folder Include="Resources\Parsers\" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Saket.ECS\Saket.ECS\Saket.ECS.csproj" />
 	  <ProjectReference Include="..\Saket.Serialization\Saket.Serialization\Saket.Serialization.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <None Update="wgpu_native.dll">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
+	  <ProjectReference Include="..\Saket.Typography\Saket.Typography.csproj" />
+	  <ProjectReference Include="..\Saket.WebGPU\Saket.WebGPU.csproj" />
 	</ItemGroup>
 </Project>

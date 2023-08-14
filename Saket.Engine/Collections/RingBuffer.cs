@@ -33,7 +33,7 @@ namespace Saket.Engine.Collections
 			// null all values
 			for (int i = 0; i < count; i++)
 			{
-				_elements[(_start + i) % _capacity] = default(T);
+				_elements[(_start + i) % _capacity] = default(T)!;
 			}
 			_start = (_start + count) % _capacity;
         }

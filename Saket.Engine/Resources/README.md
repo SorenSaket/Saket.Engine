@@ -98,3 +98,9 @@ Todo:
 	- We want resource to automatically be unloaded. But no create a senario where it's frequently cycled in and out of mem.
 - finish all databases
 - Testing and documentation
+
+
+
+
+
+https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/resources
