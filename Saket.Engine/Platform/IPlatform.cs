@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Saket.Engine.Graphics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,6 @@ namespace Saket.Engine.Platform
 {
     public interface IPlatform
     {
-        public Window CreateWindow();
+        public Window CreateWindow (GraphicsContext graphics);
     }
 }

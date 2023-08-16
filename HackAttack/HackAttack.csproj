@@ -16,12 +16,12 @@
     <Folder Include="Assets\" />
   </ItemGroup>
 	<ItemGroup>
-		<Content Include=".\Assets\**" CopyToOutputDirectory="PreserveNewest" />
-		<Content Include="..\Saket.Engine\Assets\**\*.*" CopyToOutputDirectory="PreserveNewest" link="Assets\%(RecursiveDir)\%(Filename)%(Extension)" />
+		<Content Include=".\Assets\**" CopyToOutputDirectory="Always" />
+		<Content Include="..\Saket.Engine\Assets\**\*.*" CopyToOutputDirectory="Always" link="Assets\%(RecursiveDir)\%(Filename)%(Extension)" />
 	</ItemGroup>
 	<ItemGroup>
 	  <None Update="wgpu_native.dll">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	</ItemGroup>
 </Project>

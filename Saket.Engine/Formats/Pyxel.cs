@@ -11,60 +11,61 @@ using System.Threading.Tasks;
 
 namespace Saket.Engine.Formats
 {
+    [System.Serializable]
     public struct PyxelDocData
     {
-        public string name;
-        public Palette palette;
+        public string name { get; set; }
+        public Palette palette { get; set; }
         // settings
         // animations
-        public string version;
-        public Canvas canvas;
-        public Tileset tileset;
+        public string version { get; set; }
+        public Canvas canvas { get; set; }
+        public Tileset tileset { get; set; }
 
         public struct Canvas
         {
-            public Dictionary<string, Layer> layers;
-            public uint numLayers;
-            public uint width;
-            public uint tileWidth;
-            public uint height;
-            public uint tileHeight;
-            public uint currentLayerIndex;
+            public Dictionary<string, Layer> layers { get; set; }
+            public uint numLayers { get; set; }
+            public uint width { get; set; }
+            public uint tileWidth { get; set; }
+            public uint height { get; set; }
+            public uint tileHeight { get; set; }
+            public uint currentLayerIndex { get; set; }
 
             public struct Layer
             {
-                public bool hidden;
-                public byte alpha;
-                public string name;
-                public int parentIndex;
-                public string type;
-                public bool collapsed;
-                public bool muted;
+                public bool hidden { get; set; }
+                public byte alpha { get; set; }
+                public string name { get; set; }
+                public int parentIndex { get; set; }
+                public string type { get; set; }
+                public bool collapsed { get; set; }
+                public bool muted { get; set; }
                 // tilerefs
-                public string blendMode;
-                public bool soloed;
+                public string blendMode { get; set; }
+                public bool soloed { get; set; }
             }
         }
         public struct Tileset
         {
-            public uint tileWidth;
-            public uint numTiles;
-            public uint tilesWide;
-            public uint tileHeight;
-            public bool fixedWith;
+            public uint tileWidth { get; set; }
+            public uint numTiles { get; set; }
+            public uint tilesWide { get; set; }
+            public uint tileHeight { get; set; }
+            public bool fixedWith { get; set; }
         }
 
         public struct Palette
         {
-            public uint height;
-            public uint numColors;
-            public Dictionary<string, string> colors;
-            public uint width;
+            public uint height { get; set; }
+            public uint numColors { get; set; }
+            public Dictionary<string, string> colors { get; set; }
+            public uint width { get; set; }
         }
     }
     public static class Pyxel
     {
-        public static TextureAtlas LoadFromPyxel(Stream stream)
+        public static TextureAtlas Load(Stream stream)
         {
             ZipArchive zipArchive = new ZipArchive(stream, ZipArchiveMode.Read);
 
@@ -73,10 +74,10 @@ namespace Saket.Engine.Formats
             var entrystream = new StreamReader(entry.Open()).ReadToEnd();
 
 
-            PyxelDocData docData = JsonSerializer.Deserialize<PyxelDocData>(entrystream);
+            PyxelDocData docData = JsonSerializer.Deserialize<PyxelDocData>(entrystream, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
 
             //entrystream.Close();
-
+            
             StbImage.stbi_set_flip_vertically_on_load(1);
             ZipArchiveEntry? entry_layer0 = zipArchive.GetEntry("layer0.png") ?? throw new Exception("Failed to load");
 
@@ -84,18 +85,20 @@ namespace Saket.Engine.Formats
             MemoryStream uncompressedImagestream = new((int)entry_layer0.Length);
             imageStream.CopyTo(uncompressedImagestream);
 
-            ImageResult image = ImageResult.FromStream(uncompressedImagestream, ColorComponents.RedGreenBlueAlpha);
-
-            Image tex = new Image(image.Width, image.Height);
-            tex.data = image.Data;
-
             imageStream.Close();
+
+            uncompressedImagestream.Seek(0, SeekOrigin.Begin);
+
+            ImageResult resutl = ImageResult.FromStream(uncompressedImagestream, ColorComponents.RedGreenBlueAlpha);
+
+            Image image = new Image(resutl.Data, (uint)resutl.Width, (uint)resutl.Height); 
+
 
             uint columns = docData.canvas.width / docData.canvas.tileWidth;
             uint rows = docData.canvas.height / docData.canvas.tileHeight;
 
-            return new TextureAtlas(tex, columns, rows);
-
+            return new TextureAtlas(image, columns, rows);
+            
             throw new Exception("Failed to load");
         }
     }

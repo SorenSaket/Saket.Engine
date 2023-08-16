@@ -20,8 +20,10 @@ namespace Saket.Engine
 
         public void Run()
         {
-            Thread t = new Thread(DoRun);
-            t.Start();
+            //Thread t = new Thread(DoRun);
+            //t.Start();
+
+            DoRun();
         }
         
         private void DoRun()

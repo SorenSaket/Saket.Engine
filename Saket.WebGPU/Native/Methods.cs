@@ -427,8 +427,20 @@ namespace Saket.WebGPU.Native
         [LibraryImport(LibraryName, EntryPoint = "wgpuQueueWriteBuffer")]
         public static partial void QueueWriteBuffer(IntPtr queue, IntPtr buffer, ulong bufferOffset, void* data, size_t size);
 
+        /// <summary>
+        /// Schedule a write of some data into a texture.
+        /// </summary>
+        /// <remarks>
+        /// This method is intended to have low performance costs. As such, the write is not immediately submitted, and instead enqueued internally to happen at the start of the next submit() call. However, data will be immediately copied into staging memory; so the caller may discard it any time after this call completes. This method fails if size overruns the size of texture, or if data is too short. 
+        /// </remarks>
+        /// <param name="queue"></param>
+        /// <param name="destination">specifies the texture to write into, and the location within the texture (coordinate offset, mip level) that will be overwritten.</param>
+        /// <param name="data">the texels to be written, which must be in the same format as the texture.</param>
+        /// <param name="dataSize"></param>
+        /// <param name="dataLayout">describes the memory layout of data, which does not necessarily have to have tightly packed rows.</param>
+        /// <param name="writeSize">is the size, in texels, of the region to be written.</param>
         [LibraryImport(LibraryName, EntryPoint = "wgpuQueueWriteTexture")]
-        public static partial void QueueWriteTexture(IntPtr queue, WGPUImageCopyTexture* destination, void* data, size_t dataSize, WGPUTextureDataLayout* dataLayout, WGPUExtent3D* writeSize);
+        public static partial void QueueWriteTexture(IntPtr queue, in WGPUImageCopyTexture destination, void* data, size_t dataSize, in WGPUTextureDataLayout dataLayout, in WGPUExtent3D writeSize);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuQueueReference")]
         public static partial void QueueReference(IntPtr queue);

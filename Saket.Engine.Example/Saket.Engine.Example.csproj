@@ -57,5 +57,14 @@
 	</ItemGroup>
 	
 	
+
+	
+	<ItemGroup>
+	  <None Update="wgpu_native.dll">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+	
+	
 	
 </Project>

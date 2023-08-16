@@ -10,7 +10,7 @@ namespace Saket.WebGPU.Objects
     public class Swapchain
     {
         public nint Handle => handle;
-        public readonly nint handle;
+        private readonly nint handle;
 
         internal Swapchain(nint handle)
         {

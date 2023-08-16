@@ -36,8 +36,9 @@ namespace Saket.Engine
         public readonly nint pipeline;
 
         public unsafe Shader(Device device, in SaketShaderDescriptor shaderDescriptor)
-        { 
+        {
             // Create shader Module
+            fixed (byte* ptr_label = shaderDescriptor.label)
             fixed (byte* ptr_shaderSource = shaderDescriptor.shaderSource)
             {
                 WGPUShaderModuleWGSLDescriptor shaderCodeDesc = new()
@@ -49,7 +50,8 @@ namespace Saket.Engine
                 {
                     hintCount = 0,
                     hints = null,
-                    nextInChain = &shaderCodeDesc.chain
+                    nextInChain = &shaderCodeDesc.chain,
+                    label = (char*)ptr_label
                 };
 
                 shaderModule = wgpu.DeviceCreateShaderModule(device.Handle, shaderDesc);

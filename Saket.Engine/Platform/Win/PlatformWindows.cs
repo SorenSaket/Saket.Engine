@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Saket.Engine.Graphics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -16,9 +17,9 @@ namespace Saket.Engine.Platform.Win
                 throw new Exception();
         }
 
-        public Window CreateWindow()
+        public Window CreateWindow(GraphicsContext graphicsContext)
         {
-            return new Window_Windows();
+            return new Window_Windows(graphicsContext);
         }
     }
 }

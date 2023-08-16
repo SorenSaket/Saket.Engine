@@ -14,6 +14,8 @@ namespace Saket.Engine.Graphics
         Texture? gpuTexture;
         TextureView? gpuTextureView;
         Buffer? gpuBuffer;
+        nuint gpuBufferSize;
+
         static BindGroupLayout? layout;
         BindGroup? bindgroup;
 
@@ -43,28 +45,33 @@ namespace Saket.Engine.Graphics
         {
             unsafe
             {
-                var span = CollectionsMarshal.AsSpan(tiles);
-
-                nuint size = (nuint)(sizeof(Tile) * span.Length);
-
-                var buffer = device.CreateBuffer(
-                   new WebGPU.WGPUBufferDescriptor()
-                   {
-                       size = size,
-                       usage = WebGPU.WGPUBufferUsage.Uniform
-                   });
-
-
-                fixed (void* ptr = span)
+                fixed (void* ptr_label = "buffer_tiles"u8)
                 {
-                    wgpu.QueueWriteBuffer(wgpu.DeviceGetQueue(device.Handle), buffer.Handle, 0, ptr, size);
+                    var span = CollectionsMarshal.AsSpan(tiles);
+
+                    gpuBufferSize = (nuint)(sizeof(Tile) * span.Length);
+
+                    var buffer = device.CreateBuffer(
+                       new WebGPU.WGPUBufferDescriptor()
+                       {
+                           size = gpuBufferSize,
+                           usage = WebGPU.WGPUBufferUsage.Storage | WGPUBufferUsage.CopyDst,
+                           label = (char*)ptr_label
+                       });
+
+
+                    fixed (void* ptr = span)
+                    {
+                        wgpu.QueueWriteBuffer(wgpu.DeviceGetQueue(device.Handle), buffer.Handle, 0, ptr, gpuBufferSize);
+                    }
+                    return buffer;
                 }
-                return buffer;
+             
             }
         }
 
 
-        public static BindGroupLayout GetBindGroupLayout(Graphics graphics)
+        public static BindGroupLayout GetBindGroupLayout(GraphicsContext graphics)
         {
             if (layout == null)
             {
@@ -75,7 +82,7 @@ namespace Saket.Engine.Graphics
                         visibility = WGPUShaderStage.Vertex,
                         buffer = new()
                         {
-                            type = WGPUBufferBindingType.Uniform,
+                            type = WGPUBufferBindingType.ReadOnlyStorage,
                         }
                     },
                     new()
@@ -86,21 +93,21 @@ namespace Saket.Engine.Graphics
                         {
                             viewDimension = WGPUTextureViewDimension._2D,
                             sampleType = WGPUTextureSampleType.Float,
-                            multisampled = true,
+                            multisampled = false,
                         }
                     },
                     new()
                     {
                         binding = 2,
                         visibility = WGPUShaderStage.Fragment,
-                        sampler = new()
+                        sampler = new() { }
                     }
                 });
             }
             return layout;
         }
 
-        public BindGroup GetBindGroup(Graphics graphics)
+        public BindGroup GetBindGroup(GraphicsContext graphics)
         {
             GetBindGroupLayout(graphics);
             if (bindgroup == null)
@@ -108,8 +115,14 @@ namespace Saket.Engine.Graphics
                 // Check that the image is uploaded as a texture
                 if (gpuTexture == null)
                 {
-                    gpuTexture = image.UploadToDevice(graphics.device);
-                    gpuTextureView = gpuTexture.CreateView(new WGPUTextureViewDescriptor());
+                    gpuTexture = image.UploadToGPU(graphics);
+                    gpuTextureView = gpuTexture.CreateView(new WGPUTextureViewDescriptor()
+                    {
+                        format = graphics.applicationpreferredFormat,
+                        dimension = WGPUTextureViewDimension._2D,
+                        mipLevelCount = 1,
+                        arrayLayerCount = 1
+                    });
                 }
 
                 if (gpuBuffer == null)
@@ -122,12 +135,13 @@ namespace Saket.Engine.Graphics
                     new()
                     {
                         binding = 0,
-                        textureView = gpuTextureView!.Handle
+                        buffer = gpuBuffer.Handle,
+                        size = gpuBufferSize,
                     },
                     new()
                     {
                         binding = 1,
-                        buffer = gpuBuffer.Handle
+                        textureView = gpuTextureView!.Handle
                     },
                     new()
                     {

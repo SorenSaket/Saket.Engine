@@ -1,10 +1,14 @@
-﻿using Saket.Engine.Platform.Windowing;
+﻿using Saket.Engine.Graphics;
+using Saket.Engine.Platform.Windowing;
+using Saket.WebGPU.Objects;
+using Saket.WebGPU;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Saket.WebGPU.Native;
 
 namespace Saket.Engine.Platform.Win
 {
@@ -19,11 +23,14 @@ namespace Saket.Engine.Platform.Win
     {
         public nint hInstance;
         public nint windowHandle;
-        WindowMessage message;
-        public Window_Windows()
+        WindowMessage message = WindowMessage.NULL;
+        
+        public Window_Windows (GraphicsContext graphics) : base (graphics)
         {
             hInstance = System.Diagnostics.Process.GetCurrentProcess().Handle;
 
+
+            //https://learn.microsoft.com/en-us/windows/win32/learnwin32/writing-the-window-procedure
             // The function to be called every frame
             Platform_Windows_PInvoke.del_WindowProc p = (IntPtr hwnd, WindowMessage uMsg, IntPtr wParam, IntPtr lParam) =>
             {
@@ -54,6 +61,9 @@ namespace Saket.Engine.Platform.Win
                 IntPtr.Zero, IntPtr.Zero, hInstance, IntPtr.Zero);
 
             bool visible = Platform_Windows_PInvoke.ShowWindow(windowHandle, 5);
+
+
+            graphics.AddWindow(this);
         }
 
         public override void Destroy()
@@ -61,26 +71,12 @@ namespace Saket.Engine.Platform.Win
             throw new NotImplementedException();
         }
 
-        public override WindowEvent PollEvent()
+        public override WindowEvent PollEvents()
         {
-            return WindowEvent.Exit;
-            while (true)
-            {
-                var result = Platform_Windows_PInvoke.GetMessage(out message, 0, 0, 0);
-
-                if (message == WindowMessage.DESTROY)
-                    break;
-
-                if (result > 0)
-                {
-                    Platform_Windows_PInvoke.TranslateMessage(ref message);
-                    Platform_Windows_PInvoke.DispatchMessage(ref message);
-                }
-                else
-                {
-                    break;
-                }
-            }
+            var result = Platform_Windows_PInvoke.GetMessage(out message, windowHandle, 0, 0);
+            Platform_Windows_PInvoke.TranslateMessage(ref message);
+            Platform_Windows_PInvoke.DispatchMessage(ref message);
+            return WindowEvent.None;
         }
     }
 }

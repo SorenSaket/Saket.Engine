@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -30,7 +31,8 @@ namespace Saket.WebGPU.Objects
                   char* message,
                   void* userdata) => {
 
-                      Debug.Write("WGPUDevice Error: " + new string((sbyte*)message,0,0, Encoding.UTF8));
+                      var s = MemoryMarshal.CreateReadOnlySpanFromNullTerminated((byte*)message);
+                      Console.Write(Encoding.UTF8.GetString(s));
 
                   }, null);
             }
@@ -70,7 +72,7 @@ namespace Saket.WebGPU.Objects
                         layout = layout.Handle,
                         label = (char*)ptr_label,
                         entries = ptr_entires,
-                        entryCount = (uint)entires.Length,
+                        entryCount = (nuint)entires.Length,
                     };
                     return new BindGroup(wgpu.DeviceCreateBindGroup(handle, descriptor));
                 }

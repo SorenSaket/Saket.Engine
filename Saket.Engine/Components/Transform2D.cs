@@ -13,7 +13,6 @@ namespace Saket.Engine
     {
         public Vector2 Position;
         public float layer;
-
         public float rx;
         //public float ry;
         //public float rz;

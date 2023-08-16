@@ -11,7 +11,7 @@ namespace Saket.Engine.Graphics.Shaders
 {
     public static class SpriteSimple
     {
-        public unsafe static Shader CreateShader(Graphics graphics, ReadOnlySpan<byte> ShaderSource)
+        public unsafe static Shader CreateShader(GraphicsContext graphics, ReadOnlySpan<byte> ShaderSource)
         {
             var blendState = new WGPUBlendState()
             {
@@ -125,7 +125,7 @@ namespace Saket.Engine.Graphics.Shaders
                     topology = WGPUPrimitiveTopology.TriangleList,
                     stripIndexFormat = WGPUIndexFormat.Undefined,
                     frontFace = WGPUFrontFace.CCW,
-                    cullMode = WGPUCullMode.Back,
+                    cullMode = WGPUCullMode.None,
                 },
                 
             };

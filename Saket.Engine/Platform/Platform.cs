@@ -1,4 +1,5 @@
-﻿using Saket.Engine.Platform.Win;
+﻿using Saket.Engine.Graphics;
+using Saket.Engine.Platform.Win;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,7 @@ namespace Saket.Engine.Platform
         }
 
 
-        public static Window CreateWindow() => native.CreateWindow();
+        public static Window CreateWindow(GraphicsContext graphicsContext) => native.CreateWindow(graphicsContext);
 
     }
 }

@@ -1,15 +1,19 @@
 ﻿
 using Saket.ECS;
 using Saket.Engine;
+using Saket.Engine.Formats;
 using Saket.Engine.Graphics;
+using Saket.Engine.Graphics.Renderers;
 using Saket.Engine.Platform;
 using Saket.Engine.Resources.Loaders;
+using Saket.Graphics;
 using Saket.WebGPU;
 // TODO remove depency on native
 using Saket.WebGPU.Native;
 using Saket.WebGPU.Objects;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace HackAttack
 {
@@ -22,7 +26,7 @@ namespace HackAttack
         private RendererSpriteSimple spriteRenderer;
 
         private Window window;
-        private Graphics graphics;
+        private GraphicsContext graphics;
 
         Shader shader_sprite;
 
@@ -36,17 +40,17 @@ namespace HackAttack
             pipeline_update = new();
             pipeline_render = new();
 
-            graphics = new Graphics();
+            graphics = new GraphicsContext();
+            graphics.applicationpreferredFormat = WGPUTextureFormat.BGRA8UnormSrgb;
 
-            window = Platform.CreateWindow();
+            window = Platform.CreateWindow(graphics);
 
-            graphics.AddWindow(window);
             
             spriteRenderer = new RendererSpriteSimple(1000, graphics.device);
 
-            shader_sprite = Saket.Engine.Graphics.Shaders.SpriteSimple.CreateShader(graphics, MemoryMarshal.Cast<char, byte>( File.ReadAllText(@".\Assets\Shaders\Sprite\shader_sprite.wgsl", System.Text.Encoding.UTF8).AsSpan()));
+            shader_sprite = Saket.Engine.Graphics.Shaders.SpriteSimple.CreateShader(graphics, File.ReadAllBytes(@".\Assets\Shaders\Sprite\shader_sprite.wgsl"));
 
-            bindgroup_atlas = LoaderPyxel.Load(File.OpenRead(@".\Assets\tileset.pyxel")).GetBindGroup(graphics);
+            bindgroup_atlas = Pyxel.Load(File.OpenRead(@".\Assets\tileset.pyxel")).GetBindGroup(graphics);
 
             camera = new CameraOrthographic(5f, 0.1f, 100f);
             graphics.SetSystemUniform(new SystemUniform()
@@ -55,28 +59,40 @@ namespace HackAttack
                 viewMatrix = camera.viewMatrix,
                 frame = 0
             });
-        }
 
+
+            {
+                world.CreateEntity()
+                    .Add(new Transform2D() { })
+                    .Add(new Sprite() { color = Color.White});
+            }
+
+
+        }
+        int frameCount;
         public override void Update(float deltaTime)
         {
+            _ = window.PollEvents();
+            // Non-standardized behavior: submit empty queue to flush callbacks
+            // (wgpu-native also has a device.poll but its API is more complex)
+            wgpu.QueueSubmit(graphics.queue.Handle, 0, 0);
+
+
             // Perform Update
             {
                 pipeline_update.Update(world, deltaTime);
             }
-
             // Perform rendering
             // TODO make safe
              {
-                // Non-standardized behavior: submit empty queue to flush callbacks
-                // (wgpu-native also has a device.poll but its API is more complex)
-                wgpu.QueueSubmit(graphics.queue.Handle, 0, 0);
+             
 
                 // TODO, For each Camera
                 unsafe {
-                    GraphicsWindow w = graphics.windows[window];
                     // Get the texture where to draw the next frame
-                    nint textureView = w.GetCurretTextureView().Handle;
-                    
+                    nint textureView = window.GetCurretTextureView().Handle;
+                    if (textureView == 0)
+                        throw new Exception("faild to get texture view for next frame");
                     // RenderPass
                     WGPURenderPassColorAttachment renderPassColorAttachment = new()
                     {
@@ -96,7 +112,7 @@ namespace HackAttack
                         nextInChain = null,
                     };
 
-
+                    
                     // This should hopefully only iterate once
                     spriteRenderer.IterateForRender(world, (c) => {  // 
                         // Command Encoder
@@ -114,26 +130,30 @@ namespace HackAttack
                         wgpu.RenderPassEncoderSetBindGroup(RenderPassEncoder, 1, bindgroup_atlas.Handle, 0, (uint*)0);
 
                         // set vertex buffers and Submit actual draw comand
-                        spriteRenderer.SetbuffersAndDraw(RenderPassEncoder, c);
+                        spriteRenderer.SetbuffersAndDraw(graphics.queue.Handle, RenderPassEncoder, c);
                         
                         // Finish Rendering
                         wgpu.RenderPassEncoderEnd(RenderPassEncoder);
-
+                        
                         nint commandBuffer = wgpu.CommandEncoderFinish(commandEncoder, new() { });
-                        wgpu.QueueSubmit(graphics.queue.Handle, 1, commandBuffer);
+
+                        wgpu.QueueSubmit(graphics.queue.Handle, 1, new IntPtr(&commandBuffer));
 
                         wgpu.RenderPassEncoderRelease(RenderPassEncoder);
                         wgpu.CommandEncoderRelease(commandEncoder);
                     });
+                   
+                    
 
                     // We can now release the textureview
                     wgpu.TextureViewRelease(textureView);
+
                     // Preset swapchain
-                    w.swapchain.Present();
+                    window.swapchain.Present();
+                    
                 }
             }
-           
-
+            frameCount++;
         }
     }
 }

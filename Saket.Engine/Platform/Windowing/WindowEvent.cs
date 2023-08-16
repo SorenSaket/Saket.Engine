@@ -8,8 +8,21 @@ namespace Saket.Engine.Platform.Windowing
 {
     public enum WindowEvent
     {
-        Exit,
+        None = 0,
+        Create,
+        Destroy,
+        Move,
         Resize,
-
+        Activate,
+        SetFocus,
+        KillFocus,
+        Enable,
+        SetRedraw,
+        SetText,
+        GetText,
+        GetTextLength,
+        Paint,
+        Close,
+        Exit,
     }
 }

@@ -1,4 +1,7 @@
-﻿namespace HackAttack
+﻿using StbImageSharp;
+using System.IO;
+
+namespace HackAttack
 {
     internal class Program
     {

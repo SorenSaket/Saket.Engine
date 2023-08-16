@@ -17,10 +17,18 @@ namespace Saket.WebGPU
         {
             this.bytes = bytes;
         }
+        public wgpulabel(ReadOnlySpan<char> bytes)
+        {
+            this.bytes = MemoryMarshal.Cast<char, byte>(bytes);
+        }
         public wgpulabel(string label)
         {
             //???
             bytes = new ReadOnlySpan<byte>(Encoding.UTF8.GetBytes(label));
         }
+
+        public static implicit operator wgpulabel(string value) { return new wgpulabel(value); }
+        public static implicit operator wgpulabel(ReadOnlySpan<char> value) { return new wgpulabel(value); }
+        public static implicit operator wgpulabel(ReadOnlySpan<byte> value) { return new wgpulabel(value); }
     }
 }

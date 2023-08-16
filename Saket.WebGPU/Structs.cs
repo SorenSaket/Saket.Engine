@@ -1,6 +1,9 @@
+using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Security.AccessControl;
+using static System.Net.Mime.MediaTypeNames;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Saket.WebGPU
 {
@@ -372,35 +375,35 @@ namespace Saket.WebGPU
         /// <summary>
         /// Specifies the address modes for the texture width, height, and depth coordinates, respectively.
         /// </summary>
-		public WGPUAddressMode addressModeU;
+		public WGPUAddressMode addressModeU = WGPUAddressMode.ClampToEdge;
         /// <summary>
         /// Specifies the address modes for the texture width, height, and depth coordinates, respectively.
         /// </summary>
-        public WGPUAddressMode addressModeV;
+        public WGPUAddressMode addressModeV = WGPUAddressMode.ClampToEdge;
         /// <summary>
         /// Specifies the address modes for the texture width, height, and depth coordinates, respectively.
         /// </summary>
-        public WGPUAddressMode addressModeW;
+        public WGPUAddressMode addressModeW = WGPUAddressMode.ClampToEdge;
         /// <summary>
         /// Specifies the sampling behavior when the sample footprint is smaller than or equal to one texel.
         /// </summary>
-		public WGPUFilterMode magFilter;
+		public WGPUFilterMode magFilter = WGPUFilterMode.Nearest;
         /// <summary>
         /// Specifies the sampling behavior when the sample footprint is larger than one texel.
         /// </summary>
-		public WGPUFilterMode minFilter;
+		public WGPUFilterMode minFilter = WGPUFilterMode.Nearest;
         /// <summary>
         /// Specifies behavior for sampling between mipmap levels.
         /// </summary>
-		public WGPUMipmapFilterMode mipmapFilter;
+		public WGPUMipmapFilterMode mipmapFilter = WGPUMipmapFilterMode.Nearest;
         /// <summary>
         /// Specifies the minimum levels of detail, respectively, used internally when sampling a texture.
         /// </summary>
-		public float lodMinClamp;
+        public float lodMinClamp = 0f;
         /// <summary>
         /// Specifies themaximum levels of detail, respectively, used internally when sampling a texture.
         /// </summary>
-		public float lodMaxClamp;
+		public float lodMaxClamp = 32f;
         /// <summary>
         /// When provided the sampler will be a comparison sampler with the specified GPUCompareFunction.
         /// </summary>
@@ -415,8 +418,12 @@ namespace Saket.WebGPU
         /// <remarks>
         /// Most implementations support maxAnisotropy values in range between 1 and 16, inclusive. The used value of maxAnisotropy will be clamped to the maximum value that the platform supports.
         /// </remarks>
-        public ushort maxAnisotropy;
-	}
+        public ushort maxAnisotropy = 1;
+
+        public WGPUSamplerDescriptor()
+        {
+        }
+    }
 
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct WGPUShaderModuleCompilationHint
@@ -552,13 +559,24 @@ namespace Saket.WebGPU
         {
         }
     }
-
-	[StructLayout(LayoutKind.Sequential)]
+    /// <summary>
+    /// A GPUImageDataLayout is a layout of images within some linear memory. It’s used when copying data between a texture and a GPUBuffer, or when scheduling a write into a texture from the GPUQueue.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
 	public unsafe struct WGPUTextureDataLayout
-	{
-		public WGPUChainedStruct* nextInChain;
-		public ulong offset;
+    {
+        public WGPUChainedStruct* nextInChain;
+        /// <summary>
+        /// The offset, in bytes, from the beginning of the image data source (such as a GPUImageCopyBuffer.buffer) to the start of the image data within that source.
+        /// </summary>
+        public ulong offset;
+        /// <summary>
+        /// The stride, in bytes, between the beginning of each block row and the subsequent block row. Required if there are multiple block rows(i.e.the copy height or depth is more than one block).
+        /// </summary>
 		public uint bytesPerRow;
+        /// <summary>
+        /// Number of block rows per single image of the texture. rowsPerImage × bytesPerRow is the stride, in bytes,  between the beginning of each image of data and the subsequent image. Required if there are multiple images (i.e.the copy depth is more than one).
+        /// </summary>
 		public uint rowsPerImage;
 	}
 
@@ -690,6 +708,9 @@ namespace Saket.WebGPU
 	{
 		public WGPUChainedStruct* nextInChain;
 		public WGPUTextureDataLayout layout;
+        /// <summary>
+        /// A buffer which either contains image data to be copied or will store the image data being copied, depending on the method it is being passed to.
+        /// </summary>
 		public IntPtr buffer;
 	}
 
@@ -697,11 +718,27 @@ namespace Saket.WebGPU
 	public unsafe struct WGPUImageCopyTexture
 	{
 		public WGPUChainedStruct* nextInChain;
+        /// <summary>
+        /// Texture to copy to/from.
+        /// </summary>
 		public IntPtr texture;
-		public uint mipLevel;
-		public WGPUOrigin3D origin;
-		public WGPUTextureAspect aspect;
-	}
+        /// <summary>
+        /// Mip-map level of the texture to copy to/from.
+        /// </summary>
+        public uint mipLevel = 0;
+        /// <summary>
+        /// Defines the origin of the copy - the minimum corner of the texture sub-region to copy to/from. Together with `copySize`, defines the full copy sub-region.
+        /// </summary>
+        public WGPUOrigin3D origin;
+        /// <summary>
+        /// Defines which aspects of the texture to copy to/from
+        /// </summary>
+		public WGPUTextureAspect aspect = WGPUTextureAspect.All;
+
+        public WGPUImageCopyTexture()
+        {
+        }
+    }
 
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct WGPUProgrammableStageDescriptor
@@ -751,15 +788,46 @@ namespace Saket.WebGPU
 	{
 		public WGPUChainedStruct* nextInChain;
 		public char* label;
+        /// <summary>
+        /// The allowed usages for the texture.
+        /// </summary>
 		public WGPUTextureUsage usage;
-		public WGPUTextureDimension dimension;
+        /// <summary>
+        /// Whether the texture is one-dimensional, an array of two-dimensional layers, or three-dimensional.
+        /// </summary>
+		public WGPUTextureDimension dimension = WGPUTextureDimension._2D;
+        /// <summary>
+        /// The width, height, and depth or layer count of the texture.
+        /// </summary>
 		public WGPUExtent3D size;
+        /// <summary>
+        /// The format of the texture.
+        /// </summary>
 		public WGPUTextureFormat format;
-		public uint mipLevelCount;
-		public uint sampleCount;
+        /// <summary>
+        /// The number of mip levels the texture will contain.
+        /// </summary>
+		public uint mipLevelCount = 1;
+        /// <summary>
+        /// The sample count of the texture. A sampleCount > 1 indicates a multisampled texture.
+        /// </summary>
+		public uint sampleCount = 1;
+
 		public size_t viewFormatCount;
-		public WGPUTextureFormat* viewFormats;
-	}
+        /// <summary>
+        /// Specifies what view format values will be allowed when calling createView() on this texture (in addition to the texture’s actual format).
+        /// </summary>
+        /// <remarks>
+        ///  Adding a format to this list may have a significant performance impact, so it is best to avoid adding formats unnecessarily.
+        ///  The actual performance impact is highly dependent on the target system; developers must test various systems to find out the impact on their particular application.For example, on some systems any texture with a format or viewFormats entry including "rgba8unorm-srgb" will perform less optimally than a "rgba8unorm" texture
+        ///  which does not. Similar caveats exist for other formats and pairs of formats on other systems.
+        /// </remarks>
+        public WGPUTextureFormat* viewFormats;
+
+        public WGPUTextureDescriptor()
+        {
+        }
+    }
 
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct WGPUVertexBufferLayout

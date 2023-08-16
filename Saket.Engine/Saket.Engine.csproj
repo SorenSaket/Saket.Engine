@@ -34,12 +34,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Audio\MP3\" />
-	  <Folder Include="Audio\FLAC\" />
-	  <Folder Include="Audio\WAV\" />
-	  <Folder Include="Graphics\Renderers\" />
 	  <Folder Include="Audio\" />
-	  <Folder Include="Resources\Parsers\" />
 	</ItemGroup>
 
 	<ItemGroup>

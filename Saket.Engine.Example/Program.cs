@@ -6,6 +6,7 @@ using Saket.WebGPU;
 using System.Threading.Tasks;
 using System.Text;
 using Saket.WebGPU.Native;
+using Saket.WebGPU.Objects;
 
 namespace Saket.Engine.Example
 {
@@ -13,7 +14,7 @@ namespace Saket.Engine.Example
 
     public static class Program
     {
-        static string shaderSource = "@vertex\r\nfn vs_main(@builtin(vertex_index) in_vertex_index: u32) -> @builtin(position) vec4<f32> {\r\n\tvar p = vec2<f32>(0.0, 0.0);\r\n\tif (in_vertex_index == 0u) {\r\n\t\tp = vec2<f32>(-0.5, -0.5);\r\n\t} else if (in_vertex_index == 1u) {\r\n\t\tp = vec2<f32>(0.5, -0.5);\r\n\t} else {\r\n\t\tp = vec2<f32>(0.0, 0.5);\r\n\t}\r\n\treturn vec4<f32>(p, 0.0, 1.0);\r\n}\r\n\r\n@fragment\r\nfn fs_main() -> @location(0) vec4<f32> {\r\n    return vec4<f32>(0.0, 0.4, 1.0, 1.0);\r\n}";
+        static byte[] shaderSource = Encoding.UTF8.GetBytes( "@vertex\r\nfn vs_main(@builtin(vertex_index) in_vertex_index: u32) -> @builtin(position) vec4<f32> {\r\n\tvar p = vec2<f32>(0.0, 0.0);\r\n\tif (in_vertex_index == 0u) {\r\n\t\tp = vec2<f32>(-0.5, -0.5);\r\n\t} else if (in_vertex_index == 1u) {\r\n\t\tp = vec2<f32>(0.5, -0.5);\r\n\t} else {\r\n\t\tp = vec2<f32>(0.0, 0.5);\r\n\t}\r\n\treturn vec4<f32>(p, 0.0, 1.0);\r\n}\r\n\r\n@fragment\r\nfn fs_main() -> @location(0) vec4<f32> {\r\n    return vec4<f32>(0.0, 0.4, 1.0, 1.0);\r\n}");
         
         [STAThread]
 		static unsafe void Main()
@@ -99,8 +100,9 @@ namespace Saket.Engine.Example
                   char* message,
                   void* userdata) => {
 
-                      Console.WriteLine(new string(message));
-
+                      var s = MemoryMarshal.CreateReadOnlySpanFromNullTerminated((byte*)message);
+                      Console.Write(Encoding.UTF8.GetString(s));
+                      
                   }, null);
             }
 
@@ -129,25 +131,35 @@ namespace Saket.Engine.Example
             // Create shader
             nint shaderModule = 0;
            
-            WGPUShaderModuleWGSLDescriptor shaderCodeDesc = new()
+            fixed(byte* ptr_shaderSource = shaderSource)
             {
-                chain = new WGPUChainedStruct() { next = null, sType = WGPUSType.ShaderModuleWGSLDescriptor },
-                code = shaderSource,
-            };
-            WGPUShaderModuleDescriptor shaderDesc = new WGPUShaderModuleDescriptor() { 
-                hintCount = 0,
-                hints = null,
-                nextInChain = &shaderCodeDesc.chain
-            };
+                WGPUShaderModuleWGSLDescriptor shaderCodeDesc = new()
+                {
+                    chain = new WGPUChainedStruct() { next = null, sType = WGPUSType.ShaderModuleWGSLDescriptor },
+                    code = (char*)ptr_shaderSource,
+                }; 
+                WGPUShaderModuleDescriptor shaderDesc = new WGPUShaderModuleDescriptor()
+                {
+                    hintCount = 0,
+                    hints = null,
+                    nextInChain = &shaderCodeDesc.chain
+                };
 
-            shaderModule = wgpu.DeviceCreateShaderModule(device, shaderDesc);
+                shaderModule = wgpu.DeviceCreateShaderModule(device, shaderDesc);
 
-            if (shaderModule == 0)
-                throw new Exception("failed to create shader");
+                if (shaderModule == 0)
+                    throw new Exception("failed to create shader");
+            }
+            
+
+           
             
 
             // Create pipeline
             nint pipeline = 0;
+
+            fixed(byte* ptr_entrypointFragment = "fs_main"u8)
+            fixed (byte* ptr_entrypointVertex = "vs_main"u8)
             {
                 WGPUPipelineLayoutDescriptor layoutDesc = new() { 
                 };
@@ -178,7 +190,7 @@ namespace Saket.Engine.Example
 
                 WGPUFragmentState fragment = new()
                 {
-                    entryPoint = "fs_main",
+                    entryPoint = (char*)ptr_entrypointFragment,
                     module = shaderModule,
                     targets = &colorTarget,
                     targetCount = 1
@@ -189,7 +201,7 @@ namespace Saket.Engine.Example
                     vertex = new()
                     {
                         module = shaderModule,
-                        entryPoint = "vs_main",
+                        entryPoint = (char*)ptr_entrypointVertex,
                     },
                     primitive = new()
                     {
@@ -209,7 +221,8 @@ namespace Saket.Engine.Example
                     layout = layout
                 };
 
-                pipeline = wgpu.DeviceCreateRenderPipeline(device, ref pipeline_render);
+
+                pipeline = wgpu.DeviceCreateRenderPipeline(device, pipeline_render);
             }
 
             if (pipeline == 0)
@@ -264,14 +277,8 @@ namespace Saket.Engine.Example
                 // We can now release the textureview
                 wgpu.TextureViewRelease(nextTexture);
 
-
-                WGPUCommandBufferDescriptor cmdBufferDesc = new WGPUCommandBufferDescriptor()
-                {
-                    
-                };
-
-                nint command = wgpu.CommandEncoderFinish(encoder, ref cmdBufferDesc);
-                wgpu.QueueSubmit(queue, 1, command);
+                nint commandBuffer = wgpu.CommandEncoderFinish(encoder, new() );
+                wgpu.QueueSubmit(queue, 1, new IntPtr(&commandBuffer));
                 
                 // 
                 wgpu.SwapChainPresent(swapchain);
