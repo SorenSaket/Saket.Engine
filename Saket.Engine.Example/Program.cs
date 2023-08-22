@@ -296,7 +296,7 @@ namespace Saket.Engine.Example
 
             while (true)
             {
-                var result = Platform_Windows_PInvoke.GetMessage(out message, 0, 0, 0);
+                var result = Platform_Windows_PInvoke.GetMessageW(out message, 0, 0, 0);
 
                 if (message == WindowMessage.DESTROY)
                     break;

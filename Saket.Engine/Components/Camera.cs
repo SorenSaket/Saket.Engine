@@ -64,14 +64,13 @@ namespace Saket.Engine
         public float near;
         public float far;
 
-      
         public Matrix4x4 ViewMatrix { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => viewMatrix; }
         public Matrix4x4 ProjectionMatrix { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => ProjectionMatrix; }
 
 
         public Matrix4x4 viewMatrix;
         public Matrix4x4 projectionMatrix;
-
+        
         public CameraOrthographic(float size, float near, float far)
         {
             this.size = size;

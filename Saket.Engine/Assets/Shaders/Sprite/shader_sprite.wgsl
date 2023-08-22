@@ -36,7 +36,7 @@ const QUAD_VERTICES: array<vec2<f32>, 6> = array<vec2<f32>, 6>(
 		vec2(-0.5, 0.5),// TL
 		vec2(-0.5, 0.5),// TL
 		vec2(0.5, -0.5), // BR
-		vec2(0.5, 0.5),  // TR
+		vec2(0.5, 0.5), // TR
 	);
 
 const QUAD_UVS:  array<vec2<f32>, 6> = array<vec2<f32>, 6>(
@@ -86,7 +86,7 @@ fn vtx_main(in: VertexInput) -> FragmentInput {
         selected_vert.x * sin(in.rotation) + selected_vert.y * cos(in.rotation)
     );
 	// 
-    output.position =  vec4<f32>(in.position.xy + rotatedVert * in.size, in.position.z, 1.0);
+    output.position = vec4<f32>(in.position.xy + rotatedVert * in.size, in.position.z, 1.0) * uniforms.projectionMatrix * uniforms.viewMatrix;
 	//
     output.uv = (selected_uv * tiles[in.box].zw) + tiles[in.box].xy;
 	// Pass color tint directly

@@ -14,26 +14,29 @@ namespace Saket.Engine
     public abstract class Application
     {
         protected bool shouldTerminate;
-
+        public uint Frame => frameCount;
+        private uint frameCount;
         public virtual void Update(float deltaTime) { }
-        
+
+        Stopwatch timer;
 
         public void Run()
         {
             //Thread t = new Thread(DoRun);
             //t.Start();
-
+            
             DoRun();
         }
         
         private void DoRun()
         {
-            var timer = Stopwatch.StartNew();
+            timer = Stopwatch.StartNew();
             while (!shouldTerminate)
             {
                 Update((float)timer.Elapsed.TotalSeconds);
                 timer.Restart();
                 timer.Start();
+                frameCount++;
             }
         }
 

@@ -31,7 +31,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saket.WebGPU", "Saket.WebGP
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HackAttack", "HackAttack\HackAttack.csproj", "{D9E30D90-87CE-4CF9-8E49-0C98152DDACD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Saket.Typography", "Saket.Typography\Saket.Typography.csproj", "{D7D84BDC-5EDE-4C4A-9AC2-065421098C08}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saket.Typography", "Saket.Typography\Saket.Typography.csproj", "{D7D84BDC-5EDE-4C4A-9AC2-065421098C08}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Saket.Engine.Platform.Windows", "Saket.Engine.Platform.Windows\Saket.Engine.Platform.Windows.csproj", "{BC920526-9864-4294-90F1-4372F443BA8A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Saket.Engine.Platform", "Saket.Engine.Platform\Saket.Engine.Platform.csproj", "{68234F90-D6E1-41EE-B3D5-A92DE531D9E1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -136,6 +140,22 @@ Global
 		{D7D84BDC-5EDE-4C4A-9AC2-065421098C08}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D7D84BDC-5EDE-4C4A-9AC2-065421098C08}.Release|x64.ActiveCfg = Release|Any CPU
 		{D7D84BDC-5EDE-4C4A-9AC2-065421098C08}.Release|x64.Build.0 = Release|Any CPU
+		{BC920526-9864-4294-90F1-4372F443BA8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC920526-9864-4294-90F1-4372F443BA8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC920526-9864-4294-90F1-4372F443BA8A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BC920526-9864-4294-90F1-4372F443BA8A}.Debug|x64.Build.0 = Debug|Any CPU
+		{BC920526-9864-4294-90F1-4372F443BA8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC920526-9864-4294-90F1-4372F443BA8A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC920526-9864-4294-90F1-4372F443BA8A}.Release|x64.ActiveCfg = Release|Any CPU
+		{BC920526-9864-4294-90F1-4372F443BA8A}.Release|x64.Build.0 = Release|Any CPU
+		{68234F90-D6E1-41EE-B3D5-A92DE531D9E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68234F90-D6E1-41EE-B3D5-A92DE531D9E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68234F90-D6E1-41EE-B3D5-A92DE531D9E1}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{68234F90-D6E1-41EE-B3D5-A92DE531D9E1}.Debug|x64.Build.0 = Debug|Any CPU
+		{68234F90-D6E1-41EE-B3D5-A92DE531D9E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68234F90-D6E1-41EE-B3D5-A92DE531D9E1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68234F90-D6E1-41EE-B3D5-A92DE531D9E1}.Release|x64.ActiveCfg = Release|Any CPU
+		{68234F90-D6E1-41EE-B3D5-A92DE531D9E1}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

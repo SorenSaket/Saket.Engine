@@ -1,5 +1,5 @@
 ﻿using Saket.Engine.Platform;
-using Saket.Engine.Platform.Win;
+using Saket.Engine.Platform.Windows;
 using Saket.WebGPU;
 using Saket.WebGPU.Native;
 using Saket.WebGPU.Objects;
@@ -26,7 +26,7 @@ namespace Saket.Engine.Graphics
 
         public Sampler defaultSampler;
 
-        public List<Window> windows;
+        public List<Platform.Window> windows;
 
         // By assuming all surfaces are prefering the same texture format?
         public WGPUTextureFormat applicationpreferredFormat = WGPUTextureFormat.Undefined;
@@ -43,7 +43,7 @@ namespace Saket.Engine.Graphics
             Environment.SetEnvironmentVariable("RUST_BACKTRACE", "1");
             Environment.SetEnvironmentVariable("RUST_BACKTRACE", "full");
 #endif
-            windows = new List<Window>();
+            windows = new List<Platform.Window>();
             instance = new Instance();
             
             // Create Adapter
@@ -107,14 +107,14 @@ namespace Saket.Engine.Graphics
             }
         }
 
-        public unsafe void AddWindow(Window window)
+        public unsafe void AddWindow(Platform.Window window)
         {
             if (windows.Contains(window))
                 return;
 
-            if (window is Window_Windows windowsWindow)
+            if (window is Platform.Windows.Window windowsWindow)
             {
-                window.surface = instance.CreateSurfaceFromWindowsHWND(windowsWindow.hInstance, windowsWindow.windowHandle);
+                window.surface = instance.CreateSurfaceFromWindowsHWND(windowsWindow.HInstance, windowsWindow.WindowHandle);
 
                 if(applicationpreferredFormat == WGPUTextureFormat.Undefined)
                 {

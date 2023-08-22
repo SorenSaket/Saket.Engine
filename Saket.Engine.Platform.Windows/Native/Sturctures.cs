@@ -5,8 +5,27 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Saket.Engine.Platform.Win
+namespace Saket.Engine.Platform.Windows.Native
 {
+    [StructLayout(LayoutKind.Sequential)]
+    public struct POINT
+    {
+        LONG x;
+        LONG y;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct MSG
+    {
+        IntPtr hwnd;
+        uint message;
+        WPARAM wParam;
+        LPARAM lParam;
+        DWORD Time;
+        POINT pt;
+        DWORD lPrivate;
+    }
+
     /// <summary>
     ///  <seealso href="https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-wndclassexa"/>
     /// </summary>
@@ -63,5 +82,4 @@ namespace Saket.Engine.Platform.Win
         /// </summary>
         public IntPtr hIconSm;
     }
-
 }

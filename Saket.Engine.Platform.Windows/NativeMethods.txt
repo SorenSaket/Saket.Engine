@@ -1,0 +1,9 @@
+DispatchMessage
+TranslateMessage
+RegisterClassExW
+CreateWindowExW
+ShowWindow
+PeekMessage
+DefWindowProcW
+GetLastError
+afunctionthatdoesnexist

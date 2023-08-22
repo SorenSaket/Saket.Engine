@@ -33,9 +33,12 @@ namespace HackAttack
         BindGroup bindgroup_atlas;
 
         CameraOrthographic camera;
+        IPlatform platform;
 
         public unsafe Application()
         {
+            platform = new Saket.Engine.Platform.Windows.Platform();
+
             world = new();
             pipeline_update = new();
             pipeline_render = new();
@@ -43,9 +46,10 @@ namespace HackAttack
             graphics = new GraphicsContext();
             graphics.applicationpreferredFormat = WGPUTextureFormat.BGRA8UnormSrgb;
 
-            window = Platform.CreateWindow(graphics);
+            window = platform.CreateWindow();
 
-            
+            graphics.AddWindow(window);
+
             spriteRenderer = new RendererSpriteSimple(1000, graphics.device);
 
             shader_sprite = Saket.Engine.Graphics.Shaders.SpriteSimple.CreateShader(graphics, File.ReadAllBytes(@".\Assets\Shaders\Sprite\shader_sprite.wgsl"));
@@ -53,26 +57,22 @@ namespace HackAttack
             bindgroup_atlas = Pyxel.Load(File.OpenRead(@".\Assets\tileset.pyxel")).GetBindGroup(graphics);
 
             camera = new CameraOrthographic(5f, 0.1f, 100f);
-            graphics.SetSystemUniform(new SystemUniform()
-            {
-                projectionMatrix = camera.projectionMatrix,
-                viewMatrix = camera.viewMatrix,
-                frame = 0
-            });
-
-
+            
             {
                 world.CreateEntity()
                     .Add(new Transform2D() { })
                     .Add(new Sprite() { color = Color.White});
             }
-
-
         }
-        int frameCount;
+        
         public override void Update(float deltaTime)
         {
-            _ = window.PollEvents();
+            // Poll all events
+            while (window.PollEvent() != 0)
+            {
+
+            }
+
             // Non-standardized behavior: submit empty queue to flush callbacks
             // (wgpu-native also has a device.poll but its API is more complex)
             wgpu.QueueSubmit(graphics.queue.Handle, 0, 0);
@@ -85,7 +85,12 @@ namespace HackAttack
             // Perform rendering
             // TODO make safe
              {
-             
+                graphics.SetSystemUniform(new SystemUniform()
+                {
+                    projectionMatrix = camera.projectionMatrix,
+                    viewMatrix = camera.viewMatrix,
+                    frame = Frame
+                });
 
                 // TODO, For each Camera
                 unsafe {
@@ -153,7 +158,6 @@ namespace HackAttack
                     
                 }
             }
-            frameCount++;
         }
     }
 }

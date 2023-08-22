@@ -17,13 +17,12 @@
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Publish|AnyCPU'">
 	  <LangVersion>preview</LangVersion>
 	</PropertyGroup>
-	<ItemGroup>
-	  <None Remove="Platform\Win\README.md" />
-	</ItemGroup>
 	
 	<!-- References -->
 
 	<ItemGroup>
+	
+		
 		<PackageReference Include="StbImageSharp" Version="2.27.12" />
 	</ItemGroup>
 
@@ -39,6 +38,8 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Saket.ECS\Saket.ECS\Saket.ECS.csproj" />
+	  <ProjectReference Include="..\Saket.Engine.Platform.Windows\Saket.Engine.Platform.Windows.csproj" />
+	  <ProjectReference Include="..\Saket.Engine.Platform\Saket.Engine.Platform.csproj" />
 	  <ProjectReference Include="..\Saket.Serialization\Saket.Serialization\Saket.Serialization.csproj" />
 	  <ProjectReference Include="..\Saket.Typography\Saket.Typography.csproj" />
 	  <ProjectReference Include="..\Saket.WebGPU\Saket.WebGPU.csproj" />

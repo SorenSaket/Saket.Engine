@@ -1,32 +1,36 @@
 ﻿using Saket.Engine.Platform.Windowing;
 using Saket.WebGPU.Objects;
 using Saket.WebGPU;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Saket.Engine.Graphics;
 
 namespace Saket.Engine.Platform
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public abstract class Window
     {
         public Surface surface;
         public WGPUTextureFormat preferredFormat;
         public Swapchain swapchain;
 
-        public GraphicsContext graphics;
+        /// <summary>
+        /// Width in pixels
+        /// </summary>
+        public uint width;
+        /// <summary>
+        /// Height in pixels
+        /// </summary>
+        public uint height;
 
-        public Window(Graphics.GraphicsContext graphicsContext) 
-        { 
-            graphics = graphicsContext;
+        public Window() 
+        {
+
         }
         
         public  TextureView GetCurretTextureView() => swapchain.GetCurrentTextureView();
         
         public abstract void Destroy();
 
-        public abstract WindowEvent PollEvents();
+        public abstract WindowEvent PollEvent();
     }
 }
