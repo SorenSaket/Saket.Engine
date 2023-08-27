@@ -36,7 +36,7 @@ namespace Saket.Engine.Graphics
             {
                 for (int x = 0; x < columns; x++)
                 {
-                    tiles.Add(new Tile( w, h, (float)x / columns, (float)y / rows ));
+                    tiles.Add(new Tile(w, h, (float)x / columns, (float)y / rows ));
                 }
             }
         }

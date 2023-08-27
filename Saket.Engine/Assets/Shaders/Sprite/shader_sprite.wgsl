@@ -90,14 +90,14 @@ fn vtx_main(in: VertexInput) -> FragmentInput {
 	//
     output.uv = (selected_uv * tiles[in.box].zw) + tiles[in.box].xy;
 	// Pass color tint directly
-    output.tint = in.color;
+    output.tint =  in.color;
 
     return output;
 }
 
 @fragment
 fn frag_main(in: FragmentInput) -> @location(0) vec4f {
-    return textureSample(myTexture, mySampler, in.uv) * in.position;
+    return textureSample(myTexture, mySampler, in.uv) * in.tint;
 }
 
 	//switch in.vertex_index{

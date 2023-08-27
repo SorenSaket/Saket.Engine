@@ -6,4 +6,7 @@ ShowWindow
 PeekMessage
 DefWindowProcW
 GetLastError
-afunctionthatdoesnexist
+LoadCursorW
+LoadImageW
+IDC_ARROW
+MAKEINTRESOURCE

@@ -59,13 +59,13 @@ namespace Saket.Engine.Graphics.Shaders
                 new()
                 {
                     format = WGPUVertexFormat.Sint32,
-                    offset = 4 * 7,
+                    offset = 4 * 1,
                     shaderLocation = 3,
                 },
                 new()
                 {
-                    format = WGPUVertexFormat.Float32x4,
-                    offset = 4 * 8,
+                    format = WGPUVertexFormat.Unorm8x4,
+                    offset = 4 * 2,
                     shaderLocation = 4,
                 },
             };

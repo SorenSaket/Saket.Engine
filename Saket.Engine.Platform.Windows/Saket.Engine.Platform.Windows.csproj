@@ -6,7 +6,6 @@
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
-
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Windows.SDK.Win32Metadata" Version="54.0.44-preview" />
 		<ProjectReference Include="..\Saket.Engine.Platform\Saket.Engine.Platform.csproj" />
@@ -23,4 +22,5 @@
 		<AdditionalFiles Include="NativeMethods.txt" />
 		<AdditionalFiles Include="NativeMethods.json" />
 	</ItemGroup>
+
 </Project>

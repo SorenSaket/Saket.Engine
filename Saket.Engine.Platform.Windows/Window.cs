@@ -18,7 +18,6 @@ namespace Saket.Engine.Platform.Windows
         public IntPtr WindowHandle => windowHandle;
         public IntPtr HInstance => hInstance;
 
-
         internal HINSTANCE hInstance;
         internal HWND windowHandle;
 
@@ -30,12 +29,19 @@ namespace Saket.Engine.Platform.Windows
             {
                 hInstance = new HINSTANCE(System.Diagnostics.Process.GetCurrentProcess().Handle);
 
-
                 //https://learn.microsoft.com/en-us/windows/win32/learnwin32/writing-the-window-procedure
                 // The function to be called every frame
-                WNDPROC p = PInvoke.DefWindowProc;
+                WNDPROC p = (HWND w, uint p, WPARAM wparam, LPARAM lparam) => {
 
+                    return PInvoke.DefWindowProc(w,p,wparam,lparam);
+                }; 
 
+                var cursor = PInvoke.LoadCursor( new HINSTANCE(0), PInvoke.IDC_ARROW);
+                
+                /*
+                var err = Marshal.GetLastWin32Error();
+                if (err != 0)
+                    Console.WriteLine($"Error code : {Convert.ToString(err, 16)} ");*/
                 var windowclass = new WNDCLASSEXW()
                 {
                     cbSize = (uint)Marshal.SizeOf<WNDCLASSEXW>(),
@@ -45,21 +51,20 @@ namespace Saket.Engine.Platform.Windows
                     lpfnWndProc = p,
                     lpszClassName = f,
                     hInstance = hInstance,
+                    hCursor = cursor
                 };
 
                 var classAtom = PInvoke.RegisterClassEx(windowclass);
                 
                 windowHandle = PInvoke.CreateWindowEx(
                     0,
-                    "mainclass",
-                    "mainclass",
+                    f,
+                    f,
                     WINDOW_STYLE.WS_OVERLAPPEDWINDOW,
                     0, 0, 1280, 720,
                     new HWND(0), new HMENU(0), hInstance, (void*)0);
 
-                var err = Marshal.GetLastWin32Error();
-                if(err != 0)
-                    Console.WriteLine($"Error code : {Convert.ToString(err, 16)} ");
+              
                 bool visible = PInvoke.ShowWindow(windowHandle, SHOW_WINDOW_CMD.SW_SHOW);
             }
 
@@ -69,7 +74,6 @@ namespace Saket.Engine.Platform.Windows
         {
             throw new NotImplementedException();
         }
-
 
 
         public override WindowEvent PollEvent()
