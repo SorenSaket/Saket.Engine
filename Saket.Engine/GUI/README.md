@@ -1,14 +1,12 @@
 # Saket.GUI
 
 Saket.GUI is a Graphical User Interface library made for Saket.Engine. 
-It's currently based of a ECS architecture.
+
 
 - High Performance when rendering many GUI elements
-- Smooth Animations
+- Smooth Animations of elements and icons
 - Multiple Window support (Desktop)
 - Rich Standard GUI element toolset
-
-
 
 
 ## User Guide
@@ -22,6 +20,10 @@ Terminology:
 | ECS | Entity Component System. Responsible for managing changes. |
 | Widget | The Algorithm responsible for converting local space coordinates to world space. Input: ScreenSize output List of LayoutElements  |
 | LayoutElement | Layouting is done with these. These are maintained by the layouting. |
+| Layouting | The process of placing elements in terms of position, rotation and scale according to their styling/rules and environment variables like screen size. |
+| Layouting Algorithm | The algorithm that is responsible for the layouting. Is often recursive in nature. |
+
+
 
 Example
 
@@ -65,6 +67,19 @@ document.add(new UIElement("id","class1 class2"))
 ```
 
 ## Implementation Details
+
+### Architecture
+It's currently based of a ECS architecture. Because of GUIs non linear nature its hard to represent and access the memory linearly.
+GUI works like a tree with inheritance of elements. 
+
+The styling, positioning uses inheritance.
+
+optimize for changes or optimize for the same state?
+
+
+
+
+
 
 <del>First class in-code DOM creation?</del>
 
