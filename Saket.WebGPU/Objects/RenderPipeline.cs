@@ -9,7 +9,7 @@ namespace Saket.WebGPU.Objects
     public class RenderPipeline
     {
         public nint Handle => handle;
-        public readonly nint handle;
+        readonly nint handle;
 
         internal RenderPipeline(nint handle)
         {

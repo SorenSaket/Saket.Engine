@@ -4,6 +4,7 @@ using System.Runtime.Serialization;
 using System.Diagnostics;
 using System.Numerics;
 using Saket.Engine;
+using Saket.WebGPU;
 
 namespace Saket.Graphics
 {
@@ -1905,5 +1906,13 @@ namespace Saket.Graphics
 			b = B / 255f;
 			a = A / 255f;
 		}
+
+
+
+        public static implicit operator WGPUColor(Color color) 
+        {
+            var v = color.ToVector4();
+            return new WGPUColor(v.X, v.Y, v.Z, v.W);
+        }
 	}
 }

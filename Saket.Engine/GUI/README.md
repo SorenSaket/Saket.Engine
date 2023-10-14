@@ -154,11 +154,10 @@ Window element ```<Window>```. Layouting bounderies between Windows can be made 
 
 ## TODO
 
-Layouting Algorithm
-
-Event Handling
-
-XML Widget File format 
+1. Layouting Algorithm
+    1. dasda
+2. Event Handling
+3. XML Widget File format 
 
 
 

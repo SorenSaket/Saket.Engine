@@ -15,6 +15,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Numerics;
+using HackAttack.Components;
+
 namespace HackAttack
 {
     internal class Application : Saket.Engine.Application
@@ -48,7 +50,7 @@ namespace HackAttack
 
             graphics.AddWindow(window);
 
-            spriteRenderer = new RendererSpriteSimple(1000, graphics.device);
+            spriteRenderer = new RendererSpriteSimple(graphics, 1000);
 
             shader_sprite = Saket.Engine.Graphics.Shaders.SpriteSimple.CreateShader(graphics, File.ReadAllBytes(@".\Assets\Shaders\Sprite\shader_sprite.wgsl"));
              
@@ -57,21 +59,24 @@ namespace HackAttack
             // Setup ecs
             world = new();
             pipeline_update = new();
+            pipeline_update.AddStage(new Stage().Add(Systems.Move));
             pipeline_render = new();
 
             camera = new CameraOrthographic(5f, 0.1f, 100f);
             {
                 world.CreateEntity()
                     .Add(new Transform2D() { })
-                    .Add(new Sprite() { color = Color.White, spr = 0 });
+                    .Add(new Sprite() { color = Color.White, spr = 0 })
+                    .Add(new PathFindingAgent());
 
                 world.CreateEntity()
                    .Add(new Transform2D() {Position = new Vector2(2,0) })
-                   .Add(new Sprite() { color = Color.White, spr = 1 });
+                   .Add(new Sprite() { color = Color.White, spr = 1 })
+                   .Add(new PathFindingAgent());
             }
         }
         
-        public override void Update(float deltaTime)
+        public override void Update()
         {
             // Poll all events
             while (window.PollEvent() != 0)
@@ -86,7 +91,9 @@ namespace HackAttack
 
             // Perform Update
             {
-                pipeline_update.Update(world, deltaTime);
+                world.Delta = (float)DeltaTime;
+                world.Time = (float)TotalElapsedTime;
+                pipeline_update.Update(world);
             }
 
             // Perform rendering
@@ -106,56 +113,12 @@ namespace HackAttack
                 nint textureView = window.GetCurretTextureView().Handle;
                 if (textureView == 0)
                     throw new Exception("faild to get texture view for next frame");
-                // RenderPass
-                WGPURenderPassColorAttachment renderPassColorAttachment = new()
-                {
-                    view = textureView,
-                    resolveTarget = 0,
-                    loadOp = WGPULoadOp.Clear,
-                    storeOp = WGPUStoreOp.Store,
-                    clearValue = new WGPUColor(0.9, 0.1, 0.2, 1.0)
-                };
-                WGPURenderPassDescriptor renderPassDesc = new()
-                {
-                    colorAttachmentCount = 1,
-                    colorAttachments = &renderPassColorAttachment,
-                    depthStencilAttachment = null,
-                    timestampWriteCount = 0,
-                    timestampWrites = null,
-                    nextInChain = null,
-                };
+                
+                // Clear the screen
 
-                    
-                // This should hopefully only iterate once
-                spriteRenderer.IterateForRender(world, (c) => {  // 
-                    // Command Encoder
-                    nint commandEncoder = wgpu.DeviceCreateCommandEncoder(graphics.device.Handle, new() { });
 
-                    nint RenderPassEncoder = wgpu.CommandEncoderBeginRenderPass(commandEncoder, renderPassDesc);
+                //spriteRenderer.Draw(new Sprite(0, 0, 0), )
 
-                    // Set the pipline for the renderpass
-                    wgpu.RenderPassEncoderSetPipeline(RenderPassEncoder, shader_sprite.pipeline);
-
-                    // Set system bind group
-                    // TODO
-                    wgpu.RenderPassEncoderSetBindGroup(RenderPassEncoder, 0, graphics.systemBindGroup.Handle, 0, (uint*)0);
-                    // Set atlas/sampler bindgroup
-                    wgpu.RenderPassEncoderSetBindGroup(RenderPassEncoder, 1, bindgroup_atlas.Handle, 0, (uint*)0);
-
-                    // set vertex buffers and Submit actual draw comand
-                    spriteRenderer.SetbuffersAndDraw(graphics.queue.Handle, RenderPassEncoder, c);
-                        
-                    // Finish Rendering
-                    wgpu.RenderPassEncoderEnd(RenderPassEncoder);
-                        
-                    nint commandBuffer = wgpu.CommandEncoderFinish(commandEncoder, new() { });
-
-                    wgpu.QueueSubmit(graphics.queue.Handle, 1, new IntPtr(&commandBuffer));
-
-                    wgpu.RenderPassEncoderRelease(RenderPassEncoder);
-                    wgpu.CommandEncoderRelease(commandEncoder);
-                });
-                   
                 // We can now release the textureview
                 wgpu.TextureViewRelease(textureView);
 

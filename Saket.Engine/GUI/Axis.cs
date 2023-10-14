@@ -8,7 +8,7 @@ namespace Saket.Engine.GUI
 {
     public enum Axis : byte
     {
-        Horizontal,
-        Vertical
+        Horizontal = 0,
+        Vertical = 1
     }
 }

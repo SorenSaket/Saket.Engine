@@ -1,11 +1,11 @@
 ﻿using Saket.Engine.Platform;
 using Saket.Engine.Platform.Windows;
+using Saket.Graphics;
 using Saket.WebGPU;
 using Saket.WebGPU.Native;
 using Saket.WebGPU.Objects;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -96,7 +96,43 @@ namespace Saket.Engine.Graphics
 
         }
 
-     
+        
+
+
+        public void Clear(TextureView target, Color clearColor)
+        {
+            unsafe
+            {
+                WGPURenderPassColorAttachment renderPassColorAttachment = new()
+                {
+                    view = target.Handle,
+                    resolveTarget = 0,
+                    loadOp = WGPULoadOp.Clear,
+                    storeOp = WGPUStoreOp.Store,
+                    clearValue = clearColor,
+                };
+                WGPURenderPassDescriptor renderPassDesc = new()
+                {
+                    colorAttachmentCount = 1,
+                    colorAttachments = &renderPassColorAttachment,
+                    depthStencilAttachment = null,
+                    timestampWriteCount = 0,
+                    timestampWrites = null,
+                    nextInChain = null,
+                };
+
+                // Command Encoder
+                nint commandEncoder = wgpu.DeviceCreateCommandEncoder(device.Handle, new() { });
+
+                nint RenderPassEncoder = wgpu.CommandEncoderBeginRenderPass(commandEncoder, renderPassDesc);
+
+                nint commandBuffer = wgpu.CommandEncoderFinish(commandEncoder, new() { });
+                wgpu.QueueSubmit(queue.Handle, 1, new IntPtr(&commandBuffer));
+
+                wgpu.RenderPassEncoderRelease(RenderPassEncoder);
+                wgpu.CommandEncoderRelease(commandEncoder);
+            }
+        }
 
 
         public void SetSystemUniform(SystemUniform uniform)

@@ -1,4 +1,5 @@
 using System.Net.NetworkInformation;
+using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Security.AccessControl;
@@ -753,10 +754,26 @@ namespace Saket.WebGPU
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct WGPURenderPassColorAttachment
 	{
+        /// <summary>
+        /// A GPUTextureView describing the texture subresource that will be output to for this color attachment
+        /// </summary>
 		public IntPtr view;
+        /// <summary>
+        /// A GPUTextureView describing the texture subresource that will receive the resolved output for this color attachment if view is multisampled.
+        /// </summary>
 		public IntPtr resolveTarget;
+        /// <summary>
+        /// Indicates the load operation to perform on view prior to executing the render pass.
+        /// </summary>
+        /// <remarks>It is recommended to prefer clearing; see "clear" for details.</remarks>
 		public WGPULoadOp loadOp;
+        /// <summary>
+        /// The store operation to perform on view after executing the render pass.
+        /// </summary>
 		public WGPUStoreOp storeOp;
+        /// <summary>
+        /// Indicates the value to clear view to prior to executing the render pass. If not provided, defaults to {r: 0, g: 0, b: 0, a: 0}. Ignored if loadOp is not "clear". The components of clearValue are all double values.They are converted matching the render attachment. If conversion fails, a validation error is generated.
+        /// </summary>
 		public WGPUColor clearValue;
 	}
 
