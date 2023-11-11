@@ -2,7 +2,7 @@ using System;
 
 namespace Saket.WebGPU
 {
-    public enum WGPUAdapterType : uint
+    public enum AdapterType : uint
     {
         DiscreteGPU = 0,
         IntegratedGPU = 1,
@@ -10,14 +10,14 @@ namespace Saket.WebGPU
         Unknown = 3
     }
 
-    public enum WGPUAddressMode : uint
+    public enum AddressMode : uint
     {
         Repeat = 0,
         MirrorRepeat = 1,
         ClampToEdge = 2
     }
 
-    public enum WGPUBackendType : uint
+    public enum BackendType : uint
     {
         Null = 0,
         WebGPU = 1,
@@ -29,7 +29,7 @@ namespace Saket.WebGPU
         OpenGLES = 7
     }
 
-    public enum WGPUBlendFactor : uint
+    public enum BlendFactor : uint
     {
         Zero = 0,
         One = 1,
@@ -46,7 +46,7 @@ namespace Saket.WebGPU
         OneMinusConstant = 12
     }
 
-    public enum WGPUBlendOperation : uint
+    public enum BlendOperation : uint
     {
         Add = 0,
         Subtract = 1,
@@ -55,7 +55,7 @@ namespace Saket.WebGPU
         Max = 4
     }
 
-    public enum WGPUBufferBindingType : uint
+    public enum BufferBindingType : uint
     {
         Undefined = 0,
         Uniform = 1,
@@ -63,7 +63,7 @@ namespace Saket.WebGPU
         ReadOnlyStorage = 3
     }
 
-    public enum WGPUBufferMapAsyncStatus : uint
+    public enum BufferMapAsyncStatus : uint
     {
         Success = 0,
         Error = 1,
@@ -73,14 +73,14 @@ namespace Saket.WebGPU
         UnmappedBeforeCallback = 5
     }
 
-    public enum WGPUBufferMapState : uint
+    public enum BufferMapState : uint
     {
         Unmapped = 0,
         Pending = 1,
         Mapped = 2
     }
 
-    public enum WGPUCompareFunction : uint
+    public enum CompareFunction : uint
     {
         Undefined = 0,
         Never = 1,
@@ -93,7 +93,7 @@ namespace Saket.WebGPU
         Always = 8
     }
 
-    public enum WGPUCompilationInfoRequestStatus : uint
+    public enum CompilationInfoRequestStatus : uint
     {
         Success = 0,
         Error = 1,
@@ -101,20 +101,20 @@ namespace Saket.WebGPU
         Unknown = 3
     }
 
-    public enum WGPUCompilationMessageType : uint
+    public enum CompilationMessageType : uint
     {
         Error = 0,
         Warning = 1,
         Info = 2
     }
 
-    public enum WGPUComputePassTimestampLocation : uint
+    public enum ComputePassTimestampLocation : uint
     {
         Beginning = 0,
         End = 1
     }
 
-    public enum WGPUCreatePipelineAsyncStatus : uint
+    public enum CreatePipelineAsyncStatus : uint
     {
         Success = 0,
         ValidationError = 1,
@@ -124,27 +124,27 @@ namespace Saket.WebGPU
         Unknown = 5
     }
 
-    public enum WGPUCullMode : uint
+    public enum CullMode : uint
     {
         None = 0,
         Front = 1,
         Back = 2
     }
 
-    public enum WGPUDeviceLostReason : uint
+    public enum DeviceLostReason : uint
     {
         Undefined = 0,
         Destroyed = 1
     }
 
-    public enum WGPUErrorFilter : uint
+    public enum ErrorFilter : uint
     {
         Validation = 0,
         OutOfMemory = 1,
         Internal = 2
     }
 
-    public enum WGPUErrorType : uint
+    public enum ErrorType : uint
     {
         NoError = 0,
         Validation = 1,
@@ -154,7 +154,7 @@ namespace Saket.WebGPU
         DeviceLost = 5
     }
 
-    public enum WGPUFeatureName : uint
+    public enum FeatureName : uint
     {
         Undefined = 0,
         DepthClipControl = 1,
@@ -170,39 +170,39 @@ namespace Saket.WebGPU
         BGRA8UnormStorage = 11
     }
 
-    public enum WGPUFilterMode : uint
+    public enum FilterMode : uint
     {
         Nearest = 0,
         Linear = 1
     }
 
-    public enum WGPUFrontFace : uint
+    public enum FrontFace : uint
     {
         CCW = 0,
         CW = 1
     }
 
-    public enum WGPUIndexFormat : uint
+    public enum IndexFormat : uint
     {
         Undefined = 0,
         Uint16 = 1,
         Uint32 = 2
     }
 
-    public enum WGPULoadOp : uint
+    public enum LoadOp : uint
     {
         Undefined = 0,
         Clear = 1,
         Load = 2
     }
 
-    public enum WGPUMipmapFilterMode : uint
+    public enum MipmapFilterMode : uint
     {
         Nearest = 0,
         Linear = 1
     }
 
-    public enum WGPUPipelineStatisticName : uint
+    public enum PipelineStatisticName : uint
     {
         VertexShaderInvocations = 0,
         ClipperInvocations = 1,
@@ -213,7 +213,7 @@ namespace Saket.WebGPU
     /// <summary>
     /// An enumerated value that can be used to provide a hint to the user agent indicating what class of adapter should be chosen from the system's available adapters.
     /// </summary>
-    public enum WGPUPowerPreference : uint
+    public enum PowerPreference : uint
     {
         /// <summary>
         /// undefined (or not specified), which provides no hint.
@@ -229,14 +229,14 @@ namespace Saket.WebGPU
         HighPerformance = 2
     }
 
-    public enum WGPUPresentMode : uint
+    public enum PresentMode : uint
     {
         Immediate = 0,
         Mailbox = 1,
         Fifo = 2
     }
 
-    public enum WGPUPrimitiveTopology : uint
+    public enum PrimitiveTopology : uint
     {
         PointList = 0,
         LineList = 1,
@@ -245,14 +245,14 @@ namespace Saket.WebGPU
         TriangleStrip = 4
     }
 
-    public enum WGPUQueryType : uint
+    public enum QueryType : uint
     {
         Occlusion = 0,
         PipelineStatistics = 1,
         Timestamp = 2
     }
 
-    public enum WGPUQueueWorkDoneStatus : uint
+    public enum QueueWorkDoneStatus : uint
     {
         Success = 0,
         Error = 1,
@@ -260,13 +260,13 @@ namespace Saket.WebGPU
         DeviceLost = 3
     }
 
-    public enum WGPURenderPassTimestampLocation : uint
+    public enum RenderPassTimestampLocation : uint
     {
         Beginning = 0,
         End = 1
     }
 
-    public enum WGPURequestAdapterStatus : uint
+    public enum RequestAdapterStatus : uint
     {
         Success = 0,
         Unavailable = 1,
@@ -274,14 +274,14 @@ namespace Saket.WebGPU
         Unknown = 3
     }
 
-    public enum WGPURequestDeviceStatus : uint
+    public enum RequestDeviceStatus : uint
     {
         Success = 0,
         Error = 1,
         Unknown = 2
     }
 
-    public enum WGPUSType : uint
+    public enum SType : uint
     {
         Invalid = 0,
         SurfaceDescriptorFromMetalLayer = 1,
@@ -297,7 +297,7 @@ namespace Saket.WebGPU
         RenderPassDescriptorMaxDrawCount = 15
     }
 
-    public enum WGPUSamplerBindingType : uint
+    public enum SamplerBindingType : uint
     {
         Undefined = 0,
         Filtering = 1,
@@ -305,7 +305,7 @@ namespace Saket.WebGPU
         Comparison = 3
     }
 
-    public enum WGPUStencilOperation : uint
+    public enum StencilOperation : uint
     {
         Keep = 0,
         Zero = 1,
@@ -317,27 +317,27 @@ namespace Saket.WebGPU
         DecrementWrap = 7
     }
 
-    public enum WGPUStorageTextureAccess : uint
+    public enum StorageTextureAccess : uint
     {
         Undefined = 0,
         WriteOnly = 1
     }
 
-    public enum WGPUStoreOp : uint
+    public enum StoreOp : uint
     {
         Undefined = 0,
         Store = 1,
         Discard = 2
     }
 
-    public enum WGPUTextureAspect : uint
+    public enum TextureAspect : uint
     {
         All = 0,
         StencilOnly = 1,
         DepthOnly = 2
     }
 
-    public enum WGPUTextureComponentType : uint
+    public enum TextureComponentType : uint
     {
         Float = 0,
         Sint = 1,
@@ -345,14 +345,14 @@ namespace Saket.WebGPU
         DepthComparison = 3
     }
 
-    public enum WGPUTextureDimension : uint
+    public enum TextureDimension : uint
     {
         _1D = 0,
         _2D = 1,
         _3D = 2
     }
 
-    public enum WGPUTextureFormat : uint
+    public enum TextureFormat : uint
     {
         Undefined = 0,
         R8Unorm = 1,
@@ -451,7 +451,7 @@ namespace Saket.WebGPU
         ASTC12x12UnormSrgb = 94
     }
 
-    public enum WGPUTextureSampleType : uint
+    public enum TextureSampleType : uint
     {
         Undefined = 0,
         Float = 1,
@@ -461,7 +461,7 @@ namespace Saket.WebGPU
         Uint = 5
     }
 
-    public enum WGPUTextureViewDimension : uint
+    public enum TextureViewDimension : uint
     {
         Undefined = 0,
 		_1D = 1,
@@ -472,7 +472,7 @@ namespace Saket.WebGPU
         _3D = 6
     }
 
-    public enum WGPUVertexFormat : uint
+    public enum VertexFormat : uint
     {
         Undefined = 0,
         Uint8x2 = 1,
@@ -510,7 +510,7 @@ namespace Saket.WebGPU
     /// <summary>
     /// The step mode configures how an address for vertex buffer data is computed, based on the current vertex or instance index
     /// </summary>
-    public enum WGPUVertexStepMode : uint
+    public enum VertexStepMode : uint
     {
         /// <summary>
         /// The address is advanced by arrayStride for each vertex, and reset between instances.
@@ -527,7 +527,7 @@ namespace Saket.WebGPU
     /// The GPUBufferUsage flags determine how a GPUBuffer may be used after its creatio
     /// </summary>
     [Flags]
-    public enum WGPUBufferUsage : uint
+    public enum BufferUsage : uint
     {
         None = 0,
         /// <summary>
@@ -573,7 +573,7 @@ namespace Saket.WebGPU
     }
 
     [Flags]
-    public enum WGPUColorWriteMask : uint
+    public enum ColorWriteMask : uint
     {
         None = 0,
         Red = 1,
@@ -587,7 +587,7 @@ namespace Saket.WebGPU
     /// The GPUMapMode flags determine how a GPUBuffer is mapped when calling mapAsync()
     /// </summary>
     [Flags]
-    public enum WGPUMapMode : uint
+    public enum MapMode : uint
     {
         None = 0,
         /// <summary>
@@ -607,7 +607,7 @@ namespace Saket.WebGPU
     /// GPUShaderStage contains the following flags, which describe which shader stages a corresponding GPUBindGroupEntry for this GPUBindGroupLayoutEntry will be visible to:
     /// </summary>
     [Flags]
-    public enum WGPUShaderStage : uint
+    public enum ShaderStage : uint
     {
         None = 0,
         /// <summary>
@@ -628,7 +628,7 @@ namespace Saket.WebGPU
     /// The GPUTextureUsage flags determine how a GPUTexture may be used after its creation
     /// </summary>
     [Flags]
-    public enum WGPUTextureUsage : uint
+    public enum TextureUsage : uint
     {
         None = 0,
         /// <summary>

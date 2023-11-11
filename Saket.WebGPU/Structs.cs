@@ -9,37 +9,37 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 namespace Saket.WebGPU
 {
     [StructLayout(LayoutKind.Sequential)]
-    public unsafe struct WGPUChainedStruct
+    public unsafe struct ChainedStruct
     {
-        public WGPUChainedStruct* next;
-        public WGPUSType sType;
+        public ChainedStruct* next;
+        public SType sType;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public unsafe struct WGPUChainedStructOut
+    public unsafe struct ChainedStructOut
     {
-        public WGPUChainedStructOut* next;
-        public WGPUSType sType;
+        public ChainedStructOut* next;
+        public SType sType;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUAdapterProperties
+	public unsafe struct AdapterProperties
 	{
-		public WGPUChainedStructOut* nextInChain;
+		public ChainedStructOut* nextInChain;
 		public uint vendorID;
 		public char*  vendorName;
 		public char* architecture;
 		public uint deviceID;
         public char* name;
 		public char* driverDescription;
-		public WGPUAdapterType adapterType;
-		public WGPUBackendType backendType;
+		public AdapterType adapterType;
+		public BackendType backendType;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUBindGroupEntry
+	public unsafe struct BindGroupEntry
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
         /// <summary>
         /// A number representing a unique identifier for this resource binding, which matches the binding value of a corresponding GPUBindGroupLayout entry. In addition, it matches the n index value of the corresponding @binding(n) attribute in the shader (GPUShaderModule) used in the related pipeline.
         /// </summary>
@@ -66,21 +66,21 @@ namespace Saket.WebGPU
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUBlendComponent
+	public unsafe struct BlendComponent
 	{
-		public WGPUBlendOperation operation;
-		public WGPUBlendFactor srcFactor;
-		public WGPUBlendFactor dstFactor;
+		public BlendOperation operation;
+		public BlendFactor srcFactor;
+		public BlendFactor dstFactor;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUBufferBindingLayout
+	public unsafe struct BufferBindingLayout
 	{
-		public WGPUChainedStruct* nextInChain = null;
+		public ChainedStruct* nextInChain = null;
         /// <summary>
         /// Indicates the type required for buffers bound to this bindings.
         /// </summary>
-		public WGPUBufferBindingType type = WGPUBufferBindingType.Uniform;
+		public BufferBindingType type = BufferBindingType.Uniform;
         /// <summary>
         /// Indicates whether this binding requires a dynamic offset.
         /// </summary>
@@ -93,17 +93,17 @@ namespace Saket.WebGPU
         /// </summary>
 		public ulong minBindingSize = 0;
 
-        public WGPUBufferBindingLayout()
+        public BufferBindingLayout()
         {
         }
     }
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUBufferDescriptor
+	public unsafe struct BufferDescriptor
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public char* label;
-		public WGPUBufferUsage usage;
+		public BufferUsage usage;
         /// <summary>
         /// The size of the buffer in bytes.
         /// </summary>
@@ -115,14 +115,14 @@ namespace Saket.WebGPU
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUColor
+	public unsafe struct Color
 	{
 		public double r;
 		public double g;
 		public double b;
 		public double a;
 
-        public WGPUColor(double r, double g, double b, double a)
+        public Color(double r, double g, double b, double a)
         {
             this.r = r;
             this.g = g;
@@ -132,25 +132,25 @@ namespace Saket.WebGPU
     }
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUCommandBufferDescriptor
+	public unsafe struct CommandBufferDescriptor
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public char* label;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUCommandEncoderDescriptor
+	public unsafe struct CommandEncoderDescriptor
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public char* label;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUCompilationMessage
+	public unsafe struct CompilationMessage
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public char* message;
-		public WGPUCompilationMessageType type;
+		public CompilationMessageType type;
 		public ulong lineNum;
 		public ulong linePos;
 		public ulong offset;
@@ -161,29 +161,29 @@ namespace Saket.WebGPU
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUComputePassTimestampWrite
+	public unsafe struct ComputePassTimestampWrite
 	{
 		public IntPtr querySet;
 		public uint queryIndex;
-		public WGPUComputePassTimestampLocation location;
+		public ComputePassTimestampLocation location;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUConstantEntry
+	public unsafe struct ConstantEntry
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public char* key;
 		public double value;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUExtent3D
+	public unsafe struct Extent3D
 	{
 		public uint width;
 		public uint height;
 		public uint depthOrArrayLayers;
 
-        public WGPUExtent3D(uint width, uint height, uint depthOrArrayLayers)
+        public Extent3D(uint width, uint height, uint depthOrArrayLayers)
         {
             this.width = width;
             this.height = height;
@@ -192,13 +192,13 @@ namespace Saket.WebGPU
     }
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUInstanceDescriptor
+	public unsafe struct InstanceDescriptor
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPULimits
+	public unsafe struct Limits
 	{
 		public uint maxTextureDimension1D;
 		public uint maxTextureDimension2D;
@@ -234,16 +234,16 @@ namespace Saket.WebGPU
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUMultisampleState
+	public unsafe struct MultisampleState
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public uint count;
 		public uint mask;
 		public WGPUBool alphaToCoverageEnabled;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUOrigin3D
+	public unsafe struct Origin3D
 	{
 		public uint x;
 		public uint y;
@@ -251,152 +251,152 @@ namespace Saket.WebGPU
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUPipelineLayoutDescriptor
+	public unsafe struct PipelineLayoutDescriptor
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public char* label;
 		public size_t bindGroupLayoutCount;
 		public IntPtr* bindGroupLayouts;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUPrimitiveDepthClipControl
+	public unsafe struct PrimitiveDepthClipControl
 	{
-		public WGPUChainedStruct chain;
+		public ChainedStruct chain;
 		public WGPUBool unclippedDepth;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUPrimitiveState
+	public unsafe struct PrimitiveState
 	{
-		public WGPUChainedStruct* nextInChain;
-		public WGPUPrimitiveTopology topology;
-		public WGPUIndexFormat stripIndexFormat;
-		public WGPUFrontFace frontFace;
-		public WGPUCullMode cullMode;
+		public ChainedStruct* nextInChain;
+		public PrimitiveTopology topology;
+		public IndexFormat stripIndexFormat;
+		public FrontFace frontFace;
+		public CullMode cullMode;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUQuerySetDescriptor
+	public unsafe struct QuerySetDescriptor
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public char* label;
-		public WGPUQueryType type;
+		public QueryType type;
 		public uint count;
-		public WGPUPipelineStatisticName* pipelineStatistics;
+		public PipelineStatisticName* pipelineStatistics;
 		public size_t pipelineStatisticsCount;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUQueueDescriptor
+	public unsafe struct QueueDescriptor
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public char* label;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPURenderBundleDescriptor
+	public unsafe struct RenderBundleDescriptor
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public char* label;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPURenderBundleEncoderDescriptor
+	public unsafe struct RenderBundleEncoderDescriptor
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public char* label;
 		public size_t colorFormatsCount;
-		public WGPUTextureFormat* colorFormats;
-		public WGPUTextureFormat depthStencilFormat;
+		public TextureFormat* colorFormats;
+		public TextureFormat depthStencilFormat;
 		public uint sampleCount;
 		public WGPUBool depthReadOnly;
 		public WGPUBool stencilReadOnly;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPURenderPassDepthStencilAttachment
+	public unsafe struct RenderPassDepthStencilAttachment
 	{
 		public IntPtr view;
-		public WGPULoadOp depthLoadOp;
-		public WGPUStoreOp depthStoreOp;
+		public LoadOp depthLoadOp;
+		public StoreOp depthStoreOp;
 		public float depthClearValue;
 		public WGPUBool depthReadOnly;
-		public WGPULoadOp stencilLoadOp;
-		public WGPUStoreOp stencilStoreOp;
+		public LoadOp stencilLoadOp;
+		public StoreOp stencilStoreOp;
 		public uint stencilClearValue;
 		public WGPUBool stencilReadOnly;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPURenderPassDescriptorMaxDrawCount
+	public unsafe struct RenderPassDescriptorMaxDrawCount
 	{
-		public WGPUChainedStruct chain;
+		public ChainedStruct chain;
 		public ulong maxDrawCount;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPURenderPassTimestampWrite
+	public unsafe struct RenderPassTimestampWrite
 	{
 		public IntPtr querySet;
 		public uint queryIndex;
-		public WGPURenderPassTimestampLocation location;
+		public RenderPassTimestampLocation location;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPURequestAdapterOptions
+	public unsafe struct RequestAdapterOptions
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public IntPtr compatibleSurface;
-		public WGPUPowerPreference powerPreference;
+		public PowerPreference powerPreference;
 		public WGPUBool forceFallbackAdapter;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUSamplerBindingLayout
+	public unsafe struct SamplerBindingLayout
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
         /// <summary>
         /// Indicates the required type of a sampler bound to this bindings.
         /// </summary>
-		public WGPUSamplerBindingType type = WGPUSamplerBindingType.Filtering;
+		public SamplerBindingType type = SamplerBindingType.Filtering;
 
-        public WGPUSamplerBindingLayout()
+        public SamplerBindingLayout()
         {
 
         }
     }
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUSamplerDescriptor
+	public unsafe struct SamplerDescriptor
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public char* label;
 
         /// <summary>
         /// Specifies the address modes for the texture width, height, and depth coordinates, respectively.
         /// </summary>
-		public WGPUAddressMode addressModeU = WGPUAddressMode.ClampToEdge;
+		public AddressMode addressModeU = AddressMode.ClampToEdge;
         /// <summary>
         /// Specifies the address modes for the texture width, height, and depth coordinates, respectively.
         /// </summary>
-        public WGPUAddressMode addressModeV = WGPUAddressMode.ClampToEdge;
+        public AddressMode addressModeV = AddressMode.ClampToEdge;
         /// <summary>
         /// Specifies the address modes for the texture width, height, and depth coordinates, respectively.
         /// </summary>
-        public WGPUAddressMode addressModeW = WGPUAddressMode.ClampToEdge;
+        public AddressMode addressModeW = AddressMode.ClampToEdge;
         /// <summary>
         /// Specifies the sampling behavior when the sample footprint is smaller than or equal to one texel.
         /// </summary>
-		public WGPUFilterMode magFilter = WGPUFilterMode.Nearest;
+		public FilterMode magFilter = FilterMode.Nearest;
         /// <summary>
         /// Specifies the sampling behavior when the sample footprint is larger than one texel.
         /// </summary>
-		public WGPUFilterMode minFilter = WGPUFilterMode.Nearest;
+		public FilterMode minFilter = FilterMode.Nearest;
         /// <summary>
         /// Specifies behavior for sampling between mipmap levels.
         /// </summary>
-		public WGPUMipmapFilterMode mipmapFilter = WGPUMipmapFilterMode.Nearest;
+		public MipmapFilterMode mipmapFilter = MipmapFilterMode.Nearest;
         /// <summary>
         /// Specifies the minimum levels of detail, respectively, used internally when sampling a texture.
         /// </summary>
@@ -412,7 +412,7 @@ namespace Saket.WebGPU
         /// Comparison samplers may use filtering, but the sampling results will be implementation-dependent and
         /// may differ from the normal filtering rules. 
         /// </remarks>
-		public WGPUCompareFunction compare;
+		public CompareFunction compare;
         /// <summary>
         /// Specifies the maximum anisotropy value clamp used by the sampler.
         /// </summary>
@@ -421,142 +421,142 @@ namespace Saket.WebGPU
         /// </remarks>
         public ushort maxAnisotropy = 1;
 
-        public WGPUSamplerDescriptor()
+        public SamplerDescriptor()
         {
         }
     }
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUShaderModuleCompilationHint
+	public unsafe struct ShaderModuleCompilationHint
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public char* entryPoint;
 		public IntPtr layout;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUShaderModuleSPIRVDescriptor
+	public unsafe struct ShaderModuleSPIRVDescriptor
 	{
-		public WGPUChainedStruct chain;
+		public ChainedStruct chain;
 		public uint codeSize;
 		public uint* code;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUShaderModuleWGSLDescriptor
+	public unsafe struct ShaderModuleWGSLDescriptor
 	{
-		public WGPUChainedStruct chain;
+		public ChainedStruct chain;
 		public char* code;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUStencilFaceState
+	public unsafe struct StencilFaceState
 	{
-		public WGPUCompareFunction compare;
-		public WGPUStencilOperation failOp;
-		public WGPUStencilOperation depthFailOp;
-		public WGPUStencilOperation passOp;
+		public CompareFunction compare;
+		public StencilOperation failOp;
+		public StencilOperation depthFailOp;
+		public StencilOperation passOp;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUStorageTextureBindingLayout
+	public unsafe struct StorageTextureBindingLayout
 	{
-		public WGPUChainedStruct* nextInChain;
-		public WGPUStorageTextureAccess access;
-		public WGPUTextureFormat format;
-		public WGPUTextureViewDimension viewDimension;
+		public ChainedStruct* nextInChain;
+		public StorageTextureAccess access;
+		public TextureFormat format;
+		public TextureViewDimension viewDimension;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUSurfaceDescriptor
+	public unsafe struct SurfaceDescriptor
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public char* label;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUSurfaceDescriptorFromAndroidNativeWindow
+	public unsafe struct SurfaceDescriptorFromAndroidNativeWindow
 	{
-		public WGPUChainedStruct chain;
+		public ChainedStruct chain;
 		public void* window;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUSurfaceDescriptorFromCanvasHTMLSelector
+	public unsafe struct SurfaceDescriptorFromCanvasHTMLSelector
 	{
-		public WGPUChainedStruct chain;
+		public ChainedStruct chain;
 		public char* selector;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUSurfaceDescriptorFromMetalLayer
+	public unsafe struct SurfaceDescriptorFromMetalLayer
 	{
-		public WGPUChainedStruct chain;
+		public ChainedStruct chain;
 		public void* layer;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUSurfaceDescriptorFromWaylandSurface
+	public unsafe struct SurfaceDescriptorFromWaylandSurface
 	{
-		public WGPUChainedStruct chain;
+		public ChainedStruct chain;
 		public void* display;
 		public void* surface;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUSurfaceDescriptorFromWindowsHWND
+	public unsafe struct SurfaceDescriptorFromWindowsHWND
 	{
-		public WGPUChainedStruct chain;
+		public ChainedStruct chain;
 		public nint hinstance;
 		public nint hwnd;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUSurfaceDescriptorFromXcbWindow
+	public unsafe struct SurfaceDescriptorFromXcbWindow
 	{
-		public WGPUChainedStruct chain;
+		public ChainedStruct chain;
 		public void* connection;
 		public uint window;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUSurfaceDescriptorFromXlibWindow
+	public unsafe struct SurfaceDescriptorFromXlibWindow
 	{
-		public WGPUChainedStruct chain;
+		public ChainedStruct chain;
 		public void* display;
 		public uint window;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUSwapChainDescriptor
+	public unsafe struct SwapChainDescriptor
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public char* label;
-		public WGPUTextureUsage usage;
-		public WGPUTextureFormat format;
+		public TextureUsage usage;
+		public TextureFormat format;
 		public uint width;
 		public uint height;
-		public WGPUPresentMode presentMode;
+		public PresentMode presentMode;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUTextureBindingLayout
+	public unsafe struct TextureBindingLayout
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
         /// <summary>
         /// Indicates the type required for texture views bound to this binding.
         /// </summary>
-		public WGPUTextureSampleType sampleType = WGPUTextureSampleType.Float;
+		public TextureSampleType sampleType = TextureSampleType.Float;
         /// <summary>
         /// Indicates the required dimension for texture views bound to this binding.
         /// </summary>
-		public WGPUTextureViewDimension viewDimension = WGPUTextureViewDimension._2D;
+		public TextureViewDimension viewDimension = TextureViewDimension._2D;
         /// <summary>
         /// Indicates whether or not texture views bound to this binding must be multisampled.
         /// </summary>
         public WGPUBool multisampled = false;
 
-        public WGPUTextureBindingLayout()
+        public TextureBindingLayout()
         {
         }
     }
@@ -564,9 +564,9 @@ namespace Saket.WebGPU
     /// A GPUImageDataLayout is a layout of images within some linear memory. It’s used when copying data between a texture and a GPUBuffer, or when scheduling a write into a texture from the GPUQueue.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUTextureDataLayout
+	public unsafe struct TextureDataLayout
     {
-        public WGPUChainedStruct* nextInChain;
+        public ChainedStruct* nextInChain;
         /// <summary>
         /// The offset, in bytes, from the beginning of the image data source (such as a GPUImageCopyBuffer.buffer) to the start of the image data within that source.
         /// </summary>
@@ -582,18 +582,18 @@ namespace Saket.WebGPU
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUTextureViewDescriptor
+	public unsafe struct TextureViewDescriptor
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public char* label;
         /// <summary>
         /// The format of the texture view. Must be either the format of the texture or one of the viewFormats specified during its creation.
         /// </summary>
-		public WGPUTextureFormat format;
+		public TextureFormat format;
         /// <summary>
         /// The dimension to view the texture as.
         /// </summary>
-		public WGPUTextureViewDimension dimension;
+		public TextureViewDimension dimension;
         /// <summary>
         /// The first (most detailed) mipmap level accessible to the texture view.
         /// </summary>
@@ -613,16 +613,16 @@ namespace Saket.WebGPU
         /// <summary>
         /// Which aspect(s) of the texture are accessible to the texture view.
         /// </summary>
-		public WGPUTextureAspect aspect;
+		public TextureAspect aspect;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUVertexAttribute
+	public unsafe struct VertexAttribute
 	{
         /// <summary>
-        /// The <see cref="WGPUVertexFormat"/> of the attribute.
+        /// The <see cref="VertexFormat"/> of the attribute.
         /// </summary>
-		public WGPUVertexFormat format;
+		public VertexFormat format;
         /// <summary>
         /// The offset, in bytes, from the beginning of the element to the data for the attribute.
         /// </summary>
@@ -634,22 +634,22 @@ namespace Saket.WebGPU
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUBindGroupDescriptor
+	public unsafe struct BindGroupDescriptor
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public char* label;
 		public IntPtr layout;
 		public size_t entryCount;
-		public WGPUBindGroupEntry* entries;
+		public BindGroupEntry* entries;
 	}
     
     /// <summary>
     /// Describes a single shader resource binding to be included in a GPUBindGroupLayout.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUBindGroupLayoutEntry
+	public unsafe struct BindGroupLayoutEntry
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
         /// <summary>
         /// A unique identifier for a resource binding within the GPUBindGroupLayout, corresponding to a GPUBindGroupEntry.binding and a @binding attribute in the GPUShaderModule.
         /// </summary>
@@ -657,46 +657,46 @@ namespace Saket.WebGPU
         /// <summary>
         /// A bitset of the members of GPUShaderStage. Each set bit indicates that a GPUBindGroupLayoutEntry's resource will be accessible from the associated shader stage.
         /// </summary>
-		public WGPUShaderStage visibility;
-		public WGPUBufferBindingLayout buffer;
-		public WGPUSamplerBindingLayout sampler;
-		public WGPUTextureBindingLayout texture;
-		public WGPUStorageTextureBindingLayout storageTexture;
+		public ShaderStage visibility;
+		public BufferBindingLayout buffer;
+		public SamplerBindingLayout sampler;
+		public TextureBindingLayout texture;
+		public StorageTextureBindingLayout storageTexture;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUBlendState
+	public unsafe struct BlendState
 	{
-		public WGPUBlendComponent color;
-		public WGPUBlendComponent alpha;
+		public BlendComponent color;
+		public BlendComponent alpha;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUCompilationInfo
+	public unsafe struct CompilationInfo
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public size_t messageCount;
-		public WGPUCompilationMessage* messages;
+		public CompilationMessage* messages;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUComputePassDescriptor
+	public unsafe struct ComputePassDescriptor
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public char* label;
 		public size_t timestampWriteCount;
-		public WGPUComputePassTimestampWrite* timestampWrites;
+		public ComputePassTimestampWrite* timestampWrites;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUDepthStencilState
+	public unsafe struct DepthStencilState
 	{
-		public WGPUChainedStruct* nextInChain;
-		public WGPUTextureFormat format;
+		public ChainedStruct* nextInChain;
+		public TextureFormat format;
 		public WGPUBool depthWriteEnabled;
-		public WGPUCompareFunction depthCompare;
-		public WGPUStencilFaceState stencilFront;
-		public WGPUStencilFaceState stencilBack;
+		public CompareFunction depthCompare;
+		public StencilFaceState stencilFront;
+		public StencilFaceState stencilBack;
 		public uint stencilReadMask;
 		public uint stencilWriteMask;
 		public int depthBias;
@@ -705,10 +705,10 @@ namespace Saket.WebGPU
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUImageCopyBuffer
+	public unsafe struct ImageCopyBuffer
 	{
-		public WGPUChainedStruct* nextInChain;
-		public WGPUTextureDataLayout layout;
+		public ChainedStruct* nextInChain;
+		public TextureDataLayout layout;
         /// <summary>
         /// A buffer which either contains image data to be copied or will store the image data being copied, depending on the method it is being passed to.
         /// </summary>
@@ -716,9 +716,9 @@ namespace Saket.WebGPU
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUImageCopyTexture
+	public unsafe struct ImageCopyTexture
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
         /// <summary>
         /// Texture to copy to/from.
         /// </summary>
@@ -730,29 +730,29 @@ namespace Saket.WebGPU
         /// <summary>
         /// Defines the origin of the copy - the minimum corner of the texture sub-region to copy to/from. Together with `copySize`, defines the full copy sub-region.
         /// </summary>
-        public WGPUOrigin3D origin;
+        public Origin3D origin;
         /// <summary>
         /// Defines which aspects of the texture to copy to/from
         /// </summary>
-		public WGPUTextureAspect aspect = WGPUTextureAspect.All;
+		public TextureAspect aspect = TextureAspect.All;
 
-        public WGPUImageCopyTexture()
+        public ImageCopyTexture()
         {
         }
     }
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUProgrammableStageDescriptor
+	public unsafe struct ProgrammableStageDescriptor
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public IntPtr module;
 		public char* entryPoint;
 		public size_t constantCount;
-		public WGPUConstantEntry* constants;
+		public ConstantEntry* constants;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPURenderPassColorAttachment
+	public unsafe struct RenderPassColorAttachment
 	{
         /// <summary>
         /// A GPUTextureView describing the texture subresource that will be output to for this color attachment
@@ -766,61 +766,61 @@ namespace Saket.WebGPU
         /// Indicates the load operation to perform on view prior to executing the render pass.
         /// </summary>
         /// <remarks>It is recommended to prefer clearing; see "clear" for details.</remarks>
-		public WGPULoadOp loadOp;
+		public LoadOp loadOp;
         /// <summary>
         /// The store operation to perform on view after executing the render pass.
         /// </summary>
-		public WGPUStoreOp storeOp;
+		public StoreOp storeOp;
         /// <summary>
         /// Indicates the value to clear view to prior to executing the render pass. If not provided, defaults to {r: 0, g: 0, b: 0, a: 0}. Ignored if loadOp is not "clear". The components of clearValue are all double values.They are converted matching the render attachment. If conversion fails, a validation error is generated.
         /// </summary>
-		public WGPUColor clearValue;
+		public Color clearValue;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPURequiredLimits
+	public unsafe struct RequiredLimits
 	{
-		public WGPUChainedStruct* nextInChain;
-		public WGPULimits limits;
+		public ChainedStruct* nextInChain;
+		public Limits limits;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUShaderModuleDescriptor
+	public unsafe struct ShaderModuleDescriptor
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public char* label;
 		public size_t hintCount;
-		public WGPUShaderModuleCompilationHint* hints;
+		public ShaderModuleCompilationHint* hints;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUSupportedLimits
+	public unsafe struct SupportedLimits
 	{
-		public WGPUChainedStructOut* nextInChain;
-		public WGPULimits limits;
+		public ChainedStructOut* nextInChain;
+		public Limits limits;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUTextureDescriptor
+	public unsafe struct TextureDescriptor
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public char* label;
         /// <summary>
         /// The allowed usages for the texture.
         /// </summary>
-		public WGPUTextureUsage usage;
+		public TextureUsage usage;
         /// <summary>
         /// Whether the texture is one-dimensional, an array of two-dimensional layers, or three-dimensional.
         /// </summary>
-		public WGPUTextureDimension dimension = WGPUTextureDimension._2D;
+		public TextureDimension dimension = TextureDimension._2D;
         /// <summary>
         /// The width, height, and depth or layer count of the texture.
         /// </summary>
-		public WGPUExtent3D size;
+		public Extent3D size;
         /// <summary>
         /// The format of the texture.
         /// </summary>
-		public WGPUTextureFormat format;
+		public TextureFormat format;
         /// <summary>
         /// The number of mip levels the texture will contain.
         /// </summary>
@@ -839,15 +839,15 @@ namespace Saket.WebGPU
         ///  The actual performance impact is highly dependent on the target system; developers must test various systems to find out the impact on their particular application.For example, on some systems any texture with a format or viewFormats entry including "rgba8unorm-srgb" will perform less optimally than a "rgba8unorm" texture
         ///  which does not. Similar caveats exist for other formats and pairs of formats on other systems.
         /// </remarks>
-        public WGPUTextureFormat* viewFormats;
+        public TextureFormat* viewFormats;
 
-        public WGPUTextureDescriptor()
+        public TextureDescriptor()
         {
         }
     }
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUVertexBufferLayout
+	public unsafe struct VertexBufferLayout
 	{
         /// <summary>
         /// The stride, in bytes, between elements of this array.
@@ -856,100 +856,100 @@ namespace Saket.WebGPU
         /// <summary>
         /// Whether each element of this array represents per-vertex data or per-instance data
         /// </summary>
-        public WGPUVertexStepMode stepMode;
+        public VertexStepMode stepMode;
 
 		public size_t attributeCount;
         /// <summary>
         /// An array defining the layout of the vertex attributes within each element.
         /// </summary>
-		public WGPUVertexAttribute* attributes;
+		public VertexAttribute* attributes;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUBindGroupLayoutDescriptor
+	public unsafe struct BindGroupLayoutDescriptor
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public char* label;
 		public size_t entryCount;
-		public WGPUBindGroupLayoutEntry* entries;
+		public BindGroupLayoutEntry* entries;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUColorTargetState
+	public unsafe struct ColorTargetState
 	{
-		public WGPUChainedStruct* nextInChain;
-		public WGPUTextureFormat format;
-		public WGPUBlendState* blend;
-		public WGPUColorWriteMask writeMask;
+		public ChainedStruct* nextInChain;
+		public TextureFormat format;
+		public BlendState* blend;
+		public ColorWriteMask writeMask;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUComputePipelineDescriptor
+	public unsafe struct ComputePipelineDescriptor
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public char* label;
 		public IntPtr layout;
-		public WGPUProgrammableStageDescriptor compute;
+		public ProgrammableStageDescriptor compute;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUDeviceDescriptor
+	public unsafe struct DeviceDescriptor
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public char* label;
 		public size_t requiredFeaturesCount;
-		public WGPUFeatureName* requiredFeatures;
-		public WGPURequiredLimits* requiredLimits;
-		public WGPUQueueDescriptor defaultQueue;
+		public FeatureName* requiredFeatures;
+		public RequiredLimits* requiredLimits;
+		public QueueDescriptor defaultQueue;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPURenderPassDescriptor
+	public unsafe struct RenderPassDescriptor
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public char* label;
 		public size_t colorAttachmentCount;
-		public WGPURenderPassColorAttachment* colorAttachments;
-		public WGPURenderPassDepthStencilAttachment* depthStencilAttachment;
+		public RenderPassColorAttachment* colorAttachments;
+		public RenderPassDepthStencilAttachment* depthStencilAttachment;
 		public IntPtr occlusionQuerySet;
 		public size_t timestampWriteCount;
-		public WGPURenderPassTimestampWrite* timestampWrites;
+		public RenderPassTimestampWrite* timestampWrites;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUVertexState
+	public unsafe struct VertexState
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public IntPtr module;
 		public char* entryPoint;
 		public size_t constantCount;
-		public WGPUConstantEntry* constants;
+		public ConstantEntry* constants;
 		public size_t bufferCount;
-		public WGPUVertexBufferLayout* buffers;
+		public VertexBufferLayout* buffers;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPUFragmentState
+	public unsafe struct FragmentState
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
 		public IntPtr module;
 		public char* entryPoint;
 		public size_t constantCount;
-		public WGPUConstantEntry* constants;
+		public ConstantEntry* constants;
 		public size_t targetCount;
-		public WGPUColorTargetState* targets;
+		public ColorTargetState* targets;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct WGPURenderPipelineDescriptor
+	public unsafe struct RenderPipelineDescriptor
 	{
-		public WGPUChainedStruct* nextInChain;
+		public ChainedStruct* nextInChain;
         public char* label;
 		public IntPtr layout;
-		public WGPUVertexState vertex;
-		public WGPUPrimitiveState primitive;
-		public WGPUDepthStencilState* depthStencil;
-		public WGPUMultisampleState multisample;
-		public WGPUFragmentState* fragment;
+		public VertexState vertex;
+		public PrimitiveState primitive;
+		public DepthStencilState* depthStencil;
+		public MultisampleState multisample;
+		public FragmentState* fragment;
 	}
 }

@@ -3,16 +3,15 @@ using Saket.Engine.Collections;
 using Saket.Engine.Components;
 using Saket.Engine.Graphics;
 using Saket.Engine.Math.Geometry;
-using Saket.Engine.Typography.TrueType;
-using Saket.WebGPU;
-using Saket.WebGPU.Native;
-using Saket.WebGPU.Objects;
+using WebGpuSharp;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using WebGpuSharp.FFI;
 
 namespace Saket.Engine.Graphics.Renderers;
 
@@ -41,11 +40,11 @@ public class RendererSpriteSimple
     static protected readonly Query query_spriteAnimator = new Query().With<(Sprite, SpriteAnimator)>();
 
     protected readonly Transform2D[] elements_transform;
-    protected readonly nint buffer_transform;
+    protected readonly WebGpuSharp.Buffer buffer_transform;
     protected readonly ulong size_bufferTransform;
 
     protected readonly Sprite[] elements_sprite;
-    protected readonly nint buffer_sprite;
+    protected readonly WebGpuSharp.Buffer buffer_sprite;
     protected readonly ulong size_bufferSprite;
 
     protected readonly uint batchCount;
@@ -65,7 +64,6 @@ public class RendererSpriteSimple
         this.graphics = graphics;
 
         // Transform buffer 
-        fixed(void* ptr_label = "buffer_spriterenderer_transform"u8)
         {
             // Allocate cpu side array
             elements_transform = new Transform2D[maximumBatchCount];
@@ -73,30 +71,29 @@ public class RendererSpriteSimple
             size_bufferTransform = (ulong)(maximumBatchCount * sizeof(Transform2D));
 
             // Create the gpu side buffer
-            WGPUBufferDescriptor bufferDescriptor = new()
+            BufferDescriptor bufferDescriptor = new()
             {
-                usage = WGPUBufferUsage.CopyDst | WGPUBufferUsage.Vertex,
-                size = size_bufferTransform,
-                label = (char*)ptr_label
+                Usage = BufferUsage.CopyDst | BufferUsage.Vertex,
+                Size = size_bufferTransform,
+                Label = "buffer_spriterenderer_transform"
             };
-            buffer_transform = wgpu.DeviceCreateBuffer(graphics.device.Handle, bufferDescriptor);
+            buffer_transform = graphics.device.CreateBuffer(bufferDescriptor);
 
         }
 
         // Sprite buffer 
-        fixed (void* ptr_label = "buffer_spriterenderer_sprite"u8)
         {
             elements_sprite = new Sprite[maximumBatchCount];
             size_bufferSprite = (ulong)(maximumBatchCount * sizeof(Sprite));
 
-            WGPUBufferDescriptor bufferDescriptor = new()
+            BufferDescriptor bufferDescriptor = new()
             {
-                usage = WGPUBufferUsage.CopyDst | WGPUBufferUsage.Vertex,
-                size = size_bufferTransform,
-                label = (char*)ptr_label
+                Usage = BufferUsage.CopyDst | BufferUsage.Vertex,
+                Size = size_bufferTransform,
+                Label = "buffer_spriterenderer_sprite"
             };
 
-            buffer_sprite = wgpu.DeviceCreateBuffer(graphics.device.Handle, bufferDescriptor);
+            buffer_sprite = graphics.device.CreateBuffer(bufferDescriptor);
         }
     }
 
@@ -106,23 +103,20 @@ public class RendererSpriteSimple
 
     protected List<Archetype> archetypes = new();
 
-    public unsafe void SetbuffersAndDraw(nint Queue, nint RenderPassEncoder, uint instanceCount)
+    public unsafe void SetbuffersAndDraw(Queue Queue, RenderPassEncoder RenderPassEncoder, uint instanceCount)
     {
         fixed (void* ptr_transform = elements_transform)
         {
-            wgpu.QueueWriteBuffer(Queue, buffer_transform, 0, ptr_transform, (nuint)(instanceCount * sizeof(Transform2D)));
+            graphics.queue.WriteBuffer(buffer_transform, 0, ptr_transform, (nuint)(instanceCount * sizeof(Transform2D)));
         }
         fixed (void* ptr_sprite = elements_sprite)
         {
-            wgpu.QueueWriteBuffer(Queue, buffer_sprite, 0, ptr_sprite, (nuint)(instanceCount * sizeof(Sprite)));
+            WebGPU_FFI.QueueWriteBuffer( graphics.queue., buffer_sprite, 0, ptr_sprite, (nuint)(instanceCount * sizeof(Sprite)));
         }
 
-        wgpu.RenderPassEncoderSetVertexBuffer(RenderPassEncoder, 0, buffer_transform, 0, size_bufferTransform);
-        wgpu.RenderPassEncoderSetVertexBuffer(RenderPassEncoder, 1, buffer_sprite, 0, size_bufferSprite);
-
-        
-
-        wgpu.RenderPassEncoderDraw(RenderPassEncoder, 6, instanceCount, 0, 0);
+        RenderPassEncoder.SetVertexBuffer( 0, buffer_transform, 0, size_bufferTransform);
+        RenderPassEncoder.SetVertexBuffer( 1, buffer_sprite, 0, size_bufferSprite);
+        RenderPassEncoder.Draw( 6, instanceCount, 0, 0);
     }
 
     /// <summary>

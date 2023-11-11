@@ -1,6 +1,5 @@
-﻿using Saket.WebGPU;
-using Saket.WebGPU.Native;
-using Saket.WebGPU.Objects;
+﻿using System;
+using WebGpuSharp;
 
 namespace Saket.Engine.Graphics
 {
@@ -14,7 +13,7 @@ namespace Saket.Engine.Graphics
         public int handle = -1;
 
         public bool IsLoadedOnGPU => handle != -1;
-        public WGPUTextureFormat format;
+        public TextureFormat format;
         
         public byte[] data;
         public uint width;
@@ -31,42 +30,36 @@ namespace Saket.Engine.Graphics
 
         public Texture UploadToGPU(GraphicsContext graphics)
         {
-            unsafe
             {
-                fixed (void* ptr_label = "texture_image"u8)
-                fixed (void* ptr_data = data)
+                Span<TextureFormat> formats = stackalloc TextureFormat[1]
                 {
-                    var formats = stackalloc WGPUTextureFormat[1]
-                    {
-                        WGPUTextureFormat.BGRA8UnormSrgb
-                    };
+                    TextureFormat.BGRA8UnormSrgb
+                };
 
-                    Texture tex = graphics.device.CreateTexture(new WebGPU.WGPUTextureDescriptor()
-                    {
-                        dimension = WebGPU.WGPUTextureDimension._2D,
-                        format = WebGPU.WGPUTextureFormat.BGRA8UnormSrgb, // TODO
-                        size = new WebGPU.WGPUExtent3D(width, height, 1),
-                        usage = WebGPU.WGPUTextureUsage.TextureBinding | WGPUTextureUsage.CopyDst,
-                        viewFormatCount = 1,
-                        viewFormats = formats,
-                        label = (char*)ptr_label
-                    });
+                Texture tex = graphics.device.CreateTexture(new TextureDescriptor()
+                {
+                    Dimension = TextureDimension._2D,
+                    Format = TextureFormat.BGRA8UnormSrgb, // TODO
+                    Size = new Extent3D(width, height, 1),
+                    ViewFormats = formats,
+                    Label = "texture_image"u8
+                })!;
 
-                    wgpu.QueueWriteTexture(
-                        graphics.queue.Handle, 
-                        new WGPUImageCopyTexture() { 
-                            texture = tex.Handle,
-                        }, 
-                        ptr_data, 
-                        (nuint)data.Length, 
-                        new WGPUTextureDataLayout() {
-                            bytesPerRow = 4*width,
-                            rowsPerImage = height,
-                        }, 
-                        new WGPUExtent3D() { width = width, height = height, depthOrArrayLayers = 1}
-                        );
-                    return tex;
-                }
+                graphics.queue.WriteTexture(
+                    new ImageCopyTexture()
+                    {
+                        Texture = tex,
+                    },
+                    data,
+                    new TextureDataLayout()
+                    {
+                        BytesPerRow = 4 * width,
+                        RowsPerImage = height,
+                    },
+                    new Extent3D(width, height, 1)
+                    ); ;
+                return tex;
+                
             }
         }
 

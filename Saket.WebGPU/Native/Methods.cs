@@ -12,20 +12,20 @@ namespace Saket.WebGPU.Native
 
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuCreateInstance")]
-        public static partial IntPtr CreateInstance(in WGPUInstanceDescriptor descriptor);
+        public static partial IntPtr CreateInstance(in InstanceDescriptor descriptor);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuGetProcAddress")]
-        public static partial WGPUProc GetProcAddress(IntPtr device, char* procName);
+        public static partial Proc GetProcAddress(IntPtr device, char* procName);
 
 
         #region Adapter
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuAdapterEnumerateFeatures")]
-        public static partial size_t AdapterEnumerateFeatures(IntPtr adapter, WGPUFeatureName* features);
+        public static partial size_t AdapterEnumerateFeatures(IntPtr adapter, FeatureName* features);
 
         [return: MarshalAs(UnmanagedType.I1)]
         [LibraryImport(LibraryName, EntryPoint = "wgpuAdapterGetLimits")]
-        public static partial bool AdapterGetLimits(IntPtr adapter, ref WGPUSupportedLimits limits);
+        public static partial bool AdapterGetLimits(IntPtr adapter, ref SupportedLimits limits);
        
         /// <summary>
         /// 
@@ -36,12 +36,12 @@ namespace Saket.WebGPU.Native
         /// <param name="adapter"></param>
         /// <param name="properties"></param>
         [LibraryImport(LibraryName, EntryPoint = "wgpuAdapterGetProperties")]
-        public static partial void AdapterGetProperties(IntPtr adapter, ref WGPUAdapterProperties properties);
+        public static partial void AdapterGetProperties(IntPtr adapter, ref AdapterProperties properties);
 
 
         [return: MarshalAs(UnmanagedType.I1)]
         [LibraryImport(LibraryName, EntryPoint = "wgpuAdapterHasFeature")]
-        public static partial bool AdapterHasFeature(IntPtr adapter, WGPUFeatureName feature);
+        public static partial bool AdapterHasFeature(IntPtr adapter, FeatureName feature);
         
         /// <summary>
         /// The requestDevice() method of the GPUAdapter interface returns a Promise that fulfills with a GPUDevice object, which is the primary interface for communicating with the GPU.
@@ -51,7 +51,7 @@ namespace Saket.WebGPU.Native
         /// <param name="callback"></param>
         /// <param name="userdata"></param>
         [LibraryImport(LibraryName, EntryPoint = "wgpuAdapterRequestDevice")]
-        public static partial void AdapterRequestDevice(IntPtr adapter, in WGPUDeviceDescriptor descriptor, WGPURequestDeviceCallback callback, void* userdata);
+        public static partial void AdapterRequestDevice(IntPtr adapter, in DeviceDescriptor descriptor, RequestDeviceCallback callback, void* userdata);
 
         [return: MarshalAs(UnmanagedType.I1)]
         [LibraryImport(LibraryName, EntryPoint = "wgpuAdapterReference")]
@@ -98,7 +98,7 @@ namespace Saket.WebGPU.Native
         public static partial void* BufferGetConstMappedRange(IntPtr buffer, size_t offset, size_t size);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuBufferGetMapState")]
-        public static partial WGPUBufferMapState BufferGetMapState(IntPtr buffer);
+        public static partial BufferMapState BufferGetMapState(IntPtr buffer);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuBufferGetMappedRange")]
         public static partial void* BufferGetMappedRange(IntPtr buffer, size_t offset, size_t size);
@@ -107,10 +107,10 @@ namespace Saket.WebGPU.Native
         public static partial ulong BufferGetSize(IntPtr buffer);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuBufferGetUsage")]
-        public static partial WGPUBufferUsage BufferGetUsage(IntPtr buffer);
+        public static partial BufferUsage BufferGetUsage(IntPtr buffer);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuBufferMapAsync")]
-        public static partial void BufferMapAsync(IntPtr buffer, WGPUMapMode mode, size_t offset, size_t size, WGPUBufferMapCallback callback, void* userdata);
+        public static partial void BufferMapAsync(IntPtr buffer, MapMode mode, size_t offset, size_t size, BufferMapCallback callback, void* userdata);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuBufferSetLabel")]
         public static partial void BufferSetLabel(IntPtr buffer, char* label);
@@ -142,7 +142,7 @@ namespace Saket.WebGPU.Native
         #region CommandEncoder
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuCommandEncoderBeginComputePass")]
-        public static partial IntPtr CommandEncoderBeginComputePass(IntPtr commandEncoder, in WGPUComputePassDescriptor descriptor);
+        public static partial IntPtr CommandEncoderBeginComputePass(IntPtr commandEncoder, in ComputePassDescriptor descriptor);
         /// <summary>
         /// Starts encoding a render pass, returning a GPURenderPassEncoder that can be used to control rendering.
         /// </summary>
@@ -150,7 +150,7 @@ namespace Saket.WebGPU.Native
         /// <param name="descriptor"></param>
         /// <returns></returns>
         [LibraryImport(LibraryName, EntryPoint = "wgpuCommandEncoderBeginRenderPass")]
-        public static partial IntPtr CommandEncoderBeginRenderPass(IntPtr commandEncoder, in WGPURenderPassDescriptor descriptor);
+        public static partial IntPtr CommandEncoderBeginRenderPass(IntPtr commandEncoder, in RenderPassDescriptor descriptor);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuCommandEncoderClearBuffer")]
         public static partial void CommandEncoderClearBuffer(IntPtr commandEncoder, IntPtr buffer, ulong offset, ulong size);
@@ -159,16 +159,16 @@ namespace Saket.WebGPU.Native
         public static partial void CommandEncoderCopyBufferToBuffer(IntPtr commandEncoder, IntPtr source, ulong sourceOffset, IntPtr destination, ulong destinationOffset, ulong size);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuCommandEncoderCopyBufferToTexture")]
-        public static partial void CommandEncoderCopyBufferToTexture(IntPtr commandEncoder, WGPUImageCopyBuffer* source, WGPUImageCopyTexture* destination, WGPUExtent3D* copySize);
+        public static partial void CommandEncoderCopyBufferToTexture(IntPtr commandEncoder, ImageCopyBuffer* source, ImageCopyTexture* destination, Extent3D* copySize);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuCommandEncoderCopyTextureToBuffer")]
-        public static partial void CommandEncoderCopyTextureToBuffer(IntPtr commandEncoder, WGPUImageCopyTexture* source, WGPUImageCopyBuffer* destination, WGPUExtent3D* copySize);
+        public static partial void CommandEncoderCopyTextureToBuffer(IntPtr commandEncoder, ImageCopyTexture* source, ImageCopyBuffer* destination, Extent3D* copySize);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuCommandEncoderCopyTextureToTexture")]
-        public static partial void CommandEncoderCopyTextureToTexture(IntPtr commandEncoder, WGPUImageCopyTexture* source, WGPUImageCopyTexture* destination, WGPUExtent3D* copySize);
+        public static partial void CommandEncoderCopyTextureToTexture(IntPtr commandEncoder, ImageCopyTexture* source, ImageCopyTexture* destination, Extent3D* copySize);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuCommandEncoderFinish")]
-        public static partial IntPtr CommandEncoderFinish(IntPtr commandEncoder, in WGPUCommandBufferDescriptor descriptor);
+        public static partial IntPtr CommandEncoderFinish(IntPtr commandEncoder, in CommandBufferDescriptor descriptor);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuCommandEncoderInsertDebugMarker")]
         public static partial void CommandEncoderInsertDebugMarker(IntPtr commandEncoder, char* markerLabel);
@@ -261,82 +261,82 @@ namespace Saket.WebGPU.Native
         /// Creates a GPUBindGroup based on a GPUBindGroupLayout that defines a set of resources to be bound together in a group and how those resources are used in shader stages.
         /// </summary>
         [LibraryImport(LibraryName, EntryPoint = "wgpuDeviceCreateBindGroup")]
-        public static partial IntPtr DeviceCreateBindGroup(IntPtr device, in WGPUBindGroupDescriptor descriptor);
+        public static partial IntPtr DeviceCreateBindGroup(IntPtr device, in BindGroupDescriptor descriptor);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuDeviceCreateBindGroupLayout")]
-        public static partial IntPtr DeviceCreateBindGroupLayout(IntPtr device, in WGPUBindGroupLayoutDescriptor descriptor);
+        public static partial IntPtr DeviceCreateBindGroupLayout(IntPtr device, in BindGroupLayoutDescriptor descriptor);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuDeviceCreateBuffer")]
-        public static partial IntPtr DeviceCreateBuffer(IntPtr device, in WGPUBufferDescriptor descriptor);
+        public static partial IntPtr DeviceCreateBuffer(IntPtr device, in BufferDescriptor descriptor);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuDeviceCreateCommandEncoder")]
-        public static partial IntPtr DeviceCreateCommandEncoder(IntPtr device, in WGPUCommandEncoderDescriptor descriptor);
+        public static partial IntPtr DeviceCreateCommandEncoder(IntPtr device, in CommandEncoderDescriptor descriptor);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuDeviceCreateComputePipeline")]
-        public static partial IntPtr DeviceCreateComputePipeline(IntPtr device, in WGPUComputePipelineDescriptor descriptor);
+        public static partial IntPtr DeviceCreateComputePipeline(IntPtr device, in ComputePipelineDescriptor descriptor);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuDeviceCreateComputePipelineAsync")]
-        public static partial void DeviceCreateComputePipelineAsync(IntPtr device, in WGPUComputePipelineDescriptor descriptor, WGPUCreateComputePipelineAsyncCallback callback, void* userdata);
+        public static partial void DeviceCreateComputePipelineAsync(IntPtr device, in ComputePipelineDescriptor descriptor, CreateComputePipelineAsyncCallback callback, void* userdata);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuDeviceCreatePipelineLayout")]
-        public static partial IntPtr DeviceCreatePipelineLayout(IntPtr device, in WGPUPipelineLayoutDescriptor descriptor);
+        public static partial IntPtr DeviceCreatePipelineLayout(IntPtr device, in PipelineLayoutDescriptor descriptor);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuDeviceCreateQuerySet")]
-        public static partial IntPtr DeviceCreateQuerySet(IntPtr device, in WGPUQuerySetDescriptor descriptor);
+        public static partial IntPtr DeviceCreateQuerySet(IntPtr device, in QuerySetDescriptor descriptor);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuDeviceCreateRenderBundleEncoder")]
-        public static partial IntPtr DeviceCreateRenderBundleEncoder(IntPtr device, in WGPURenderBundleEncoderDescriptor descriptor);
+        public static partial IntPtr DeviceCreateRenderBundleEncoder(IntPtr device, in RenderBundleEncoderDescriptor descriptor);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuDeviceCreateRenderPipeline")]
-        public static partial IntPtr DeviceCreateRenderPipeline(IntPtr device, in WGPURenderPipelineDescriptor descriptor);
+        public static partial IntPtr DeviceCreateRenderPipeline(IntPtr device, in RenderPipelineDescriptor descriptor);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuDeviceCreateRenderPipelineAsync")]
-        public static partial void DeviceCreateRenderPipelineAsync(IntPtr device, in WGPURenderPipelineDescriptor descriptor, WGPUCreateRenderPipelineAsyncCallback callback, void* userdata);
+        public static partial void DeviceCreateRenderPipelineAsync(IntPtr device, in RenderPipelineDescriptor descriptor, CreateRenderPipelineAsyncCallback callback, void* userdata);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuDeviceCreateSampler")]
-        public static partial IntPtr DeviceCreateSampler(IntPtr device, in WGPUSamplerDescriptor  descriptor);
+        public static partial IntPtr DeviceCreateSampler(IntPtr device, in SamplerDescriptor  descriptor);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuDeviceCreateShaderModule")]
-        public static partial IntPtr DeviceCreateShaderModule(IntPtr device, in WGPUShaderModuleDescriptor descriptor);
+        public static partial IntPtr DeviceCreateShaderModule(IntPtr device, in ShaderModuleDescriptor descriptor);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuDeviceCreateSwapChain")]
-        public static partial IntPtr DeviceCreateSwapChain(IntPtr device, IntPtr surface, in WGPUSwapChainDescriptor descriptor);
+        public static partial IntPtr DeviceCreateSwapChain(IntPtr device, IntPtr surface, in SwapChainDescriptor descriptor);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuDeviceCreateTexture")]
-        public static partial IntPtr DeviceCreateTexture(IntPtr device, in WGPUTextureDescriptor descriptor);
+        public static partial IntPtr DeviceCreateTexture(IntPtr device, in TextureDescriptor descriptor);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuDeviceDestroy")]
         public static partial void DeviceDestroy(IntPtr device);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuDeviceEnumerateFeatures")]
-        public static partial size_t DeviceEnumerateFeatures(IntPtr device, WGPUFeatureName* features);
+        public static partial size_t DeviceEnumerateFeatures(IntPtr device, FeatureName* features);
         
         [return: MarshalAs(UnmanagedType.I1)]
         [LibraryImport(LibraryName, EntryPoint = "wgpuDeviceGetLimits")]
-        public static partial bool DeviceGetLimits(IntPtr device, ref WGPUSupportedLimits limits);
+        public static partial bool DeviceGetLimits(IntPtr device, ref SupportedLimits limits);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuDeviceGetQueue")]
         public static partial IntPtr DeviceGetQueue(IntPtr device);
         
         [return: MarshalAs(UnmanagedType.I1)]
         [LibraryImport(LibraryName, EntryPoint = "wgpuDeviceHasFeature")]
-        public static partial bool DeviceHasFeature(IntPtr device, WGPUFeatureName feature);
+        public static partial bool DeviceHasFeature(IntPtr device, FeatureName feature);
         
         [return: MarshalAs(UnmanagedType.I1)]
         [LibraryImport(LibraryName, EntryPoint = "wgpuDevicePopErrorScope")]
-        public static partial bool DevicePopErrorScope(IntPtr device, WGPUErrorCallback callback, void* userdata);
+        public static partial bool DevicePopErrorScope(IntPtr device, ErrorCallback callback, void* userdata);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuDevicePushErrorScope")]
-        public static partial void DevicePushErrorScope(IntPtr device, WGPUErrorFilter filter);
+        public static partial void DevicePushErrorScope(IntPtr device, ErrorFilter filter);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuDeviceSetDeviceLostCallback")]
-        public static partial void DeviceSetDeviceLostCallback(IntPtr device, WGPUDeviceLostCallback callback, void* userdata);
+        public static partial void DeviceSetDeviceLostCallback(IntPtr device, DeviceLostCallback callback, void* userdata);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuDeviceSetLabel")]
         public static partial void DeviceSetLabel(IntPtr device, char* label);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuDeviceSetUncapturedErrorCallback")]
-        public static partial void DeviceSetUncapturedErrorCallback(IntPtr device, WGPUErrorCallback callback, void* userdata);
+        public static partial void DeviceSetUncapturedErrorCallback(IntPtr device, ErrorCallback callback, void* userdata);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuDeviceReference")]
         public static partial IntPtr DeviceReference(IntPtr device);
@@ -349,7 +349,7 @@ namespace Saket.WebGPU.Native
         #region Instance
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuInstanceCreateSurface")]
-        public static partial IntPtr InstanceCreateSurface(IntPtr instance, in WGPUSurfaceDescriptor descriptor);
+        public static partial IntPtr InstanceCreateSurface(IntPtr instance, in SurfaceDescriptor descriptor);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuInstanceProcessEvents")]
         public static partial void InstanceProcessEvents(IntPtr instance);
@@ -362,7 +362,7 @@ namespace Saket.WebGPU.Native
         /// <param name="callback"></param>
         /// <param name="userdata"></param>
         [LibraryImport(LibraryName, EntryPoint = "wgpuInstanceRequestAdapter")]
-        public static partial void InstanceRequestAdapter(IntPtr instance, in WGPURequestAdapterOptions options, WGPURequestAdapterCallback callback, void* userdata);
+        public static partial void InstanceRequestAdapter(IntPtr instance, in RequestAdapterOptions options, RequestAdapterCallback callback, void* userdata);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuInstanceReference")]
         public static partial void InstanceReference(IntPtr instance);
@@ -394,7 +394,7 @@ namespace Saket.WebGPU.Native
         public static partial uint QuerySetGetCount(IntPtr querySet);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuQuerySetGetType")]
-        public static partial WGPUQueryType QuerySetGetType(IntPtr querySet);
+        public static partial QueryType QuerySetGetType(IntPtr querySet);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuQuerySetSetLabel")]
         public static partial void QuerySetSetLabel(IntPtr querySet, char* label);
@@ -410,7 +410,7 @@ namespace Saket.WebGPU.Native
         #region Queue
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuQueueOnSubmittedWorkDone")]
-        public static partial void QueueOnSubmittedWorkDone(IntPtr queue, WGPUQueueWorkDoneCallback callback, void* userdata);
+        public static partial void QueueOnSubmittedWorkDone(IntPtr queue, QueueWorkDoneCallback callback, void* userdata);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuQueueSetLabel")]
         public static partial void QueueSetLabel(IntPtr queue, char* label);
@@ -440,7 +440,7 @@ namespace Saket.WebGPU.Native
         /// <param name="dataLayout">describes the memory layout of data, which does not necessarily have to have tightly packed rows.</param>
         /// <param name="writeSize">is the size, in texels, of the region to be written.</param>
         [LibraryImport(LibraryName, EntryPoint = "wgpuQueueWriteTexture")]
-        public static partial void QueueWriteTexture(IntPtr queue, in WGPUImageCopyTexture destination, void* data, size_t dataSize, in WGPUTextureDataLayout dataLayout, in WGPUExtent3D writeSize);
+        public static partial void QueueWriteTexture(IntPtr queue, in ImageCopyTexture destination, void* data, size_t dataSize, in TextureDataLayout dataLayout, in Extent3D writeSize);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuQueueReference")]
         public static partial void QueueReference(IntPtr queue);
@@ -478,7 +478,7 @@ namespace Saket.WebGPU.Native
         public static partial void RenderBundleEncoderDrawIndirect(IntPtr renderBundleEncoder, IntPtr indirectBuffer, ulong indirectOffset);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuRenderBundleEncoderFinish")]
-        public static partial IntPtr RenderBundleEncoderFinish(IntPtr renderBundleEncoder, WGPURenderBundleDescriptor* descriptor);
+        public static partial IntPtr RenderBundleEncoderFinish(IntPtr renderBundleEncoder, RenderBundleDescriptor* descriptor);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuRenderBundleEncoderInsertDebugMarker")]
         public static partial void RenderBundleEncoderInsertDebugMarker(IntPtr renderBundleEncoder, char* markerLabel);
@@ -493,7 +493,7 @@ namespace Saket.WebGPU.Native
         public static partial void RenderBundleEncoderSetBindGroup(IntPtr renderBundleEncoder, uint groupIndex, IntPtr group, size_t dynamicOffsetCount, uint* dynamicOffsets);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuRenderBundleEncoderSetIndexBuffer")]
-        public static partial void RenderBundleEncoderSetIndexBuffer(IntPtr renderBundleEncoder, IntPtr buffer, WGPUIndexFormat format, ulong offset, ulong size);
+        public static partial void RenderBundleEncoderSetIndexBuffer(IntPtr renderBundleEncoder, IntPtr buffer, IndexFormat format, ulong offset, ulong size);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuRenderBundleEncoderSetLabel")]
         public static partial void RenderBundleEncoderSetLabel(IntPtr renderBundleEncoder, char* label);
@@ -557,10 +557,10 @@ namespace Saket.WebGPU.Native
         public static partial void RenderPassEncoderSetBindGroup(IntPtr renderPassEncoder, uint groupIndex, IntPtr group, size_t dynamicOffsetCount, uint* dynamicOffsets);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuRenderPassEncoderSetBlendConstant")]
-        public static partial void RenderPassEncoderSetBlendConstant(IntPtr renderPassEncoder, WGPUColor* color);
+        public static partial void RenderPassEncoderSetBlendConstant(IntPtr renderPassEncoder, Color* color);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuRenderPassEncoderSetIndexBuffer")]
-        public static partial void RenderPassEncoderSetIndexBuffer(IntPtr renderPassEncoder, IntPtr buffer, WGPUIndexFormat format, ulong offset, ulong size);
+        public static partial void RenderPassEncoderSetIndexBuffer(IntPtr renderPassEncoder, IntPtr buffer, IndexFormat format, ulong offset, ulong size);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuRenderPassEncoderSetLabel")]
         public static partial void RenderPassEncoderSetLabel(IntPtr renderPassEncoder, char* label);
@@ -627,7 +627,7 @@ namespace Saket.WebGPU.Native
         #region Shader Module
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuShaderModuleGetCompilationInfo")]
-        public static partial void ShaderModuleGetCompilationInfo(IntPtr shaderModule, WGPUCompilationInfoCallback callback, void* userdata);
+        public static partial void ShaderModuleGetCompilationInfo(IntPtr shaderModule, CompilationInfoCallback callback, void* userdata);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuShaderModuleSetLabel")]
         public static partial void ShaderModuleSetLabel(IntPtr shaderModule, char* label);
@@ -643,7 +643,7 @@ namespace Saket.WebGPU.Native
         #region Surface
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuSurfaceGetPreferredFormat")]
-        public static partial WGPUTextureFormat SurfaceGetPreferredFormat(IntPtr surface, IntPtr adapter);
+        public static partial TextureFormat SurfaceGetPreferredFormat(IntPtr surface, IntPtr adapter);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuSurfaceReference")]
         public static partial void SurfaceReference(IntPtr surface);
@@ -672,7 +672,7 @@ namespace Saket.WebGPU.Native
         #region Texture
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuTextureCreateView")]
-        public static partial IntPtr TextureCreateView(IntPtr texture, in WGPUTextureViewDescriptor descriptor);
+        public static partial IntPtr TextureCreateView(IntPtr texture, in TextureViewDescriptor descriptor);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuTextureDestroy")]
         public static partial void TextureDestroy(IntPtr texture);
@@ -681,10 +681,10 @@ namespace Saket.WebGPU.Native
         public static partial uint TextureGetDepthOrArrayLayers(IntPtr texture);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuTextureGetDimension")]
-        public static partial WGPUTextureDimension TextureGetDimension(IntPtr texture);
+        public static partial TextureDimension TextureGetDimension(IntPtr texture);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuTextureGetFormat")]
-        public static partial WGPUTextureFormat TextureGetFormat(IntPtr texture);
+        public static partial TextureFormat TextureGetFormat(IntPtr texture);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuTextureGetHeight")]
         public static partial uint TextureGetHeight(IntPtr texture);
@@ -696,7 +696,7 @@ namespace Saket.WebGPU.Native
         public static partial uint TextureGetSampleCount(IntPtr texture);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuTextureGetUsage")]
-        public static partial WGPUTextureUsage TextureGetUsage(IntPtr texture);
+        public static partial TextureUsage TextureGetUsage(IntPtr texture);
 
         [LibraryImport(LibraryName, EntryPoint = "wgpuTextureGetWidth")]
         public static partial uint TextureGetWidth(IntPtr texture);

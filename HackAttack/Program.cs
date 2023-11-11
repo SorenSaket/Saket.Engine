@@ -8,6 +8,7 @@ namespace HackAttack
     {
         static void Main(string[] args)
         {
+
             var hackattack = new Application();
             hackattack.Run();
         }

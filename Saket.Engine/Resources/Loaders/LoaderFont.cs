@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 using Saket.Engine.Graphics.Text;
 using Saket.Engine.Math.Geometry;
 using Saket.Engine.Resources.Loaders;
+
+#if false
+
 using Saket.Typography.OpenFontFormat;
 using Saket.Typography.OpenFontFormat.Serialization;
 using Saket.Typography.OpenFontFormat.Tables.Required;
@@ -176,3 +179,4 @@ namespace Saket.Engine.Resources.Loaders
         }
     }
 }
+#endif

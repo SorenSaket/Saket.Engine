@@ -1,44 +1,28 @@
-﻿namespace Saket.Engine.Platform
+﻿using Saket.Engine.Platform.Input;
+using Saket.Engine.Platform.Windowing;
+
+namespace Saket.Engine.Platform;
+
+/// <summary>
+/// Platform abstraction layer
+/// </summary>
+public interface IPlatform
 {
-    /// <summary>
-    /// Platform abstraction layer
-    /// </summary>
-    public interface IPlatform
-    {
-        
-        public Window CreateWindow ();
-
-
-        // Event management
-        //public void PumpEvents();
-        //public void PollEvent();
-
-
-       
-
-
-    }
-
-    // The platform implements joystick functionality
-    public interface IJoystickPlatform
-    {
-        // Input
-        public int JoystickCount();
-        public string JoystickName(int index);
-
-    }
-
-    // The platform implements joystick functionality
-    public interface IPlatformInput
-    {
-        // Input
-        public int InputDeviceCount();
-
-
-        public string JoystickName(int index);
+    //public Display[] GetDisplays();
 
 
 
+    // Event management
+    //public void PumpEvents();
+    public void PollEvent();
 
-    }
+    // Sets the process Icon
+    public virtual void SetIcon() {}
+    // set the application progress
+    public virtual void SetProgress() { }
+}
+
+public interface IDesktopPlatform : IPlatform, IPlatform_Windowing, IPlatform_HID
+{
+
 }

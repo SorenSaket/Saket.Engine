@@ -2,7 +2,7 @@
 	<!-- Settings -->
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFramework>net7.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<Platforms>AnyCPU</Platforms>
@@ -34,14 +34,13 @@
 
 	<ItemGroup>
 	  <Folder Include="Audio\" />
+	  <Folder Include="Platform\" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Saket.ECS\Saket.ECS\Saket.ECS.csproj" />
-	  <ProjectReference Include="..\Saket.Engine.Platform.Windows\Saket.Engine.Platform.Windows.csproj" />
+	  <ProjectReference Include="..\Saket.Engine.Platform.MSWindows\Saket.Engine.Platform.MSWindows.csproj" />
 	  <ProjectReference Include="..\Saket.Engine.Platform\Saket.Engine.Platform.csproj" />
-	  <ProjectReference Include="..\Saket.Serialization\Saket.Serialization\Saket.Serialization.csproj" />
-	  <ProjectReference Include="..\Saket.Typography\Saket.Typography.csproj" />
-	  <ProjectReference Include="..\Saket.WebGPU\Saket.WebGPU.csproj" />
+	  <ProjectReference Include="..\WebGPUSharp\WebGpuSharp.csproj" />
 	</ItemGroup>
 </Project>

@@ -1,29 +1,28 @@
-﻿using Saket.WebGPU;
-using Saket.WebGPU.Native;
-using Saket.WebGPU.Objects;
+﻿using WebGpuSharp;
 using System;
+using WebGpuSharp.FFI;
 
 namespace Saket.Engine
 {
 
     public unsafe ref struct SaketShaderDescriptor
     {
-        public ReadOnlySpan<byte> label;
+        public string label;
         public ReadOnlySpan<byte> shaderSource;
 
-        public ReadOnlySpan<byte> vertex_entryPoint;
-        public ReadOnlySpan<WGPUConstantEntry> vertex_constants;
-        public ReadOnlySpan<WGPUVertexBufferLayout> vertex_VertexBufferLayouts;
+        public string vertex_entryPoint;
+        public ConstantEntryList vertex_constants;
+        public VertexBufferLayoutList vertex_VertexBufferLayouts;
 
-        public ReadOnlySpan<byte> fragment_entryPoint;
-        public ReadOnlySpan<WGPUConstantEntry> fragment_constants;
-        public ReadOnlySpan<WGPUColorTargetState> fragment_colorTargets;
+        public string fragment_entryPoint;
+        public ConstantEntryList fragment_constants;
+        public ColorTargetStateList fragment_colorTargets;
 
-        public WGPUPrimitiveState primitiveState;
-        public WGPUMultisampleState multisampleState;
+        public PrimitiveState primitiveState;
+        public MultisampleState multisampleState;
 
-        public WGPUDepthStencilState* depthStencilState;
-        public nint pipelineLayout;
+        public WGPUNullableRef<DepthStencilState> depthStencilState;
+        public PipelineLayout pipelineLayout;
     }
 
 
@@ -32,72 +31,54 @@ namespace Saket.Engine
     /// </summary>
     public class Shader 
     {
-        public readonly nint shaderModule;
-        public readonly nint pipeline;
+        public readonly ShaderModule shaderModule;
+        public readonly RenderPipeline pipeline;
 
         public unsafe Shader(Device device, in SaketShaderDescriptor shaderDescriptor)
         {
             // Create shader Module
-            fixed (byte* ptr_label = shaderDescriptor.label)
-            fixed (byte* ptr_shaderSource = shaderDescriptor.shaderSource)
             {
-                WGPUShaderModuleWGSLDescriptor shaderCodeDesc = new()
+                ShaderModuleWGSLDescriptor shaderCodeDesc = new()
                 {
-                    chain = new WGPUChainedStruct() { next = null, sType = WGPUSType.ShaderModuleWGSLDescriptor },
-                    code = (char*)ptr_shaderSource,
+                    Code = shaderDescriptor.shaderSource,
                 };
-                WGPUShaderModuleDescriptor shaderDesc = new ()
+                ShaderModuleDescriptor shaderDesc = new (ref shaderCodeDesc)
                 {
-                    hintCount = 0,
-                    hints = null,
-                    nextInChain = &shaderCodeDesc.chain,
-                    label = (char*)ptr_label
+                    Label = shaderDescriptor.label
                 };
-
-                shaderModule = wgpu.DeviceCreateShaderModule(device.Handle, shaderDesc);
-
-                if (shaderModule == 0)
+                shaderModule = device.CreateShaderModule(shaderDesc) ??
                     throw new Exception("failed to create shader");
             }
 
-            // convert to utf8 byte array and pin a pointer to it
-            fixed (WGPUConstantEntry* ptr_vertex_constants = shaderDescriptor.vertex_constants)
-            fixed (WGPUConstantEntry* ptr_fragment_constants = shaderDescriptor.fragment_constants)
-            fixed (WGPUVertexBufferLayout* ptr_vertex_bufferLayouts = shaderDescriptor.vertex_VertexBufferLayouts)
-            fixed (WGPUColorTargetState* ptr_fragment_colorTargets = shaderDescriptor.fragment_colorTargets)
-            fixed (byte* ptr_fragment_entrypoint    = shaderDescriptor.fragment_entryPoint)
-            fixed (byte* ptr_vertex_entrypoint  = shaderDescriptor.vertex_entryPoint)
             {
-                WGPUFragmentState f = new()
+                FragmentState f = new()
                 {
-                    constants = ptr_fragment_constants,
-                    constantCount = (uint)shaderDescriptor.fragment_constants.Length,
-                    entryPoint = (char*)ptr_fragment_entrypoint,
-                    module = shaderModule,
-                    targets = ptr_fragment_colorTargets,
-                    targetCount = (uint)shaderDescriptor.fragment_colorTargets.Length,
-                };
-                
-                WGPURenderPipelineDescriptor piplineDescriptor = new ()
-                {
-                    // TODO figure out layout auto?
-                    layout = shaderDescriptor.pipelineLayout,
-                    vertex = new()
-                    {
-                        constants = ptr_vertex_constants,
-                        constantCount = (uint)shaderDescriptor.vertex_constants.Length,
-                        entryPoint = (char*)ptr_vertex_entrypoint,
-                        module = shaderModule,
-                        buffers = ptr_vertex_bufferLayouts,
-                        bufferCount = (uint)shaderDescriptor.vertex_VertexBufferLayouts.Length
-                    },
-                    primitive = shaderDescriptor.primitiveState,
-                    depthStencil = shaderDescriptor.depthStencilState,
-                    multisample = shaderDescriptor.multisampleState,
-                    fragment = &f
+                    Module = shaderModule,
+                    EntryPoint = shaderDescriptor.fragment_entryPoint,
+                    Constants = shaderDescriptor.fragment_constants,
+                    Targets = shaderDescriptor.fragment_colorTargets
                 };
 
-                pipeline = wgpu.DeviceCreateRenderPipeline(device.Handle, piplineDescriptor);
+                VertexState v = new()
+                {
+                    Constants = shaderDescriptor.vertex_constants,
+                    EntryPoint = shaderDescriptor.vertex_entryPoint,
+                    Module = shaderModule,
+                    Buffers = shaderDescriptor.vertex_VertexBufferLayouts
+                };
+                
+                RenderPipelineDescriptor piplineDescriptor = new ()
+                {
+                    // TODO figure out layout auto?
+                    Layout =  shaderDescriptor.pipelineLayout,
+                    Vertex = ref v,
+                    Primitive = shaderDescriptor.primitiveState,
+                    DepthStencil = shaderDescriptor.depthStencilState,
+                    Multisample = ref shaderDescriptor.multisampleState,
+                    Fragment = f
+                };
+
+                pipeline = device.CreateRenderPipeline(piplineDescriptor) ?? throw new Exception("failed to create render pipeline");
             }
         }
 

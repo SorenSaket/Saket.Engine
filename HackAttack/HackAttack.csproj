@@ -2,13 +2,14 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Saket.Engine.Platform.MSWindows\Saket.Engine.Platform.MSWindows.csproj" />
     <ProjectReference Include="..\Saket.Engine\Saket.Engine.csproj" />
   </ItemGroup>
 

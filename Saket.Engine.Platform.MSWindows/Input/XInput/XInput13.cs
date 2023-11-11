@@ -3,7 +3,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Saket.Engine.XInput
+namespace Saket.Engine.Platform.MSWindows.Input.XInput
 {
     /// <summary>	
     /// Functions	
@@ -21,7 +21,7 @@ namespace Saket.Engine.XInput
             return Native.XInputGetState(dwUserIndex, out stateRef);
         }
 
-        public int XInputGetAudioDeviceIds(int dwUserIndex, IntPtr renderDeviceIdRef, IntPtr renderCountRef, IntPtr captureDeviceIdRef, IntPtr captureCountRef)
+        public int XInputGetAudioDeviceIds(int dwUserIndex, nint renderDeviceIdRef, nint renderCountRef, nint captureDeviceIdRef, nint captureCountRef)
         {
             throw new NotSupportedException("Method not supported on XInput1.3");
         }
@@ -56,7 +56,7 @@ namespace Saket.Engine.XInput
 
             public static unsafe int XInputSetState(int dwUserIndex, Vibration vibrationRef)
             {
-                return XInputSetState_(dwUserIndex, (void*)(&vibrationRef));
+                return XInputSetState_(dwUserIndex, &vibrationRef);
             }
 
             [DllImport("xinput1_3.dll", CallingConvention = CallingConvention.StdCall, EntryPoint = "XInputSetState")]

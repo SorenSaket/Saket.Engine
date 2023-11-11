@@ -1,6 +1,4 @@
-﻿using Saket.WebGPU;
-using Saket.WebGPU.Native;
-using Saket.WebGPU.Objects;
+﻿using WebGpuSharp;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
@@ -41,32 +39,30 @@ namespace Saket.Engine.Graphics
             }
         }
 
-        public WebGPU.Objects.Buffer UploadTilesToDevice(Device device)
+        public WebGpuSharp.Buffer UploadTilesToDevice(Device device)
         {
             unsafe
             {
-                fixed (void* ptr_label = "buffer_tiles"u8)
-                {
-                    var span = CollectionsMarshal.AsSpan(tiles);
+                
+                
+                var span = CollectionsMarshal.AsSpan(tiles);
 
-                    gpuBufferSize = (nuint)(sizeof(Tile) * span.Length);
+                gpuBufferSize = (nuint)(sizeof(Tile) * span.Length);
 
-                    var buffer = device.CreateBuffer(
-                       new WebGPU.WGPUBufferDescriptor()
-                       {
-                           size = gpuBufferSize,
-                           usage = WebGPU.WGPUBufferUsage.Storage | WGPUBufferUsage.CopyDst,
-                           label = (char*)ptr_label
-                       });
-
-
-                    fixed (void* ptr = span)
+                var buffer = device.CreateBuffer(
+                    new WebGpuSharp.BufferDescriptor()
                     {
-                        wgpu.QueueWriteBuffer(wgpu.DeviceGetQueue(device.Handle), buffer.Handle, 0, ptr, gpuBufferSize);
-                    }
-                    return buffer;
+                        Size = gpuBufferSize,
+                        Usage = BufferUsage.Storage | BufferUsage.CopyDst,
+                        Label = "buffer_tiles"
+                    });
+
+
+                fixed (void* ptr = span)
+                {
+                    device.GetQueue().WriteBuffer(buffer, 0, ptr, gpuBufferSize);
                 }
-             
+                return buffer;
             }
         }
 
@@ -75,32 +71,33 @@ namespace Saket.Engine.Graphics
         {
             if (layout == null)
             {
-                layout = graphics.device.CreateBindGroupLayout(stackalloc WGPUBindGroupLayoutEntry[] {
-                    new()
-                    {
-                        binding = 0,
-                        visibility = WGPUShaderStage.Vertex,
-                        buffer = new()
+                layout = graphics.device.CreateBindGroupLayout(new BindGroupLayoutDescriptor() { Entries = stackalloc BindGroupLayoutEntry[] {
+                        new()
                         {
-                            type = WGPUBufferBindingType.ReadOnlyStorage,
-                        }
-                    },
-                    new()
-                    {
-                        binding = 1,
-                        visibility = WGPUShaderStage.Fragment,
-                        texture = new()
+                            Binding = 0,
+                            Visibility = ShaderStage.Vertex,
+                            Buffer = new()
+                            {
+                                Type = BufferBindingType.ReadOnlyStorage,
+                            }
+                        },
+                        new()
                         {
-                            viewDimension = WGPUTextureViewDimension._2D,
-                            sampleType = WGPUTextureSampleType.Float,
-                            multisampled = false,
+                            Binding = 1,
+                            Visibility = ShaderStage.Fragment,
+                            Texture = new()
+                            {
+                                ViewDimension = TextureViewDimension._2D,
+                                SampleType = TextureSampleType.Float,
+                                Multisampled = false,
+                            }
+                        },
+                        new()
+                        {
+                            Binding = 2,
+                            Visibility = ShaderStage.Fragment,
+                            Sampler = new() { }
                         }
-                    },
-                    new()
-                    {
-                        binding = 2,
-                        visibility = WGPUShaderStage.Fragment,
-                        sampler = new() { }
                     }
                 });
             }
@@ -116,12 +113,12 @@ namespace Saket.Engine.Graphics
                 if (gpuTexture == null)
                 {
                     gpuTexture = image.UploadToGPU(graphics);
-                    gpuTextureView = gpuTexture.CreateView(new WGPUTextureViewDescriptor()
+                    gpuTextureView = gpuTexture.CreateView(new TextureViewDescriptor()
                     {
-                        format = graphics.applicationpreferredFormat,
-                        dimension = WGPUTextureViewDimension._2D,
-                        mipLevelCount = 1,
-                        arrayLayerCount = 1
+                        Format = graphics.applicationpreferredFormat,
+                        Dimension = TextureViewDimension._2D,
+                        MipLevelCount = 1,
+                        ArrayLayerCount = 1
                     });
                 }
 
@@ -130,24 +127,27 @@ namespace Saket.Engine.Graphics
 
                 // Check that the boxes are uploaded as buffer
                 // Create a sampler
-
-                bindgroup = graphics.device.CreateBindGroup(layout, stackalloc WGPUBindGroupEntry[] {
+                var a = new BindGroupEntry[] {
                     new()
                     {
-                        binding = 0,
-                        buffer = gpuBuffer.Handle,
-                        size = gpuBufferSize,
+                        Binding = 0,
+                        Buffer = gpuBuffer,
+                        Size = gpuBufferSize,
                     },
                     new()
                     {
-                        binding = 1,
-                        textureView = gpuTextureView!.Handle
+                        Binding = 1,
+                        TextureView = gpuTextureView!
                     },
                     new()
                     {
-                        binding = 2,
-                        sampler = graphics.defaultSampler.Handle
+                        Binding = 2,
+                        Sampler = graphics.defaultSampler
                     }
+                };
+                bindgroup = graphics.device.CreateBindGroup(new BindGroupDescriptor(){
+                    Layout = layout, 
+                    Entries = a
                 });
             }
             return bindgroup;

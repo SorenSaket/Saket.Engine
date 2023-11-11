@@ -1,4 +1,18 @@
-﻿
+﻿# Saket.Engine.Platform
+
+
+Saket.Engine.Platform is the interface for interacting with the operating system.
+Provides functionality such as:
+
+- Display
+- Windowing
+- Input, Devices,
+- Audio
+
+Awesome capability?!
+- Multi mouse/keybord support. By utilizing lower level apis keyboard and mouse input can be accsesed individually. Thereby allow multi user setups on one computer. And allows the use of generic input devices as additional shortcut input.
+- Low latency Audio Input/output
+
 
 ```csharp
 

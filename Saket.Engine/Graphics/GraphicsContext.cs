@@ -1,9 +1,5 @@
 ﻿using Saket.Engine.Platform;
-using Saket.Engine.Platform.Windows;
-using Saket.Graphics;
-using Saket.WebGPU;
-using Saket.WebGPU.Native;
-using Saket.WebGPU.Objects;
+using WebGpuSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,9 +7,25 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using WebGpuSharp.FFI;
 
 namespace Saket.Engine.Graphics
 {
+
+    public class WGPUWindow
+    {
+        public Window window;
+        public Surface surface;
+        public TextureFormat preferredFormat;
+        public SwapChain swapchain;
+        
+
+        public TextureView GetCurretTextureView()
+        {
+            return swapchain.GetCurrentTextureView();
+        }
+    }
+
     /// <summary>
     /// Helper functions for webgpu
     /// </summary>
@@ -22,18 +34,18 @@ namespace Saket.Engine.Graphics
         public Instance instance;
         public Adapter adapter;
         public Device device;
-        public Saket.WebGPU.Objects.Queue queue;
+        public WebGpuSharp.Queue queue;
 
         public Sampler defaultSampler;
 
-        public List<Platform.Window> windows;
+        public Dictionary<Saket.Engine.Platform.Window, WGPUWindow> windows;
 
         // By assuming all surfaces are prefering the same texture format?
-        public WGPUTextureFormat applicationpreferredFormat = WGPUTextureFormat.Undefined;
+        public TextureFormat applicationpreferredFormat = TextureFormat.Undefined;
 
 
 
-        public WebGPU.Objects.Buffer systemBuffer;
+        public WebGpuSharp.Buffer systemBuffer;
         public BindGroup systemBindGroup;
         public BindGroupLayout systemBindGroupLayout;
 
@@ -43,94 +55,104 @@ namespace Saket.Engine.Graphics
             Environment.SetEnvironmentVariable("RUST_BACKTRACE", "1");
             Environment.SetEnvironmentVariable("RUST_BACKTRACE", "full");
 #endif
-            windows = new List<Platform.Window>();
-            instance = new Instance();
+            windows = new();
+            instance = WebGPU.CreateInstance()!;
             
             // Create Adapter
-            adapter = instance.RequestAdapter(new()
+            adapter =  instance.RequestAdapterAsync(new()
             {
-                powerPreference = WGPUPowerPreference.HighPerformance
-            });
+                PowerPreference = PowerPreference.HighPerformance
+            }).GetAwaiter().GetResult()!;
             // Create Device
-            device = adapter.CreateDevice(null);
+            DeviceDescriptor deviceDescriptor = new DeviceDescriptor();
+            device = adapter.RequestDeviceAsync(deviceDescriptor).GetAwaiter().GetResult()!;
 
-            queue = device.GetQueue();
+            queue = device.GetQueue()!;
 
-            defaultSampler = device.CreateSampler(new WGPUSamplerDescriptor() { });
+            defaultSampler = device.CreateSampler(new SamplerDescriptor() { })!;
 
 
             // Create system uniform bindgroup
             unsafe
             {
 
-                systemBuffer =  device.CreateBuffer(new WGPUBufferDescriptor()
+                systemBuffer =  device.CreateBuffer(new BufferDescriptor()
                 {
-                    size = (ulong)sizeof(SystemUniform),
-                    usage = WGPUBufferUsage.Uniform | WGPUBufferUsage.CopyDst,
-                });
+                    Size = (ulong)sizeof(SystemUniform),
+                    Usage = BufferUsage.Uniform | BufferUsage.CopyDst,
+                })!;
 
-                systemBindGroupLayout = device.CreateBindGroupLayout(stackalloc WGPUBindGroupLayoutEntry[]
+                systemBindGroupLayout = device.CreateBindGroupLayout(new BindGroupLayoutDescriptor()
                 {
-                    new()
+                    Entries = stackalloc BindGroupLayoutEntry[]
                     {
-                        binding = 0,
-                        visibility = WGPUShaderStage.Vertex | WGPUShaderStage.Fragment | WGPUShaderStage.Compute,
-                        buffer = new()
+                        new()
                         {
-                            type = WGPUBufferBindingType.Uniform,
+                            Binding = 0,
+                            Visibility = ShaderStage.Vertex | ShaderStage.Fragment | ShaderStage.Compute,
+                            Buffer = new()
+                            {
+                                Type = BufferBindingType.Uniform,
+                            }
                         }
-                    }
-                });
 
-                systemBindGroup = device.CreateBindGroup(systemBindGroupLayout, stackalloc WGPUBindGroupEntry[]
+                    }
+                })!;
+
+                var b = new BindGroupEntry[]
                 {
                     new()
                     {
-                        binding = 0,
-                        buffer = systemBuffer.Handle,
-                        size = (ulong)sizeof(SystemUniform),
-                        
+                        Binding = 0,
+                        Buffer = systemBuffer,
+                        Size = (ulong)sizeof(SystemUniform),
                     }
-                }, "bingroup_system"u8);
+                };
+
+                systemBindGroup = device.CreateBindGroup(new BindGroupDescriptor()
+                {
+                    Layout = systemBindGroupLayout,
+                    Entries = b
+                })!;
             }
 
         }
 
-        
 
-
-        public void Clear(TextureView target, Color clearColor)
+        public void Clear(TextureView target, Saket.Engine.Graphics.Color clearColor)
         {
             unsafe
             {
-                WGPURenderPassColorAttachment renderPassColorAttachment = new()
+                var ColorAttachments = new RenderPassColorAttachment[]
                 {
-                    view = target.Handle,
-                    resolveTarget = 0,
-                    loadOp = WGPULoadOp.Clear,
-                    storeOp = WGPUStoreOp.Store,
-                    clearValue = clearColor,
+                     new()
+                    {
+                        View = target,
+                        ResolveTarget = null,
+                        LoadOp = LoadOp.Clear,
+                        StoreOp = StoreOp.Store,
+                        ClearValue = clearColor,
+                    }
                 };
-                WGPURenderPassDescriptor renderPassDesc = new()
+               
+                RenderPassDescriptor renderPassDesc = new()
                 {
-                    colorAttachmentCount = 1,
-                    colorAttachments = &renderPassColorAttachment,
-                    depthStencilAttachment = null,
-                    timestampWriteCount = 0,
-                    timestampWrites = null,
-                    nextInChain = null,
+                    ColorAttachments = ColorAttachments,
+                    DepthStencilAttachment = null,
+                    TimestampWrites = null
                 };
 
                 // Command Encoder
-                nint commandEncoder = wgpu.DeviceCreateCommandEncoder(device.Handle, new() { });
+                var commandEncoder = device.CreateCommandEncoder(new() { })!;
 
-                nint RenderPassEncoder = wgpu.CommandEncoderBeginRenderPass(commandEncoder, renderPassDesc);
+                var RenderPassEncoder = commandEncoder.BeginRenderPass(renderPassDesc);
 
-                nint commandBuffer = wgpu.CommandEncoderFinish(commandEncoder, new() { });
-                wgpu.QueueSubmit(queue.Handle, 1, new IntPtr(&commandBuffer));
+                var commandBuffer = commandEncoder.Finish(new() { })!;
 
-                wgpu.RenderPassEncoderRelease(RenderPassEncoder);
-                wgpu.CommandEncoderRelease(commandEncoder);
+                queue.Submit(commandBuffer);
+
+               // wgpu.RenderPassEncoderRelease(RenderPassEncoder);
+               // wgpu.CommandEncoderRelease(commandEncoder);
             }
         }
 
@@ -139,40 +161,50 @@ namespace Saket.Engine.Graphics
         {
             unsafe
             {
-                queue.WriteBuffer(systemBuffer, 0, &uniform, (nuint)sizeof(SystemUniform));
+                queue.WriteBuffer(systemBuffer, 0, stackalloc SystemUniform[] { uniform } );
             }
         }
 
         public unsafe void AddWindow(Platform.Window window)
         {
-            if (windows.Contains(window))
+            if (windows.ContainsKey(window))
                 return;
 
-            if (window is Platform.Windows.Window windowsWindow)
+            var ww = new WGPUWindow();
+            ww.window = window;
+#if true
+            // TODO. Move this somewhere else. This is cyclical reference hell
+            if (window is Platform.MSWindows.Windowing.Window windowsWindow)
             {
-                window.surface = instance.CreateSurfaceFromWindowsHWND(windowsWindow.HInstance, windowsWindow.WindowHandle);
-
-                if(applicationpreferredFormat == WGPUTextureFormat.Undefined)
+                var wsDescriptor = new WebGpuSharp.FFI.SurfaceDescriptorFromWindowsHWNDFFI()
                 {
-                    window.preferredFormat = applicationpreferredFormat = window.surface.GetPreferredFormat(adapter);
+                    Hinstance =(void*) windowsWindow.HInstance,
+                    Hwnd = (void*)windowsWindow.WindowHandle,
+                };
+                SurfaceDescriptor descriptor_surface = new SurfaceDescriptor(ref wsDescriptor);
+                ww.surface = instance.CreateSurface(descriptor_surface);
+
+                if(applicationpreferredFormat == TextureFormat.Undefined)
+                {
+                    ww.preferredFormat = applicationpreferredFormat = ww.surface.GetPreferredFormat(adapter);
                 }
                 else
                 {
-                    window.preferredFormat = applicationpreferredFormat;
+                    ww.preferredFormat = applicationpreferredFormat;
                 }
 
-                WGPUSwapChainDescriptor swapChainDescriptor = new()
+                SwapChainDescriptor swapChainDescriptor = new()
                 {
-                    format = window.preferredFormat,
-                    height = 720,
-                    width = 1280,
-                    usage = WGPUTextureUsage.RenderAttachment,
-                    presentMode = WGPUPresentMode.Fifo,
+                    Format = ww.preferredFormat,
+                    Height = 720,
+                    Width = 1280,
+                    Usage = TextureUsage.RenderAttachment,
+                    PresentMode = PresentMode.Fifo,
                 };
-                window.swapchain = device.CreateSwapchain(window.surface, swapChainDescriptor);
+                ww.swapchain = device.CreateSwapChain(ww.surface, swapChainDescriptor)!;
             }
-
-            windows.Add(window);
+#endif 
+            windows.Add(window, ww);
         }
     }
 

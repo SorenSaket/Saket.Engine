@@ -1,12 +1,10 @@
 using System;
 using System.Text;
 using System.Runtime.Serialization;
-using System.Diagnostics;
 using System.Numerics;
 using Saket.Engine;
-using Saket.WebGPU;
 
-namespace Saket.Graphics
+namespace Saket.Engine.Graphics
 {
 	/// <summary>
 	/// A 32-bit packed color.
@@ -201,7 +199,7 @@ namespace Saket.Graphics
 		{
 			if ((alpha & 0xFFFFFF00) != 0)
 			{
-				var clampedA = (uint)Math.Clamp(alpha, Byte.MinValue, Byte.MaxValue);
+				var clampedA = (uint)System.Math.Clamp(alpha, Byte.MinValue, Byte.MaxValue);
 
 				_packedValue = (color._packedValue & 0x00FFFFFF) | (clampedA << 24);
 			}
@@ -256,9 +254,9 @@ namespace Saket.Graphics
 
 			if (((r | g | b) & 0xFFFFFF00) != 0)
 			{
-				var clampedR = (uint)Math.Clamp(r, Byte.MinValue, Byte.MaxValue);
-				var clampedG = (uint)Math.Clamp(g, Byte.MinValue, Byte.MaxValue);
-				var clampedB = (uint)Math.Clamp(b, Byte.MinValue, Byte.MaxValue);
+				var clampedR = (uint)System.Math.Clamp(r, Byte.MinValue, Byte.MaxValue);
+				var clampedG = (uint)System.Math.Clamp(g, Byte.MinValue, Byte.MaxValue);
+				var clampedB = (uint)System.Math.Clamp(b, Byte.MinValue, Byte.MaxValue);
 
 				_packedValue |= (clampedB << 16) | (clampedG << 8) | (clampedR);
 			}
@@ -279,10 +277,10 @@ namespace Saket.Graphics
 		{
 			if (((r | g | b | alpha) & 0xFFFFFF00) != 0)
 			{
-				var clampedR = (uint)Math.Clamp(r, Byte.MinValue, Byte.MaxValue);
-				var clampedG = (uint)Math.Clamp(g, Byte.MinValue, Byte.MaxValue);
-				var clampedB = (uint)Math.Clamp(b, Byte.MinValue, Byte.MaxValue);
-				var clampedA = (uint)Math.Clamp(alpha, Byte.MinValue, Byte.MaxValue);
+				var clampedR = (uint)System.Math.Clamp(r, Byte.MinValue, Byte.MaxValue);
+				var clampedG = (uint)System.Math.Clamp(g, Byte.MinValue, Byte.MaxValue);
+				var clampedB = (uint)System.Math.Clamp(b, Byte.MinValue, Byte.MaxValue);
+				var clampedA = (uint)System.Math.Clamp(alpha, Byte.MinValue, Byte.MaxValue);
 
 				_packedValue = (clampedA << 24) | (clampedB << 16) | (clampedG << 8) | (clampedR);
 			}
@@ -1716,7 +1714,7 @@ namespace Saket.Graphics
 		/// <returns>Interpolated <see cref="Color"/>.</returns>
 		public static Color Lerp(Color value1, Color value2, Single amount)
 		{
-			amount = Math.Clamp(amount, 0, 1);
+			amount = System.Math.Clamp(amount, 0, 1);
 			return new Color(
 				(int)Mathf.Lerp(value1.R, value2.R, amount),
 				(int)Mathf.Lerp(value1.G, value2.G, amount),
@@ -1909,10 +1907,10 @@ namespace Saket.Graphics
 
 
 
-        public static implicit operator WGPUColor(Color color) 
+        public static implicit operator WebGpuSharp.Color(Color color) 
         {
             var v = color.ToVector4();
-            return new WGPUColor(v.X, v.Y, v.Z, v.W);
+            return new WebGpuSharp.Color(v.X, v.Y, v.Z, v.W);
         }
 	}
 }

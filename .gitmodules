@@ -4,3 +4,6 @@
 [submodule "Saket.Serialization"]
 	path = Saket.Serialization
 	url = https://github.com/SorenSaket/Saket.Serialization.git
+[submodule "WebGPUSharp"]
+	path = WebGPUSharp
+	url = https://github.com/EmilSV/WebGPUSharp.git

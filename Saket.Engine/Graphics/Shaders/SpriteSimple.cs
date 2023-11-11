@@ -1,6 +1,4 @@
-﻿using Saket.WebGPU;
-using Saket.WebGPU.Native;
-using Saket.WebGPU.Objects;
+﻿using WebGpuSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,121 +11,122 @@ namespace Saket.Engine.Graphics.Shaders
     {
         public unsafe static Shader CreateShader(GraphicsContext graphics, ReadOnlySpan<byte> ShaderSource)
         {
-            var blendState = new WGPUBlendState()
+            var blendState = new BlendState()
             {
-                color = new WGPUBlendComponent()
+                Color = new BlendComponent()
                 {
-                    srcFactor = WGPUBlendFactor.SrcAlpha,
-                    dstFactor = WGPUBlendFactor.OneMinusSrcAlpha,
-                    operation = WGPUBlendOperation.Add
+                    SrcFactor = BlendFactor.SrcAlpha,
+                    DstFactor = BlendFactor.OneMinusSrcAlpha,
+                    Operation = BlendOperation.Add
                 },
-                alpha = new WGPUBlendComponent()
+                Alpha = new BlendComponent()
                 {
-                    srcFactor = WGPUBlendFactor.Zero,
-                    dstFactor = WGPUBlendFactor.One,
-                    operation = WGPUBlendOperation.Add
+                    SrcFactor = BlendFactor.Zero,
+                    DstFactor = BlendFactor.One,
+                    Operation = BlendOperation.Add
                 },
             };
 
-            var attributes_Transform = stackalloc WGPUVertexAttribute[]
-                {
-                // Position
+
+            // Vertex Layout
+
+            VertexAttributeList attributes_Transform = new()
+            {
                 new()
                 {
-                    format = WGPUVertexFormat.Float32x3,
-                    offset = 4 * 0,
-                    shaderLocation = 0,
+                    Format = VertexFormat.Float32x3,
+                    Offset = 4 * 0,
+                    ShaderLocation = 0,
                 },
-                // Rotation
                 new()
                 {
-                    format = WGPUVertexFormat.Float32,
-                    offset = 4 * 3,
-                    shaderLocation = 1,
+                    Format = VertexFormat.Float32,
+                    Offset = 4 * 3,
+                    ShaderLocation = 1,
                 },
-                // Size
                 new()
                 {
-                    format = WGPUVertexFormat.Float32x2,
-                    offset = 4 * 4,
-                    shaderLocation = 2,
+                    Format = VertexFormat.Float32x2,
+                    Offset = 4 * 4,
+                    ShaderLocation = 2,
                 }
             };
 
-            var attributes_sprite = stackalloc WGPUVertexAttribute[]
+            VertexAttributeList attributes_sprite = new()
             {
                 new()
                 {
-                    format = WGPUVertexFormat.Sint32,
-                    offset = 4 * 1,
-                    shaderLocation = 3,
+                    Format = VertexFormat.Sint32,
+                    Offset = 4 * 1,
+                    ShaderLocation = 3,
                 },
                 new()
                 {
-                    format = WGPUVertexFormat.Unorm8x4,
-                    offset = 4 * 2,
-                    shaderLocation = 4,
+                    Format = VertexFormat.Unorm8x4,
+                    Offset = 4 * 2,
+                    ShaderLocation = 4,
                 },
             };
 
-            var layouts = stackalloc nint[]
+            VertexBufferLayoutList vertexBufferLayouts = new ()
+           {
+                new()
+                {
+                    ArrayStride = (ulong)sizeof(Transform2D),
+                    StepMode = VertexStepMode.Instance,
+
+                    Attributes = attributes_Transform
+                },
+                new()
+                {
+                    ArrayStride = (ulong)sizeof(Sprite),
+                    StepMode = VertexStepMode.Instance,
+                    Attributes = attributes_sprite
+                }
+           };
+
+
+            // Bingroup layout
+            var layouts = new BindGroupLayout[]
              {
-                graphics.systemBindGroup.Handle,
-                TextureAtlas.GetBindGroupLayout(graphics).Handle,
+                graphics.systemBindGroupLayout,
+                TextureAtlas.GetBindGroupLayout(graphics),
             };
-            var pipelineLayout = wgpu.DeviceCreatePipelineLayout(graphics.device.Handle, new WGPUPipelineLayoutDescriptor()
+            var pipelineLayout = graphics.device.CreatePipelineLayout(new PipelineLayoutDescriptor()
             {
-                bindGroupLayouts = layouts,
-                bindGroupLayoutCount = 2,
-            });
+                BindGroupLayouts = layouts.AsSpan()
+            }) ;
 
             SaketShaderDescriptor shaderDescriptor = new()
             {
-                label = "spriteShader"u8,
+                label = "spriteShader",
                 shaderSource = ShaderSource,
                 //
                 pipelineLayout = pipelineLayout,
-                vertex_entryPoint = "vtx_main"u8,
-                vertex_VertexBufferLayouts = stackalloc WGPUVertexBufferLayout[]
-                {
+                vertex_entryPoint = "vtx_main",
+                vertex_VertexBufferLayouts = vertexBufferLayouts,
+                fragment_entryPoint = "frag_main",
+                fragment_colorTargets = new() {
                     new()
                     {
-                        arrayStride = (ulong)sizeof(Transform2D),
-                        stepMode = WGPUVertexStepMode.Instance,
-                        attributeCount = 3,
-                        attributes = attributes_Transform
-                    },
-                    new()
-                    {
-                        arrayStride = (ulong)sizeof(Sprite),
-                        stepMode = WGPUVertexStepMode.Instance,
-                        attributeCount = 2,
-                        attributes = attributes_sprite
-                    }
-                },
-                fragment_entryPoint = "frag_main"u8,
-                fragment_colorTargets = stackalloc WGPUColorTargetState[] {
-                    new()
-                    {
-                        format = graphics.applicationpreferredFormat,
-                        blend = &blendState,
-                        writeMask = WGPUColorWriteMask.All
+                        Format = graphics.applicationpreferredFormat,
+                        Blend = blendState,
+                        WriteMask = ColorWriteMask.All
                     }
                 },
                 multisampleState = new()
                 {
-                    count = 1,
-                    mask = ~0u,
-                    alphaToCoverageEnabled = false
+                    Count = 1,
+                    Mask = ~0u,
+                    AlphaToCoverageEnabled = false
                 },
                 primitiveState = new()
                 {
-                    topology = WGPUPrimitiveTopology.TriangleList,
-                    stripIndexFormat = WGPUIndexFormat.Undefined,
-                    frontFace = WGPUFrontFace.CCW,
-                    cullMode = WGPUCullMode.None,
-                },
-                
+                    Topology = PrimitiveTopology.TriangleList,
+                    StripIndexFormat = IndexFormat.Undefined,
+                    FrontFace = FrontFace.CCW,
+                    CullMode = CullMode.None,
+                }
             };
 
             // Create the shader w device
