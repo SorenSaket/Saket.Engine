@@ -88,7 +88,7 @@ internal class Application : Saket.Engine.Application
         // (wgpu-native also has a device.poll but its API is more complex)
         //wgpu.QueueSubmit(graphics.queue.Handle, 0, 0);
         //graphics.device.Tick();
-#if true
+    #if true
         // Perform Update
         {
             world.Delta = (float)DeltaTime;
@@ -118,17 +118,17 @@ internal class Application : Saket.Engine.Application
             // Clear the screen
             graphics.Clear(textureView, new Saket.Engine.Graphics.Color(255, 0, 0));
 
-            //spriteRenderer.Draw(new Sprite(0, 0, Saket.Engine.Graphics.Color.Blue), new Transform2D());
-           // spriteRenderer.SubmitBatch(textureView, shader_sprite.pipeline, atlas);
+            spriteRenderer.Draw(new Sprite(0, 0, Saket.Engine.Graphics.Color.Blue), new Transform2D());
+            spriteRenderer.SubmitBatch(textureView, shader_sprite.pipeline, atlas);
 
 
             // We can now release the textureview
-            //TextureViewHandle.Release( WebGPUMarshal.GetOwnedHandle(textureView));
+            TextureViewHandle.Release( WebGPUMarshal.GetOwnedHandle(textureView));
 
             // Preset swapchain
             swapchain.Present();
         }
-        #endif 
+    #endif 
     }
 
 }

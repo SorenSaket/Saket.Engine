@@ -197,7 +197,7 @@ public class RendererSpriteSimple
                 new()
                 {
                     View = target,
-                    ResolveTarget = null,
+                    ResolveTarget = new(null),
                     LoadOp = LoadOp.Load,
                     StoreOp = StoreOp.Store,
                 }
@@ -206,7 +206,6 @@ public class RendererSpriteSimple
             {
                 ColorAttachments = ColorAttachments,
                 DepthStencilAttachment = null,
-                TimestampWrites = null,
             };
 
             // Command Encoder

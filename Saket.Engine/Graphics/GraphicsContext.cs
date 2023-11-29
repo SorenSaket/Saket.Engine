@@ -130,10 +130,10 @@ namespace Saket.Engine.Graphics
             {
                 var ColorAttachments = new RenderPassColorAttachment[]
                 {
-                     new()
+                    new()
                     {
                         View = target,
-                        ResolveTarget = null,
+                        ResolveTarget = new(null),
                         LoadOp = LoadOp.Clear,
                         StoreOp = StoreOp.Store,
                         ClearValue = clearColor,
@@ -144,7 +144,6 @@ namespace Saket.Engine.Graphics
                 {
                     ColorAttachments = ColorAttachments,
                     DepthStencilAttachment = null,
-                    TimestampWrites = null
                 };
 
                 // Command Encoder

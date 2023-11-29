@@ -65,8 +65,6 @@ namespace Saket.Engine.Platform
         public abstract WindowEvent PollEvent();
     }
 
-
-
     public interface IWebGPUSurfaceSource
     {
         public Surface? CreateWebGPUSurface(Instance instance);
