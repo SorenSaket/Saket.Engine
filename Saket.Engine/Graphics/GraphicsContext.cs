@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using WebGpuSharp.FFI;
+using System.Text.Unicode;
 
 namespace Saket.Engine.Graphics
 {
@@ -55,9 +56,8 @@ namespace Saket.Engine.Graphics
 #endif
             windows = new();
             instance = WebGPU.CreateInstance()!;
-            
             // Create Adapter
-            adapter =  instance.RequestAdapterAsync(new()
+            adapter = instance.RequestAdapterAsync(new()
             {
                 PowerPreference = PowerPreference.HighPerformance,
                 BackendType = BackendType.D3D11
@@ -69,12 +69,23 @@ namespace Saket.Engine.Graphics
             DeviceDescriptor deviceDescriptor = new DeviceDescriptor() { RequiredLimits = new WGPUNullableRef<RequiredLimits>(new RequiredLimits(supportedLimits.Limits)), DefaultQueue = new QueueDescriptor() };
             device = adapter.RequestDeviceAsync(deviceDescriptor).GetAwaiter().GetResult() ?? throw new Exception("Failed to acquire Device");
 
+    
+            device.AddUncapturedErrorCallback((ErrorType type, ReadOnlySpan<byte> message) =>
+            {
+                Console.Error.WriteLine($"{Enum.GetName(type)} : {Encoding.UTF8.GetString(message)}");
+            });
+
+
             var handle = WebGPUMarshal.GetBorrowHandle(device);
             var myNewDevice = handle.ToSafeHandle(false);
-            
+
             queue = device.GetQueue()!;
 
-            defaultSampler = device.CreateSampler(new SamplerDescriptor() { })!;
+            defaultSampler = device.CreateSampler(new SamplerDescriptor()
+            {
+                // MaxAnisotropy muse not be zero
+                MaxAnisotropy = 1
+            })!;
 
 
             // Create system uniform bindgroup

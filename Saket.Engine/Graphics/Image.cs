@@ -39,10 +39,15 @@ namespace Saket.Engine.Graphics
                 Texture tex = graphics.device.CreateTexture(new TextureDescriptor()
                 {
                     Dimension = TextureDimension._2D,
-                    Format = TextureFormat.BGRA8UnormSrgb, // TODO
+                    //only BGRA8Unorm is supported for webgpu dawn
+                    Format = TextureFormat.BGRA8Unorm, // TODO
                     Size = new Extent3D(width, height, 1),
                     ViewFormats = formats,
-                    Label = "texture_image"u8
+                    Label = "texture_image"u8,
+                    // Usage are required
+                    Usage = TextureUsage.CopyDst | TextureUsage.CopySrc | TextureUsage.RenderAttachment | TextureUsage.TextureBinding,
+                    SampleCount = 1, /*SampleCount over 0 is required*/
+                    MipLevelCount = 1, /*MipLevelCount over 0 is required*/
                 })!;
 
                 graphics.queue.WriteTexture(

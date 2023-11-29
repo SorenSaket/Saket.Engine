@@ -44,7 +44,8 @@ internal class Application : Saket.Engine.Application
 
         // Create new graphics Context
         graphics = new GraphicsContext();
-        graphics.applicationpreferredFormat = TextureFormat.BGRA8UnormSrgb;
+        //only BGRA8Unorm is supported for webgpu dawn
+        graphics.applicationpreferredFormat = TextureFormat.BGRA8Unorm;
 
         window = platform.CreateWindow(new WindowCreationArgs("Hack Attack", 30, 30, 1280,720));
 
@@ -88,6 +89,7 @@ internal class Application : Saket.Engine.Application
         // (wgpu-native also has a device.poll but its API is more complex)
         //wgpu.QueueSubmit(graphics.queue.Handle, 0, 0);
         //graphics.device.Tick();
+        graphics.instance.ProcessEvents();
     #if true
         // Perform Update
         {
@@ -122,8 +124,8 @@ internal class Application : Saket.Engine.Application
             spriteRenderer.SubmitBatch(textureView, shader_sprite.pipeline, atlas);
 
 
-            // We can now release the textureview
-            TextureViewHandle.Release( WebGPUMarshal.GetOwnedHandle(textureView));
+            // This is not how you use TextureViewHandle.Release
+            //TextureViewHandle.Release( WebGPUMarshal.GetOwnedHandle(textureView));
 
             // Preset swapchain
             swapchain.Present();
