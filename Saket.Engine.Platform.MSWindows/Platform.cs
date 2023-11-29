@@ -39,6 +39,6 @@ public partial class Platform : IDesktopPlatform
 
     public void PollEvent()
     {
-        throw new NotImplementedException();
+        
     }
 }

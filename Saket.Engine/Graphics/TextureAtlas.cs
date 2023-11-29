@@ -43,11 +43,7 @@ namespace Saket.Engine.Graphics
         {
             unsafe
             {
-                
-                
-                var span = CollectionsMarshal.AsSpan(tiles);
-
-                gpuBufferSize = (nuint)(sizeof(Tile) * span.Length);
+                gpuBufferSize = (nuint)(sizeof(Tile) * tiles.Count);
 
                 var buffer = device.CreateBuffer(
                     new WebGpuSharp.BufferDescriptor()
@@ -57,11 +53,8 @@ namespace Saket.Engine.Graphics
                         Label = "buffer_tiles"
                     });
 
-
-                fixed (void* ptr = span)
-                {
-                    device.GetQueue().WriteBuffer(buffer, 0, ptr, gpuBufferSize);
-                }
+                device.GetQueue().WriteBuffer(buffer, 0, tiles);
+                
                 return buffer;
             }
         }

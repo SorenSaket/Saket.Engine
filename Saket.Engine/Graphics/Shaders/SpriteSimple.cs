@@ -51,7 +51,6 @@ namespace Saket.Engine.Graphics.Shaders
                     ShaderLocation = 2,
                 }
             };
-
             VertexAttributeList attributes_sprite = new()
             {
                 new()
@@ -67,14 +66,12 @@ namespace Saket.Engine.Graphics.Shaders
                     ShaderLocation = 4,
                 },
             };
-
             VertexBufferLayoutList vertexBufferLayouts = new ()
-           {
+            {
                 new()
                 {
                     ArrayStride = (ulong)sizeof(Transform2D),
                     StepMode = VertexStepMode.Instance,
-
                     Attributes = attributes_Transform
                 },
                 new()
@@ -83,7 +80,7 @@ namespace Saket.Engine.Graphics.Shaders
                     StepMode = VertexStepMode.Instance,
                     Attributes = attributes_sprite
                 }
-           };
+            };
 
 
             // Bingroup layout

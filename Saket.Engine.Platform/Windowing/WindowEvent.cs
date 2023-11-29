@@ -23,4 +23,5 @@ public enum WindowEvent
     Paint,
     Close,
     Exit,
+    Quit = 18
 }

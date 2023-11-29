@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Saket.Engine.Platform.MSWindows\Saket.Engine.Platform.MSWindows.csproj" />
+    <ProjectReference Include="..\Saket.Engine.Platform.SDL\Saket.Engine.Platform.SDL.csproj" />
     <ProjectReference Include="..\Saket.Engine\Saket.Engine.csproj" />
   </ItemGroup>
 

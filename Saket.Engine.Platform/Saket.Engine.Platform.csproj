@@ -11,4 +11,8 @@
     <Folder Include="Audio\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\WebGPUSharp\WebGpuSharp.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -70,6 +70,7 @@ namespace Saket.Engine
                 RenderPipelineDescriptor piplineDescriptor = new ()
                 {
                     // TODO figure out layout auto?
+                    Label = "fjaof"u8,
                     Layout =  shaderDescriptor.pipelineLayout,
                     Vertex = ref v,
                     Primitive = shaderDescriptor.primitiveState,

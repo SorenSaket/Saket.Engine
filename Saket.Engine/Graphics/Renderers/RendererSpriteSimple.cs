@@ -77,7 +77,7 @@ public class RendererSpriteSimple
                 Size = size_bufferTransform,
                 Label = "buffer_spriterenderer_transform"
             };
-            buffer_transform = graphics.device.CreateBuffer(bufferDescriptor);
+            buffer_transform = graphics.device.CreateBuffer(bufferDescriptor) ?? throw new Exception("");
 
         }
 
@@ -105,18 +105,18 @@ public class RendererSpriteSimple
 
     public unsafe void SetbuffersAndDraw(Queue Queue, RenderPassEncoder RenderPassEncoder, uint instanceCount)
     {
-        fixed (void* ptr_transform = elements_transform)
+        //fixed (void* ptr_transform = elements_transform)
         {
-            graphics.queue.WriteBuffer(buffer_transform, 0, ptr_transform, (nuint)(instanceCount * sizeof(Transform2D)));
+            graphics.queue.WriteBuffer(buffer_transform, 0, elements_transform.AsSpan().Slice(0, (int)instanceCount));
         }
-        fixed (void* ptr_sprite = elements_sprite)
+        //fixed (void* ptr_sprite = elements_sprite)
         {
-            WebGPU_FFI.QueueWriteBuffer( graphics.queue., buffer_sprite, 0, ptr_sprite, (nuint)(instanceCount * sizeof(Sprite)));
+            graphics.queue.WriteBuffer(buffer_sprite, 0, elements_sprite.AsSpan().Slice(0, (int)instanceCount));
         }
 
         RenderPassEncoder.SetVertexBuffer( 0, buffer_transform, 0, size_bufferTransform);
         RenderPassEncoder.SetVertexBuffer( 1, buffer_sprite, 0, size_bufferSprite);
-        RenderPassEncoder.Draw( 6, instanceCount, 0, 0);
+        RenderPassEncoder.Draw(6, instanceCount, 0, 0);
     }
 
     /// <summary>
@@ -177,6 +177,8 @@ public class RendererSpriteSimple
 
     public void Draw(Sprite sprite, Transform2D transform)
     {
+        //if (currentCount >= batchCount)
+         //   SubmitBatch();
         elements_sprite[currentCount] = sprite;
         elements_transform[currentCount] = transform;
         currentCount++;
@@ -190,48 +192,47 @@ public class RendererSpriteSimple
     {
         unsafe
         {
-            WGPURenderPassColorAttachment renderPassColorAttachment = new()
-            {
-                view = target.Handle,
-                resolveTarget = 0,
-                loadOp = WGPULoadOp.Load,
-                storeOp = WGPUStoreOp.Store,
+            var ColorAttachments = new RenderPassColorAttachment[]
+            { 
+                new()
+                {
+                    View = target,
+                    ResolveTarget = null,
+                    LoadOp = LoadOp.Load,
+                    StoreOp = StoreOp.Store,
+                }
             };
-            WGPURenderPassDescriptor renderPassDesc = new()
+            RenderPassDescriptor renderPassDesc = new()
             {
-                colorAttachmentCount = 1,
-                colorAttachments = &renderPassColorAttachment,
-                depthStencilAttachment = null,
-                timestampWriteCount = 0,
-                timestampWrites = null,
-                nextInChain = null,
+                ColorAttachments = ColorAttachments,
+                DepthStencilAttachment = null,
+                TimestampWrites = null,
             };
 
             // Command Encoder
-            nint commandEncoder = wgpu.DeviceCreateCommandEncoder(graphics.device.Handle, new() { });
+            var commandEncoder = graphics.device.CreateCommandEncoder( new() { });
 
-            nint RenderPassEncoder = wgpu.CommandEncoderBeginRenderPass(commandEncoder, renderPassDesc);
+            var RenderPassEncoder = commandEncoder.BeginRenderPass(renderPassDesc);
 
             // Set the pipline for the renderpass
-            wgpu.RenderPassEncoderSetPipeline(RenderPassEncoder, renderPipeline.Handle);
+            RenderPassEncoder.SetPipeline(renderPipeline);
 
             // Set system bind group
             // TODO
-            wgpu.RenderPassEncoderSetBindGroup(RenderPassEncoder, 0, graphics.systemBindGroup.Handle, 0, (uint*)0);
+            RenderPassEncoder.SetBindGroup(0, graphics.systemBindGroup, 0);
             // Set atlas/sampler bindgroup
-            wgpu.RenderPassEncoderSetBindGroup(RenderPassEncoder, 1, atlas.GetBindGroup(graphics).Handle, 0, (uint*)0);
+            RenderPassEncoder.SetBindGroup(1, atlas.GetBindGroup(graphics), 0);
+
+
             // set vertex buffers and Submit actual draw comand
-            SetbuffersAndDraw(graphics.queue.Handle, RenderPassEncoder, currentCount);
+            SetbuffersAndDraw(graphics.queue, RenderPassEncoder, currentCount);
 
             // Finish Rendering
-            wgpu.RenderPassEncoderEnd(RenderPassEncoder);
+            RenderPassEncoder.End();
 
-            nint commandBuffer = wgpu.CommandEncoderFinish(commandEncoder, new() { });
+            var commandBuffer = commandEncoder.Finish( new() { });
 
-            wgpu.QueueSubmit(graphics.queue.Handle, 1, new IntPtr(&commandBuffer));
-
-            wgpu.RenderPassEncoderRelease(RenderPassEncoder);
-            wgpu.CommandEncoderRelease(commandEncoder);
+            graphics.queue.Submit(commandBuffer);
 
             currentCount = 0;
         }
@@ -243,7 +244,4 @@ public class RendererSpriteSimple
     }
 
     #endregion
-
-
-
 }

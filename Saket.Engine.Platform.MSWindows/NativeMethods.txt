@@ -1,9 +1,13 @@
+PeekMessage
+GetMessage
 DispatchMessage
 TranslateMessage
+
 RegisterClassExW
 CreateWindowExW
 ShowWindow
-PeekMessage
+UpdateWindow
+
 DefWindowProcW
 GetLastError
 LoadCursorW
@@ -22,3 +26,4 @@ RIM_TYPEKEYBOARD
 
 
 WM_INPUT
+COLOR_BTNFACE

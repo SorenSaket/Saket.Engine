@@ -21,7 +21,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebGpuSharp", "WebGPUSharp\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saket.WebGPU", "Saket.WebGPU\Saket.WebGPU.csproj", "{CE48E1E4-E3B7-46B4-B23B-05045549151E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saket.Engine.Platform.MSWindows", "Saket.Engine.Platform.MSWindows\Saket.Engine.Platform.MSWindows.csproj", "{DC2197F5-0D5C-4A99-85FA-B6B1798FFA7C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saket.Engine.Platform.SDL", "Saket.Engine.Platform.SDL\Saket.Engine.Platform.SDL.csproj", "{31846BF5-C20B-4A6A-87E4-83C0EB299DCD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saket.Engine.Platform.MSWindows", "Saket.Engine.Platform.MSWindows\Saket.Engine.Platform.MSWindows.csproj", "{7C70FCD6-93A2-43F6-9477-AF441C1E70A4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -78,14 +80,22 @@ Global
 		{CE48E1E4-E3B7-46B4-B23B-05045549151E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CE48E1E4-E3B7-46B4-B23B-05045549151E}.Release|x64.ActiveCfg = Release|Any CPU
 		{CE48E1E4-E3B7-46B4-B23B-05045549151E}.Release|x64.Build.0 = Release|Any CPU
-		{DC2197F5-0D5C-4A99-85FA-B6B1798FFA7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DC2197F5-0D5C-4A99-85FA-B6B1798FFA7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DC2197F5-0D5C-4A99-85FA-B6B1798FFA7C}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{DC2197F5-0D5C-4A99-85FA-B6B1798FFA7C}.Debug|x64.Build.0 = Debug|Any CPU
-		{DC2197F5-0D5C-4A99-85FA-B6B1798FFA7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DC2197F5-0D5C-4A99-85FA-B6B1798FFA7C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DC2197F5-0D5C-4A99-85FA-B6B1798FFA7C}.Release|x64.ActiveCfg = Release|Any CPU
-		{DC2197F5-0D5C-4A99-85FA-B6B1798FFA7C}.Release|x64.Build.0 = Release|Any CPU
+		{31846BF5-C20B-4A6A-87E4-83C0EB299DCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31846BF5-C20B-4A6A-87E4-83C0EB299DCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31846BF5-C20B-4A6A-87E4-83C0EB299DCD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{31846BF5-C20B-4A6A-87E4-83C0EB299DCD}.Debug|x64.Build.0 = Debug|Any CPU
+		{31846BF5-C20B-4A6A-87E4-83C0EB299DCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31846BF5-C20B-4A6A-87E4-83C0EB299DCD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31846BF5-C20B-4A6A-87E4-83C0EB299DCD}.Release|x64.ActiveCfg = Release|Any CPU
+		{31846BF5-C20B-4A6A-87E4-83C0EB299DCD}.Release|x64.Build.0 = Release|Any CPU
+		{7C70FCD6-93A2-43F6-9477-AF441C1E70A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C70FCD6-93A2-43F6-9477-AF441C1E70A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C70FCD6-93A2-43F6-9477-AF441C1E70A4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7C70FCD6-93A2-43F6-9477-AF441C1E70A4}.Debug|x64.Build.0 = Debug|Any CPU
+		{7C70FCD6-93A2-43F6-9477-AF441C1E70A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C70FCD6-93A2-43F6-9477-AF441C1E70A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C70FCD6-93A2-43F6-9477-AF441C1E70A4}.Release|x64.ActiveCfg = Release|Any CPU
+		{7C70FCD6-93A2-43F6-9477-AF441C1E70A4}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -11,21 +11,19 @@ using WebGpuSharp.FFI;
 
 namespace Saket.Engine.Graphics
 {
-
-    public class WGPUWindow
+    public class WebGPUWindow
     {
         public Window window;
         public Surface surface;
         public TextureFormat preferredFormat;
         public SwapChain swapchain;
-        
+
 
         public TextureView GetCurretTextureView()
         {
             return swapchain.GetCurrentTextureView();
         }
     }
-
     /// <summary>
     /// Helper functions for webgpu
     /// </summary>
@@ -38,7 +36,7 @@ namespace Saket.Engine.Graphics
 
         public Sampler defaultSampler;
 
-        public Dictionary<Saket.Engine.Platform.Window, WGPUWindow> windows;
+        public Dictionary<Saket.Engine.Platform.Window, WebGPUWindow> windows;
 
         // By assuming all surfaces are prefering the same texture format?
         public TextureFormat applicationpreferredFormat = TextureFormat.Undefined;
@@ -61,12 +59,19 @@ namespace Saket.Engine.Graphics
             // Create Adapter
             adapter =  instance.RequestAdapterAsync(new()
             {
-                PowerPreference = PowerPreference.HighPerformance
-            }).GetAwaiter().GetResult()!;
-            // Create Device
-            DeviceDescriptor deviceDescriptor = new DeviceDescriptor();
-            device = adapter.RequestDeviceAsync(deviceDescriptor).GetAwaiter().GetResult()!;
+                PowerPreference = PowerPreference.HighPerformance,
+                BackendType = BackendType.D3D11
+            }).GetAwaiter().GetResult() ?? throw new Exception("Failed to acquire Adapter");
 
+            SupportedLimits supportedLimits = adapter.GetLimits()!.Value;
+
+            // Create Device
+            DeviceDescriptor deviceDescriptor = new DeviceDescriptor() { RequiredLimits = new WGPUNullableRef<RequiredLimits>(new RequiredLimits(supportedLimits.Limits)), DefaultQueue = new QueueDescriptor() };
+            device = adapter.RequestDeviceAsync(deviceDescriptor).GetAwaiter().GetResult() ?? throw new Exception("Failed to acquire Device");
+
+            var handle = WebGPUMarshal.GetBorrowHandle(device);
+            var myNewDevice = handle.ToSafeHandle(false);
+            
             queue = device.GetQueue()!;
 
             defaultSampler = device.CreateSampler(new SamplerDescriptor() { })!;
@@ -147,6 +152,8 @@ namespace Saket.Engine.Graphics
 
                 var RenderPassEncoder = commandEncoder.BeginRenderPass(renderPassDesc);
 
+                RenderPassEncoder.End();
+
                 var commandBuffer = commandEncoder.Finish(new() { })!;
 
                 queue.Submit(commandBuffer);
@@ -170,40 +177,36 @@ namespace Saket.Engine.Graphics
             if (windows.ContainsKey(window))
                 return;
 
-            var ww = new WGPUWindow();
+            var ww = new WebGPUWindow();
             ww.window = window;
-#if true
-            // TODO. Move this somewhere else. This is cyclical reference hell
-            if (window is Platform.MSWindows.Windowing.Window windowsWindow)
+           
+            // Get the surface. Right now though inferface
+
+            if(window is IWebGPUSurfaceSource ss)
             {
-                var wsDescriptor = new WebGpuSharp.FFI.SurfaceDescriptorFromWindowsHWNDFFI()
-                {
-                    Hinstance =(void*) windowsWindow.HInstance,
-                    Hwnd = (void*)windowsWindow.WindowHandle,
-                };
-                SurfaceDescriptor descriptor_surface = new SurfaceDescriptor(ref wsDescriptor);
-                ww.surface = instance.CreateSurface(descriptor_surface);
-
-                if(applicationpreferredFormat == TextureFormat.Undefined)
-                {
-                    ww.preferredFormat = applicationpreferredFormat = ww.surface.GetPreferredFormat(adapter);
-                }
-                else
-                {
-                    ww.preferredFormat = applicationpreferredFormat;
-                }
-
-                SwapChainDescriptor swapChainDescriptor = new()
-                {
-                    Format = ww.preferredFormat,
-                    Height = 720,
-                    Width = 1280,
-                    Usage = TextureUsage.RenderAttachment,
-                    PresentMode = PresentMode.Fifo,
-                };
-                ww.swapchain = device.CreateSwapChain(ww.surface, swapChainDescriptor)!;
+                Surface s = ss.CreateWebGPUSurface(instance);
+                ww.surface = s;
             }
-#endif 
+
+            if(applicationpreferredFormat == TextureFormat.Undefined)
+            {
+                ww.preferredFormat = applicationpreferredFormat = ww.surface.GetPreferredFormat(adapter);
+            }
+            else
+            {
+                ww.preferredFormat = applicationpreferredFormat;
+            }
+
+            SwapChainDescriptor swapChainDescriptor = new()
+            {
+                Format = ww.preferredFormat,
+                Height = 720,
+                Width = 1280,
+                Usage = TextureUsage.RenderAttachment,
+                PresentMode = PresentMode.Fifo,
+            };
+            ww.swapchain = device.CreateSwapChain(ww.surface, swapChainDescriptor)!;
+
             windows.Add(window, ww);
         }
     }

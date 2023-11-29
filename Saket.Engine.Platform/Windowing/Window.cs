@@ -1,9 +1,9 @@
 ﻿using Saket.Engine.Platform.Windowing;
-
+using WebGpuSharp;
 
 namespace Saket.Engine.Platform
 {
-
+  
     public struct WindowCreationArgs
     {
         public string title;
@@ -46,9 +46,6 @@ namespace Saket.Engine.Platform
         {
             width = (uint) args.w;
             height = (uint) args.h;
-
-
-
         }
 
 
@@ -63,11 +60,16 @@ namespace Saket.Engine.Platform
         public abstract void Maximize();
 
 
-        public abstract nint GetSurface();
-        
         public abstract void Destroy();
 
         public abstract WindowEvent PollEvent();
+    }
+
+
+
+    public interface IWebGPUSurfaceSource
+    {
+        public Surface? CreateWebGPUSurface(Instance instance);
     }
 
     [Flags]

@@ -167,7 +167,6 @@ namespace Saket.WebGPU
 		public uint queryIndex;
 		public ComputePassTimestampLocation location;
 	}
-
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct ConstantEntry
 	{

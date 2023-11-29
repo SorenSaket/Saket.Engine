@@ -51,7 +51,7 @@ public abstract class Application
         DoRun();
     }
     /// <summary>
-    /// The main function for logic get called continuously unbound.
+    /// The main function for logic get called continuously unbound?
     /// </summary>
     public virtual void Update() { }
     /// <summary>
@@ -66,9 +66,7 @@ public abstract class Application
         shouldTerminate = true;
     }
     #endregion
-
-
-
+      
     //
     private void DoRun()
     {
@@ -90,8 +88,7 @@ public abstract class Application
             Update();
 
             Frame++;
+            Thread.Sleep(1);
         }
     }
-
- 
 }
