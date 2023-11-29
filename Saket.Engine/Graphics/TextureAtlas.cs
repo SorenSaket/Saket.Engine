@@ -89,7 +89,10 @@ namespace Saket.Engine.Graphics
                         {
                             Binding = 2,
                             Visibility = ShaderStage.Fragment,
-                            Sampler = new() { }
+                            Sampler = new() { 
+                                //Most have a SamplerBindingType aka not Undefined
+                                Type = SamplerBindingType.Filtering 
+                            }
                         }
                     }
                 });

@@ -218,9 +218,9 @@ public class RendererSpriteSimple
 
             // Set system bind group
             // TODO
-            RenderPassEncoder.SetBindGroup(0, graphics.systemBindGroup, 0);
+            RenderPassEncoder.SetBindGroup(0, graphics.systemBindGroup);
             // Set atlas/sampler bindgroup
-            RenderPassEncoder.SetBindGroup(1, atlas.GetBindGroup(graphics), 0);
+            RenderPassEncoder.SetBindGroup(1, atlas.GetBindGroup(graphics));
 
 
             // set vertex buffers and Submit actual draw comand
