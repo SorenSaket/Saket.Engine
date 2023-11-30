@@ -9,8 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Saket.Engine.Platform.MSWindows\Saket.Engine.Platform.MSWindows.csproj" />
-    <ProjectReference Include="..\Saket.Engine.Platform.SDL\Saket.Engine.Platform.SDL.csproj" />
     <ProjectReference Include="..\Saket.Engine\Saket.Engine.csproj" />
   </ItemGroup>
 
@@ -22,6 +20,12 @@
 		<Content Include="..\Saket.Engine\Assets\**\*.*" CopyToOutputDirectory="Always" link="Assets\%(RecursiveDir)\%(Filename)%(Extension)" />
 	</ItemGroup>
 	<ItemGroup>
+	  <PackageReference Include="ppy.SDL2-CS" Version="1.0.82" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Update="SDL2.dll">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
 	  <None Update="wgpu_native.dll">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>

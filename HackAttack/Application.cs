@@ -4,7 +4,6 @@ using Saket.Engine;
 using Saket.Engine.Formats;
 using Saket.Engine.Graphics;
 using Saket.Engine.Graphics.Renderers;
-using Saket.Engine.Platform;
 using Saket.Engine.Resources.Loaders;
 
 using System.Runtime.CompilerServices;
@@ -15,9 +14,26 @@ using HackAttack.Components;
 
 using WebGpuSharp;
 using WebGpuSharp.FFI;
-using Saket.Engine.Platform.Windowing;
+using SDL2;
+using Saket.Engine.Components;
+using System.Reflection.Metadata;
 
 namespace HackAttack;
+
+
+
+
+
+// TODO.
+// Handle windows in a generalized way. Add window/surface to saket.engine?
+// Handle window resizing. Swapchain, Depthbuffer, camera matricies etc..
+    // https://eliemichel.github.io/LearnWebGPU/basic-3d-rendering/some-interaction/resizing-window.html
+    //
+
+
+
+
+
 
 internal class Application : Saket.Engine.Application
 {
@@ -27,7 +43,8 @@ internal class Application : Saket.Engine.Application
 
     private RendererSpriteSimple spriteRenderer;
 
-    private Window window;
+    private RenderTarget rt;
+    private nint sdlwindow;
     private GraphicsContext graphics;
 
     Shader shader_sprite;
@@ -35,21 +52,24 @@ internal class Application : Saket.Engine.Application
     TextureAtlas atlas;
 
     CameraOrthographic camera;
-    IDesktopPlatform platform;
 
     public unsafe Application()
     {
         // Windows only application for now
-        platform = new Saket.Engine.Platform.SDL.Platform();
+        SDL.SDL_Init(SDL.SDL_INIT_EVERYTHING);
 
         // Create new graphics Context
         graphics = new GraphicsContext();
         //only BGRA8Unorm is supported for webgpu dawn
         graphics.applicationpreferredFormat = TextureFormat.BGRA8Unorm;
 
-        window = platform.CreateWindow(new WindowCreationArgs("Hack Attack", 30, 30, 1280,720));
+        int initialWidth = 1280, initialHeight = 720;
+        sdlwindow = SDL.SDL_CreateWindow("Hack Attack", 30, 30, (int)initialWidth, (int)initialHeight, SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE | SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
 
-        graphics.AddWindow(window);
+
+         rt =graphics.CreateRenderTarget( CreateWebGPUSurfaceFromSDLWindow(graphics.instance, sdlwindow), initialWidth, initialHeight, graphics.applicationpreferredFormat);
+
+
 
         spriteRenderer = new RendererSpriteSimple(graphics, 1000);
 
@@ -63,7 +83,7 @@ internal class Application : Saket.Engine.Application
         pipeline_update.AddStage(new Stage().Add(Systems.Move));
         pipeline_render = new();
 
-        camera = new CameraOrthographic(5f, 0.1f, 100f);
+        camera = new CameraOrthographic(5f,rt.AspectRatio, 0.1f, 100f);
         {
             world.CreateEntity()
                 .Add(new Transform2D() { })
@@ -71,7 +91,7 @@ internal class Application : Saket.Engine.Application
                 .Add(new PathFindingAgent());
 
             world.CreateEntity()
-               .Add(new Transform2D() {Position = new Vector2(2,0) })
+               .Add(new Transform2D() {Position = new Vector2(1,0) })
                .Add(new Sprite() { color = Saket.Engine.Graphics.Color.White, spr = 1 })
                .Add(new PathFindingAgent());
         }
@@ -80,9 +100,20 @@ internal class Application : Saket.Engine.Application
     public override void Update()
     {
         // Poll all events
-        while (window.PollEvent() != WindowEvent.None)
+        while (SDL.SDL_PollEvent(out var e) != 0)
         {
-
+            if (e.type == SDL.SDL_EventType.SDL_QUIT)
+            {
+                Termiate();
+            }
+            if(e.type == SDL.SDL_EventType.SDL_WINDOWEVENT)
+            {
+                if(e.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
+                {
+                    graphics.OnRenderTargetSurfaceResized(rt, e.window.data1, e.window.data2);
+                    camera = new(5f, rt.AspectRatio, 0.1f, 100f);
+                }
+            }
         }
 
         // Non-standardized behavior: submit empty queue to flush callbacks
@@ -90,7 +121,7 @@ internal class Application : Saket.Engine.Application
         //wgpu.QueueSubmit(graphics.queue.Handle, 0, 0);
         //graphics.device.Tick();
         graphics.instance.ProcessEvents();
-    #if true
+
         // Perform Update
         {
             world.Delta = (float)DeltaTime;
@@ -104,7 +135,7 @@ internal class Application : Saket.Engine.Application
         unsafe
         {
             // To present frame to the window use the swapchain
-            var swapchain = graphics.windows[window].swapchain;
+            var swapchain = rt.Swapchain;
 
 
             graphics.SetSystemUniform(new SystemUniform()
@@ -118,7 +149,7 @@ internal class Application : Saket.Engine.Application
             var textureView = swapchain.GetCurrentTextureView();
 
             // Clear the screen
-            graphics.Clear(textureView, new Saket.Engine.Graphics.Color(255, 0, 0));
+            graphics.Clear(textureView, new Saket.Engine.Graphics.Color(0, 0, 0));
 
             spriteRenderer.Draw(new Sprite(0, 0, Saket.Engine.Graphics.Color.Blue), new Transform2D());
             spriteRenderer.SubmitBatch(textureView, shader_sprite.pipeline, atlas);
@@ -130,7 +161,33 @@ internal class Application : Saket.Engine.Application
             // Preset swapchain
             swapchain.Present();
         }
-    #endif 
+        
     }
 
+    public Surface? CreateWebGPUSurfaceFromSDLWindow(Instance instance, nint windowHandle)
+    {
+        unsafe
+        {
+            SDL.SDL_SysWMinfo info = new();
+            SDL.SDL_GetVersion(out info.version);
+            SDL.SDL_GetWindowWMInfo(windowHandle, ref info);
+
+            if (info.subsystem == SDL.SDL_SYSWM_TYPE.SDL_SYSWM_WINDOWS)
+            {
+                var wsDescriptor = new WebGpuSharp.FFI.SurfaceDescriptorFromWindowsHWNDFFI()
+                {
+                    Hinstance = (void*)info.info.win.hinstance,
+                    Hwnd = (void*)info.info.win.window,
+                    Chain = new ChainedStruct()
+                    {
+                        SType = SType.SurfaceDescriptorFromWindowsHWND
+                    }
+                };
+                SurfaceDescriptor descriptor_surface = new SurfaceDescriptor(ref wsDescriptor);
+                return instance.CreateSurface(descriptor_surface);
+            }
+
+            throw new Exception("Platform not supported");
+        }
+    }
 }

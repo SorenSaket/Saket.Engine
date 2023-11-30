@@ -39,8 +39,6 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Saket.ECS\Saket.ECS\Saket.ECS.csproj" />
-	  <ProjectReference Include="..\Saket.Engine.Platform.MSWindows\Saket.Engine.Platform.MSWindows.csproj" />
-	  <ProjectReference Include="..\Saket.Engine.Platform\Saket.Engine.Platform.csproj" />
 	  <ProjectReference Include="..\WebGPUSharp\WebGpuSharp.csproj" />
 	</ItemGroup>
 </Project>

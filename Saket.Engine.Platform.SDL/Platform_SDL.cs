@@ -7,8 +7,8 @@ namespace Saket.Engine.Platform.SDL
 {
     public class Platform : IDesktopPlatform
     {
+        List<WindowSDL> windows = new();
 
-        Stack<native.SDL_Event> stacky;
 
         public Platform()
         {
@@ -20,15 +20,36 @@ namespace Saket.Engine.Platform.SDL
         public event Action<Device> OnDeviceAdded;
         public event Action<Device> OnDeviceRemoved;
 
+
+
+
         public Window CreateWindow(WindowCreationArgs args)
         {
-            return new WindowSDL (args);
+            var w = new WindowSDL(args);
+
+            windows.Add(w);
+
+            return w;
         }
 
         public void PollEvent()
+        {/*
+            while (SDL2.SDL.SDL_PollEvent(out var e) != 0)
+            {
+                if (e.type == native.SDL_EventType.SDL_QUIT)
+                {
+                    Terminate();
+                }
+                if (e.type == native.SDL_EventType.SDL_WINDOWEVENT)
+                {
+                    windows.First(x => x.windowID ==        e.window.windowID).windowEvents.Push(e);
+                }
+            }*/
+        }
+
+        public void Terminate()
         {
-            native.SDL_PollEvent(out var _event);
-            stacky.Push(_event);
+            
         }
     }
 }

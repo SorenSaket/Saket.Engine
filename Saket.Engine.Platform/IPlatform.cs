@@ -8,6 +8,9 @@ namespace Saket.Engine.Platform;
 /// </summary>
 public interface IPlatform
 {
+    public void Terminate();
+
+
     //public Display[] GetDisplays();
 
 

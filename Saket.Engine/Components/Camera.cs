@@ -71,13 +71,13 @@ namespace Saket.Engine
         public Matrix4x4 viewMatrix;
         public Matrix4x4 projectionMatrix;
         
-        public CameraOrthographic(float size, float near, float far)
+        public CameraOrthographic(float size, float ratio, float near, float far)
         {
             this.size = size;
             this.near = near;
             this.far = far;
             this.viewMatrix = Matrix4x4.Identity;
-            this.projectionMatrix = Matrix4x4.CreateOrthographic(size, size, near, far);
+            this.projectionMatrix = Matrix4x4.CreateOrthographic(size, size*ratio, near, far);
         }
 
         public Vector3 ScreenToWorldPoint(Vector3 position)

@@ -13,6 +13,9 @@ namespace Saket.Engine.Platform.SDL.Windowing
     internal class WindowSDL : Window, IWebGPUSurfaceSource
     {
         private nint handle;
+        internal uint windowID;
+
+        internal Stack<native.SDL_Event> windowEvents = new();
 
         public WindowSDL(WindowCreationArgs args) : base(args)
         {
@@ -22,12 +25,13 @@ namespace Saket.Engine.Platform.SDL.Windowing
                 args.y,
                 args.w,
                 args.h,
-                native.SDL_WindowFlags.SDL_WINDOW_SHOWN);
+                native.SDL_WindowFlags.SDL_WINDOW_SHOWN | native.SDL_WindowFlags.SDL_WINDOW_RESIZABLE);
+            windowID = native.SDL_GetWindowID(handle);
         }
 
         public override void Destroy()
         {
-            throw new NotImplementedException();
+            native.SDL_DestroyWindow(handle);
         }
 
 
@@ -53,7 +57,7 @@ namespace Saket.Engine.Platform.SDL.Windowing
 
         public override WindowEvent PollEvent()
         {
-            return WindowEvent.None; 
+            return WindowEvent.None;
         }
 
         public override void Raise()

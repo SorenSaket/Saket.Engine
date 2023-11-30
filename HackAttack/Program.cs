@@ -1,8 +1,4 @@
-﻿//using Saket.Engine.Platform.MSWindows;
-using Saket.Engine.Platform.Windowing;
-using SDL2;
-
-namespace HackAttack;
+﻿namespace HackAttack;
 
 internal class Program
 {

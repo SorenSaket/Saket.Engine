@@ -1,5 +1,4 @@
-﻿using Saket.Engine.Platform;
-using WebGpuSharp;
+﻿using WebGpuSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,19 +11,33 @@ using System.Text.Unicode;
 
 namespace Saket.Engine.Graphics
 {
-    public class WebGPUWindow
+    public class RenderTarget
     {
-        public Window window;
-        public Surface surface;
-        public TextureFormat preferredFormat;
-        public SwapChain swapchain;
+        public int Width;
+        public int Height;
 
+        public float AspectRatio { get; internal set; }
+        public TextureFormat Format;
+
+        public readonly Surface Surface;
+        public readonly TextureFormat PreferredFormat;
+
+        public SwapChain Swapchain { get; internal set; }
+
+
+        internal RenderTarget(Surface surface, TextureFormat preferredFormat)
+        {
+            this.Surface = surface;
+            this.PreferredFormat = preferredFormat;
+        }
 
         public TextureView GetCurretTextureView()
         {
-            return swapchain.GetCurrentTextureView();
+            return Swapchain.GetCurrentTextureView();
         }
     }
+
+
     /// <summary>
     /// Helper functions for webgpu
     /// </summary>
@@ -37,12 +50,9 @@ namespace Saket.Engine.Graphics
 
         public Sampler defaultSampler;
 
-        public Dictionary<Saket.Engine.Platform.Window, WebGPUWindow> windows;
 
         // By assuming all surfaces are prefering the same texture format?
         public TextureFormat applicationpreferredFormat = TextureFormat.Undefined;
-
-
 
         public WebGpuSharp.Buffer systemBuffer;
         public BindGroup systemBindGroup;
@@ -50,58 +60,72 @@ namespace Saket.Engine.Graphics
 
         public GraphicsContext()
         {
+            // Setup WebGPU
+            {
+                // This is to enable debug logging with wgpu
 #if DEBUG
-            Environment.SetEnvironmentVariable("RUST_BACKTRACE", "1");
-            Environment.SetEnvironmentVariable("RUST_BACKTRACE", "full");
+                Environment.SetEnvironmentVariable("RUST_BACKTRACE", "1");
+                Environment.SetEnvironmentVariable("RUST_BACKTRACE", "full");
 #endif
-            windows = new();
-            instance = WebGPU.CreateInstance()!;
-            // Create Adapter
-            adapter = instance.RequestAdapterAsync(new()
-            {
-                PowerPreference = PowerPreference.HighPerformance,
-                BackendType = BackendType.D3D11
-            }).GetAwaiter().GetResult() ?? throw new Exception("Failed to acquire Adapter");
 
-            SupportedLimits supportedLimits = adapter.GetLimits()!.Value;
+                // Create WebGPU instance 
+                instance = WebGPU.CreateInstance()!;
 
-            // Create Device
-            DeviceDescriptor deviceDescriptor = new DeviceDescriptor() { RequiredLimits = new WGPUNullableRef<RequiredLimits>(new RequiredLimits(supportedLimits.Limits)), DefaultQueue = new QueueDescriptor() };
-            device = adapter.RequestDeviceAsync(deviceDescriptor).GetAwaiter().GetResult() ?? throw new Exception("Failed to acquire Device");
+                // Create Adapter
+                adapter = instance.RequestAdapterAsync(new()
+                {
+                    PowerPreference = PowerPreference.HighPerformance,
+                    BackendType = BackendType.D3D12
+                }).GetAwaiter().GetResult() ?? throw new Exception("Failed to acquire Adapter");
 
-    
-            device.AddUncapturedErrorCallback((ErrorType type, ReadOnlySpan<byte> message) =>
-            {
-                Console.Error.WriteLine($"{Enum.GetName(type)} : {Encoding.UTF8.GetString(message)}");
-            });
+                SupportedLimits supportedLimits = adapter.GetLimits()!.Value;
 
+                // Create Device
+                DeviceDescriptor deviceDescriptor = new DeviceDescriptor() { RequiredLimits = new WGPUNullableRef<RequiredLimits>(new RequiredLimits(supportedLimits.Limits)), DefaultQueue = new QueueDescriptor() };
+                device = adapter.RequestDeviceAsync(deviceDescriptor).GetAwaiter().GetResult() ?? throw new Exception("Failed to acquire Device");
 
-            var handle = WebGPUMarshal.GetBorrowHandle(device);
-            var myNewDevice = handle.ToSafeHandle(false);
+                device.AddUncapturedErrorCallback((ErrorType type, ReadOnlySpan<byte> message) =>
+                {
+                    Console.Error.WriteLine($"{Enum.GetName(type)} : {Encoding.UTF8.GetString(message)}");
+                });
+                device.AddDeviceLostCallback((DeviceLostReason lostReason, ReadOnlySpan<byte> message) => {
+                    Console.Error.WriteLine($"Device lost! Reason: {Enum.GetName(lostReason)} : {Encoding.UTF8.GetString(message)}");
+                });
+            }
 
+            // Create Queue
             queue = device.GetQueue()!;
 
+            // Create the default sampler. For miscellaneous uses
             defaultSampler = device.CreateSampler(new SamplerDescriptor()
             {
-                // MaxAnisotropy muse not be zero
-                MaxAnisotropy = 1
+                AddressModeU = AddressMode.ClampToEdge,
+                AddressModeV = AddressMode.ClampToEdge,
+                AddressModeW = AddressMode.ClampToEdge,
+                MagFilter = FilterMode.Nearest,
+                MinFilter = FilterMode.Nearest,
+                MipmapFilter = MipmapFilterMode.Nearest,
+                LodMinClamp = 0,
+                LodMaxClamp = 32,
+                Compare = CompareFunction.Undefined,
+                MaxAnisotropy = 1,
             })!;
 
-
             // Create system uniform bindgroup
-            unsafe
             {
+                // This buffer contains only the SystemUniform
+                ulong size = (ulong)Marshal.SizeOf<SystemUniform>();
 
                 systemBuffer =  device.CreateBuffer(new BufferDescriptor()
                 {
-                    Size = (ulong)sizeof(SystemUniform),
+                    Size = size,
                     Usage = BufferUsage.Uniform | BufferUsage.CopyDst,
                 })!;
 
                 systemBindGroupLayout = device.CreateBindGroupLayout(new BindGroupLayoutDescriptor()
                 {
-                    Entries = stackalloc BindGroupLayoutEntry[]
-                    {
+                    Entries =
+                    [
                         new()
                         {
                             Binding = 0,
@@ -111,29 +135,23 @@ namespace Saket.Engine.Graphics
                                 Type = BufferBindingType.Uniform,
                             }
                         }
-
-                    }
+                    ]
                 })!;
-
-                var b = new BindGroupEntry[]
-                {
-                    new()
-                    {
-                        Binding = 0,
-                        Buffer = systemBuffer,
-                        Size = (ulong)sizeof(SystemUniform),
-                    }
-                };
-
+                
                 systemBindGroup = device.CreateBindGroup(new BindGroupDescriptor()
                 {
                     Layout = systemBindGroupLayout,
-                    Entries = b
+                    Entries = [
+                        new()
+                        {
+                            Binding = 0,
+                            Buffer = systemBuffer,
+                            Size = size,
+                        }
+                    ]
                 })!;
             }
-
         }
-
 
         public void Clear(TextureView target, Saket.Engine.Graphics.Color clearColor)
         {
@@ -182,42 +200,39 @@ namespace Saket.Engine.Graphics
             }
         }
 
-        public unsafe void AddWindow(Platform.Window window)
+        public void OnRenderTargetSurfaceResized(RenderTarget rs, int width, int height)
         {
-            if (windows.ContainsKey(window))
-                return;
+            rs.Width = width;
+            rs.Height = height;
+            rs.AspectRatio =   (float)width/ height;
 
-            var ww = new WebGPUWindow();
-            ww.window = window;
-           
-            // Get the surface. Right now though inferface
-
-            if(window is IWebGPUSurfaceSource ss)
-            {
-                Surface s = ss.CreateWebGPUSurface(instance);
-                ww.surface = s;
-            }
-
-            if(applicationpreferredFormat == TextureFormat.Undefined)
-            {
-                ww.preferredFormat = applicationpreferredFormat = ww.surface.GetPreferredFormat(adapter);
-            }
-            else
-            {
-                ww.preferredFormat = applicationpreferredFormat;
-            }
-
+            // dispose the Swapchain
+            // TODO Dispose eventual depthbuffer
+            if(rs.Swapchain != null)
+               WebGPUMarshal.GetOwnedHandle(rs.Swapchain).Dispose();
+            
+            // Create new swapchain with the new size
             SwapChainDescriptor swapChainDescriptor = new()
             {
-                Format = ww.preferredFormat,
-                Height = 720,
-                Width = 1280,
+                Format = rs.Format,
+                Width = (uint)width,
+                Height = (uint)height,
                 Usage = TextureUsage.RenderAttachment,
                 PresentMode = PresentMode.Fifo,
             };
-            ww.swapchain = device.CreateSwapChain(ww.surface, swapChainDescriptor)!;
+            rs.Swapchain = device.CreateSwapChain(rs.Surface, swapChainDescriptor)!;
 
-            windows.Add(window, ww);
+            // TODO create depth buffer
+        }
+
+        public RenderTarget CreateRenderTarget(Surface surface, int width, int height, TextureFormat format)
+        {
+            var rt = new RenderTarget(surface, surface.GetPreferredFormat(adapter))
+            {
+                Format = format
+            };
+            OnRenderTargetSurfaceResized(rt, width, height);
+            return rt;
         }
     }
 
