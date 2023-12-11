@@ -89,11 +89,19 @@ namespace Saket.Engine.Formats
 
             uncompressedImagestream.Seek(0, SeekOrigin.Begin);
 
-            ImageResult resutl = ImageResult.FromStream(uncompressedImagestream, ColorComponents.RedGreenBlueAlpha);
+            ImageResult result = ImageResult.FromStream(uncompressedImagestream, ColorComponents.RedGreenBlueAlpha);
 
-            Image image = new Image(resutl.Data, (uint)resutl.Width, (uint)resutl.Height); 
+            // convert from rgba to bgra
+            for (int i = 0; i < result.Width * result.Height; ++i)
+            {
+                byte temp = result.Data[i * 4];
+                result.Data[i * 4] = result.Data[i * 4 + 2];
+                result.Data[i * 4 + 2] = temp;
+            }
 
+            Image image = new Image(result.Data, (uint)result.Width, (uint)result.Height);
 
+           
             uint columns = docData.canvas.width / docData.canvas.tileWidth;
             uint rows = docData.canvas.height / docData.canvas.tileHeight;
 

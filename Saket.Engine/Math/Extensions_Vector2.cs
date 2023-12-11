@@ -57,5 +57,13 @@ namespace Saket.Engine
             return new Int2((int)MathF.Round(vector.X), (int)MathF.Round(vector.Y));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector2 RectNormal(this Vector2 v)
+        {
+            if (MathF.Abs(v.X) > MathF.Abs(v.Y))
+                return new Vector2(MathF.Sign(v.X), 0);
+            return new Vector2(0, MathF.Sign(v.Y));
+        }
+
     }
 }

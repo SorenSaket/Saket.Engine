@@ -31,10 +31,10 @@ namespace Saket.Engine.Graphics
         public Texture UploadToGPU(GraphicsContext graphics)
         {
             {
-                Span<TextureFormat> formats = stackalloc TextureFormat[1]
-                {
-                    TextureFormat.BGRA8UnormSrgb
-                };
+                Span<TextureFormat> formats =
+                [
+                    TextureFormat.BGRA8Unorm
+                ];
 
                 Texture tex = graphics.device.CreateTexture(new TextureDescriptor()
                 {

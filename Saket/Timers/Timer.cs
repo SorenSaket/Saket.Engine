@@ -4,13 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HackAttack.Components
+namespace Saket.Timers;
+
+public struct Timer
 {
-    struct Tower
-    {
-
-    }
-
-
+    public float timer;
 
 }

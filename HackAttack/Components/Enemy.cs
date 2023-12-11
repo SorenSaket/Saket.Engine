@@ -4,13 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HackAttack.Components
+namespace HackAttack.Components;
+
+internal struct Enemy
 {
-    struct Tower
-    {
-
-    }
-
-
 
 }

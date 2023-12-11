@@ -10,24 +10,38 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Saket.Engine\Saket.Engine.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Assets\" />
+    <ProjectReference Include="..\Saket\Saket.csproj" />
+    <ProjectReference Include="..\SDL2-CS\SDL2-CS.csproj" />
   </ItemGroup>
 	<ItemGroup>
 		<Content Include=".\Assets\**" CopyToOutputDirectory="Always" />
 		<Content Include="..\Saket.Engine\Assets\**\*.*" CopyToOutputDirectory="Always" link="Assets\%(RecursiveDir)\%(Filename)%(Extension)" />
 	</ItemGroup>
 	<ItemGroup>
-	  <PackageReference Include="ppy.SDL2-CS" Version="1.0.82" />
+	  <None Remove="Assets\Audio\shot.wav" />
 	</ItemGroup>
 	<ItemGroup>
+	  <Content Include="Assets\Audio\shot.wav" />
+	</ItemGroup>
+	<ItemGroup>
+	  <PackageReference Include="NAudio" Version="2.2.1" />
+	  <PackageReference Include="NAudio.Vorbis" Version="1.5.0" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Update="libogg-0.dll">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
 	  <None Update="SDL2.dll">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="SDL2_mixer.dll">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
 	  <None Update="wgpu_native.dll">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Navigation\" />
 	</ItemGroup>
 </Project>

@@ -1909,7 +1909,7 @@ namespace Saket.Engine.Graphics
 
         public static implicit operator WebGpuSharp.Color(Color color) 
         {
-            var v = color.ToVector4();
+            var v = color.ToVector4()/255f;
             return new WebGpuSharp.Color(v.X, v.Y, v.Z, v.W);
         }
 	}

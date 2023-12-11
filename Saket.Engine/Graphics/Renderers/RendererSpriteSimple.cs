@@ -140,7 +140,6 @@ public class RendererSpriteSimple
             world.QueryArchetypes(query_spriteTransform, ref archetypes, out _);
         }
 
-        uint count = 0;
         unsafe
         {
             foreach (var archetype in archetypes)
@@ -150,22 +149,22 @@ public class RendererSpriteSimple
 
                 foreach (var index_entity in archetype)
                 {
-                    elements_transform[count] = transforms[index_entity];
-                    elements_sprite[count] = sprites[index_entity];
-                    count++;
+                    elements_transform[currentCount] = transforms[index_entity];
+                    elements_sprite[currentCount] = sprites[index_entity];
+                    currentCount++;
 
-                    if (count >= batchCount)
+                    if (currentCount >= batchCount)
                     {
-                        RenderAction(count);
-                        count = 0;
+                        RenderAction(currentCount);
+                        currentCount = 0;
                     }
                 }
             }
         }
         // Render remaining
-        if (count > 0)
+        if (currentCount > 0)
         {
-            RenderAction(count);
+            RenderAction(currentCount);
         }
     }
 

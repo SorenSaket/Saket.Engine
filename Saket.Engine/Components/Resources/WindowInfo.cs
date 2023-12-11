@@ -10,7 +10,9 @@ namespace Saket.Engine
     {
         public int width;
         public int height;
-
+        public WindowInfo()
+        {
+        }
         public WindowInfo(int width, int height)
         {
             this.width = width;

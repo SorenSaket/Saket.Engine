@@ -86,7 +86,7 @@ fn vtx_main(in: VertexInput) -> FragmentInput {
         selected_vert.x * sin(in.rotation) + selected_vert.y * cos(in.rotation)
     );
 	// 
-    output.position = vec4<f32>(in.position.xy + rotatedVert * in.size, in.position.z, 1.0) * uniforms.projectionMatrix * uniforms.viewMatrix;
+    output.position = vec4<f32>(in.position.xy + rotatedVert * in.size, in.position.z, 1.0) * uniforms.viewMatrix * uniforms.projectionMatrix;
 	//
     output.uv = (selected_uv * tiles[in.box].zw) + tiles[in.box].xy;
 	// Pass color tint directly

@@ -38,7 +38,7 @@ namespace Saket.Engine
                 var transform = entity.Get<Transform2D>();
                 var camera = entity.Get<CameraOrthographic>();
 
-                camera.viewMatrix = Matrix4x4.CreateTranslation(transform.Position.X, transform.Position.Y, 0);
+                camera.viewMatrix = Matrix4x4.CreateTranslation(-transform.Position.X, -transform.Position.Y, 0);
 
                 entity.Set(camera);
             }
@@ -77,7 +77,7 @@ namespace Saket.Engine
             this.near = near;
             this.far = far;
             this.viewMatrix = Matrix4x4.Identity;
-            this.projectionMatrix = Matrix4x4.CreateOrthographic(size, size*ratio, near, far);
+            this.projectionMatrix = Matrix4x4.CreateOrthographic(size * ratio, size, near, far);
         }
 
         public Vector3 ScreenToWorldPoint(Vector3 position)
