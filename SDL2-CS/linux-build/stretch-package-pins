@@ -1,0 +1,27 @@
+Package: *
+Pin: release n=stretch
+Pin-Priority: 50
+
+Package: libwayland-dev
+Pin: release n=stretch
+Pin-Priority: 800
+
+Package: libwayland-bin
+Pin: release n=stretch
+Pin-Priority: 800
+
+Package: libwayland-client0
+Pin: release n=stretch
+Pin-Priority: 800
+
+Package: libwayland-cursor0
+Pin: release n=stretch
+Pin-Priority: 800
+
+Package: libwayland-server0
+Pin: release n=stretch
+Pin-Priority: 800
+
+Package: wayland-protocols
+Pin: release n=stretch
+Pin-Priority: 800

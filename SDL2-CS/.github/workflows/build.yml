@@ -1,0 +1,151 @@
+name: build-native
+on:
+  workflow_dispatch:
+    inputs: {}
+#  schedule:
+#    - cron: '0 0 * * *'
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    name: ${{ matrix.platform.name }}
+    runs-on: ${{ matrix.platform.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+        - { name: win-x64,   os: windows-latest, flags: -A x64                                                                            }
+        - { name: win-x86,   os: windows-latest, flags: -A Win32                                                                          }
+        - { name: win-arm64, os: windows-latest, flags: -A ARM64                                                                          }
+        - { name: linux-x64, os: ubuntu-20.04,   flags: -GNinja, target_apt_arch: ":amd64"                                               }
+        - { name: linux-x86, os: ubuntu-20.04,   flags: -GNinja, cmake_configure_env: CFLAGS=-m32 CXXFLAGS=-m32, target_apt_arch: ":i386" }
+        - { name: osx-x64,   os: macos-latest,   flags: -DCMAKE_OSX_ARCHITECTURES="x86_64" -DCMAKE_OSX_DEPLOYMENT_TARGET="10.14"          }
+        # NOTE: macOS 11.0 is the first released supported by Apple Silicon.
+        - { name: osx-arm64, os: macos-latest,   flags: -DCMAKE_OSX_ARCHITECTURES="arm64" -DCMAKE_OSX_DEPLOYMENT_TARGET="11.0"            }
+    steps:
+    - name: Setup Linux dependencies
+      if: runner.os == 'Linux'
+      run: |
+        if [[ ${{ matrix.platform.target_apt_arch }} == :i386 ]]; then
+          sudo dpkg --add-architecture i386
+        fi
+
+        sudo apt-get update -y -qq
+
+        if [[ ${{ matrix.platform.target_apt_arch }} == :i386 ]]; then
+          # Workaround GitHub's ubuntu-20.04 image issue <https://github.com/actions/virtual-environments/issues/4589>
+          sudo apt-get install -y --allow-downgrades libpcre2-8-0=10.34-7
+        fi
+
+        sudo apt-get install -y \
+          gcc-multilib \
+          g++-multilib \
+          cmake \
+          ninja-build \
+          wayland-scanner++ \
+          wayland-protocols \
+          pkg-config${{ matrix.platform.target_apt_arch }} \
+          libasound2-dev${{ matrix.platform.target_apt_arch }} \
+          libdbus-1-dev${{ matrix.platform.target_apt_arch }} \
+          libegl1-mesa-dev${{ matrix.platform.target_apt_arch }} \
+          libgl1-mesa-dev${{ matrix.platform.target_apt_arch }} \
+          libgles2-mesa-dev${{ matrix.platform.target_apt_arch }} \
+          libglu1-mesa-dev${{ matrix.platform.target_apt_arch }} \
+          libibus-1.0-dev${{ matrix.platform.target_apt_arch }} \
+          libpulse-dev${{ matrix.platform.target_apt_arch }} \
+          libsdl2-2.0-0${{ matrix.platform.target_apt_arch }} \
+          libsndio-dev${{ matrix.platform.target_apt_arch }} \
+          libudev-dev${{ matrix.platform.target_apt_arch }} \
+          libwayland-dev${{ matrix.platform.target_apt_arch }} \
+          libx11-dev${{ matrix.platform.target_apt_arch }} \
+          libxcursor-dev${{ matrix.platform.target_apt_arch }} \
+          libxext-dev${{ matrix.platform.target_apt_arch }} \
+          libxi-dev${{ matrix.platform.target_apt_arch }} \
+          libxinerama-dev${{ matrix.platform.target_apt_arch }} \
+          libxkbcommon-dev${{ matrix.platform.target_apt_arch }} \
+          libxrandr-dev${{ matrix.platform.target_apt_arch }} \
+          libxss-dev${{ matrix.platform.target_apt_arch }} \
+          libxt-dev${{ matrix.platform.target_apt_arch }} \
+          libxv-dev${{ matrix.platform.target_apt_arch }} \
+          libxxf86vm-dev${{ matrix.platform.target_apt_arch }} \
+          libdrm-dev${{ matrix.platform.target_apt_arch }} \
+          libgbm-dev${{ matrix.platform.target_apt_arch }} \
+          libpulse-dev${{ matrix.platform.target_apt_arch }}
+    - uses: actions/checkout@v3
+      with:
+        repository: 'libsdl-org/SDL'
+        ref: 'SDL2'
+    - uses: actions/checkout@v3
+      with:
+        path: 'SDL2-CS'
+    - name: Configure CMake
+      run:  ${{ matrix.platform.cmake_configure_env }} cmake -B build ${{ matrix.platform.flags }} -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DSDL_SHARED_ENABLED_BY_DEFAULT=ON -DSDL_STATIC_ENABLED_BY_DEFAULT=ON
+    - name: Build
+      run: cmake --build build/ --config Release
+    - name: Install (Windows)
+      run: cmake --install build/ --prefix install_output --config Release
+      if: runner.os == 'Windows'
+    - name: Install
+      run: sudo cmake --install build/ --prefix install_output --config Release
+      if: runner.os != 'Windows'
+    - name: Prepare release directory (Windows)
+      run: mkdir -Force SDL2-CS/native/${{ matrix.platform.name }}
+      if: runner.os == 'Windows'
+    - name: Prepare release directory
+      run: mkdir -p SDL2-CS/native/${{ matrix.platform.name }}
+      if: runner.os != 'Windows'
+    - name: Prepare release (Windows)
+      run: cp install_output/bin/SDL2.dll SDL2-CS/native/${{ matrix.platform.name }}/SDL2.dll
+      if: runner.os == 'Windows'
+    - name: Prepare release (Linux)
+      run: cp install_output/lib/libSDL2-2.0.so.0 SDL2-CS/native/${{ matrix.platform.name }}/libSDL2.so
+      if: runner.os == 'Linux'
+    - name: Prepare release (macOS)
+      run: cp install_output/lib/libSDL2-2.0.dylib SDL2-CS/native/${{ matrix.platform.name }}/libSDL2.dylib
+      if: runner.os == 'macOS'
+    - name: Create pull request
+      uses: peter-evans/create-pull-request@v4
+      with:
+        commit-message: Update ${{ matrix.platform.name }} SDL binaries
+        title: Update ${{ matrix.platform.name }} SDL binaries
+        body: This PR has been auto-generated to update the ${{ matrix.platform.name }} SDL binaries.
+        branch: update-${{ matrix.platform.name }}-binaries
+        path: 'SDL2-CS'
+      env:
+        ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
+
+  build-ios:
+    name: ios
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        repository: 'libsdl-org/SDL'
+        ref: 'SDL2'
+    - uses: actions/checkout@v3
+      with:
+        path: 'SDL2-CS'
+    - name: Build (iOS)
+      run: xcodebuild -project Xcode/SDL/SDL.xcodeproj -scheme xcFramework-iOS -configuration Release
+    - name: Prepare release directory (iOS)
+      run: mkdir -p SDL2-CS/native/ios
+    - name: Prepare release (iOS)
+      run: |
+        mkdir -p SDL2-CS/native/ios/SDL2.xcframework/ios-arm64/SDL2.framework;
+        mkdir -p SDL2-CS/native/ios/SDL2.xcframework/ios-arm64_x86_64-simulator/SDL2.framework;
+        cp Xcode/SDL/Products/SDL2.xcframework/Info.plist                                           SDL2-CS/native/ios/SDL2.xcframework/Info.plist;
+        cp Xcode/SDL/Products/SDL2.xcframework/ios-arm64/SDL2.framework/SDL2                        SDL2-CS/native/ios/SDL2.xcframework/ios-arm64/SDL2.framework/SDL2;
+        cp Xcode/SDL/Products/SDL2.xcframework/ios-arm64/SDL2.framework/Info.plist                  SDL2-CS/native/ios/SDL2.xcframework/ios-arm64/SDL2.framework/Info.plist;
+        cp Xcode/SDL/Products/SDL2.xcframework/ios-arm64_x86_64-simulator/SDL2.framework/SDL2       SDL2-CS/native/ios/SDL2.xcframework/ios-arm64_x86_64-simulator/SDL2.framework/SDL2;
+        cp Xcode/SDL/Products/SDL2.xcframework/ios-arm64_x86_64-simulator/SDL2.framework/Info.plist SDL2-CS/native/ios/SDL2.xcframework/ios-arm64_x86_64-simulator/SDL2.framework/Info.plist;
+    - name: Create pull request
+      uses: peter-evans/create-pull-request@v4
+      with:
+        commit-message: Update iOS SDL binaries
+        title: Update iOS SDL binaries
+        body: This PR has been auto-genereated to update the iOS SDL binaries
+        branch: update-ios-binaries
+        path: 'SDL2-CS'
+      env:
+        ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
