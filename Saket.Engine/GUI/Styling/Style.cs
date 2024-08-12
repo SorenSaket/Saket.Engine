@@ -3,6 +3,7 @@ using Saket.Engine.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Saket.Engine.GUI.Styling
 {
@@ -60,6 +61,9 @@ namespace Saket.Engine.GUI.Styling
             set { Flags = value ? Flags |= StyleFlags.Wrap : Flags &= ~StyleFlags.Wrap; }
         }
 
+        /// <summary>
+        /// Which Direction to lay out children
+        /// </summary>
         public Axis Axis
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -77,7 +81,6 @@ namespace Saket.Engine.GUI.Styling
         }
 
         #endregion
-
 
 
         public StyleFlags Flags;
@@ -98,8 +101,8 @@ namespace Saket.Engine.GUI.Styling
         public ElementValue MaxHeight;
 
 
-
-
+        public ElementValue X;
+        public ElementValue Y;
 
         /// <summary>
         /// Padding

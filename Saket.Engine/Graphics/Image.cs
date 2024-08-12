@@ -38,7 +38,7 @@ namespace Saket.Engine.Graphics
 
                 Texture tex = graphics.device.CreateTexture(new TextureDescriptor()
                 {
-                    Dimension = TextureDimension._2D,
+                    Dimension = TextureDimension.D2,
                     //only BGRA8Unorm is supported for webgpu dawn
                     Format = TextureFormat.BGRA8Unorm, // TODO
                     Size = new Extent3D(width, height, 1),

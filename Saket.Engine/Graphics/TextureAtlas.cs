@@ -80,7 +80,7 @@ namespace Saket.Engine.Graphics
                             Visibility = ShaderStage.Fragment,
                             Texture = new()
                             {
-                                ViewDimension = TextureViewDimension._2D,
+                                ViewDimension = TextureViewDimension.D2,
                                 SampleType = TextureSampleType.Float,
                                 Multisampled = false,
                             }
@@ -112,7 +112,7 @@ namespace Saket.Engine.Graphics
                     gpuTextureView = gpuTexture.CreateView(new TextureViewDescriptor()
                     {
                         Format = graphics.applicationpreferredFormat,
-                        Dimension = TextureViewDimension._2D,
+                        Dimension = TextureViewDimension.D2,
                         MipLevelCount = 1,
                         ArrayLayerCount = 1
                     });

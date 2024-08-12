@@ -70,7 +70,7 @@ public class MouseState
     /// </summary>
     public Vector2 ScrollDelta => Scroll - PreviousScroll;
 
-    /*
+    
     /// <summary>
     /// Gets a <see cref="bool" /> indicating whether the specified
     ///  <see cref="MouseButton" /> is pressed.
@@ -82,7 +82,7 @@ public class MouseState
         get { return ((_buttons >> (int)button) & 1) != 0; }
         internal set { _buttons |= 1 << (int)button; }
     }
-    */
+    
     /// <summary>
     /// Gets an integer representing the absolute x position of the pointer, in window pixel coordinates.
     /// </summary>

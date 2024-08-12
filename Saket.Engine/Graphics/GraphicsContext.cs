@@ -8,36 +8,10 @@ using System.Text;
 using System.Threading.Tasks;
 using WebGpuSharp.FFI;
 using System.Text.Unicode;
+using System.Diagnostics;
 
 namespace Saket.Engine.Graphics
 {
-    public class RenderTarget
-    {
-        public int Width;
-        public int Height;
-
-        public float AspectRatio { get; internal set; }
-        public TextureFormat Format;
-
-        public readonly Surface Surface;
-        public readonly TextureFormat PreferredFormat;
-
-        public SwapChain Swapchain { get; internal set; }
-
-
-        internal RenderTarget(Surface surface, TextureFormat preferredFormat)
-        {
-            this.Surface = surface;
-            this.PreferredFormat = preferredFormat;
-        }
-
-        public TextureView GetCurretTextureView()
-        {
-            return Swapchain.GetCurrentTextureView();
-        }
-    }
-
-
     /// <summary>
     /// Helper functions for webgpu
     /// </summary>
@@ -75,22 +49,32 @@ namespace Saket.Engine.Graphics
                 adapter = instance.RequestAdapterAsync(new()
                 {
                     PowerPreference = PowerPreference.HighPerformance,
-                    BackendType = BackendType.D3D12
+                    BackendType = BackendType.D3D12,
+                    CompatibleSurface = null,
                 }).GetAwaiter().GetResult() ?? throw new Exception("Failed to acquire Adapter");
 
                 SupportedLimits supportedLimits = adapter.GetLimits()!.Value;
 
                 // Create Device
-                DeviceDescriptor deviceDescriptor = new DeviceDescriptor() { RequiredLimits = new WGPUNullableRef<RequiredLimits>(new RequiredLimits(supportedLimits.Limits)), DefaultQueue = new QueueDescriptor() };
+                DeviceDescriptor deviceDescriptor = new DeviceDescriptor()
+                {
+                    RequiredLimits = new WGPUNullableRef<RequiredLimits>(
+                        new RequiredLimits(supportedLimits.Limits)
+                        ),
+                    DefaultQueue = new QueueDescriptor(),
+                    UncapturedErrorCallback = (ErrorType type, ReadOnlySpan<byte> message) =>
+                    {
+                        Console.Error.WriteLine($"{Enum.GetName(type)} : {Encoding.UTF8.GetString(message)}");
+                    },
+                    DeviceLostCallback = (DeviceLostReason lostReason, ReadOnlySpan<byte> message) =>
+                    {
+                        Console.Error.WriteLine($"Device lost! Reason: {Enum.GetName(lostReason)} : {Encoding.UTF8.GetString(message)}");
+                        Debugger.Break();
+                    }
+
+                };
                 device = adapter.RequestDeviceAsync(deviceDescriptor).GetAwaiter().GetResult() ?? throw new Exception("Failed to acquire Device");
 
-                device.AddUncapturedErrorCallback((ErrorType type, ReadOnlySpan<byte> message) =>
-                {
-                    Console.Error.WriteLine($"{Enum.GetName(type)} : {Encoding.UTF8.GetString(message)}");
-                });
-                device.AddDeviceLostCallback((DeviceLostReason lostReason, ReadOnlySpan<byte> message) => {
-                    Console.Error.WriteLine($"Device lost! Reason: {Enum.GetName(lostReason)} : {Encoding.UTF8.GetString(message)}");
-                });
             }
 
             // Create Queue
@@ -116,7 +100,7 @@ namespace Saket.Engine.Graphics
                 // This buffer contains only the SystemUniform
                 ulong size = (ulong)Marshal.SizeOf<SystemUniform>();
 
-                systemBuffer =  device.CreateBuffer(new BufferDescriptor()
+                systemBuffer = device.CreateBuffer(new BufferDescriptor()
                 {
                     Size = size,
                     Usage = BufferUsage.Uniform | BufferUsage.CopyDst,
@@ -137,7 +121,7 @@ namespace Saket.Engine.Graphics
                         }
                     ]
                 })!;
-                
+
                 systemBindGroup = device.CreateBindGroup(new BindGroupDescriptor()
                 {
                     Layout = systemBindGroupLayout,
@@ -155,85 +139,45 @@ namespace Saket.Engine.Graphics
 
         public void Clear(TextureView target, Saket.Engine.Graphics.Color clearColor)
         {
-            unsafe
+
+            RenderPassDescriptor renderPassDesc = new()
             {
-                var ColorAttachments = new RenderPassColorAttachment[]
-                {
+                ColorAttachments = [
                     new()
                     {
                         View = target,
-                        ResolveTarget = new(null),
+                        ResolveTarget = default,
                         LoadOp = LoadOp.Clear,
                         StoreOp = StoreOp.Store,
                         ClearValue = clearColor,
                     }
-                };
-               
-                RenderPassDescriptor renderPassDesc = new()
-                {
-                    ColorAttachments = ColorAttachments,
-                    DepthStencilAttachment = null,
-                };
+                ],
+                DepthStencilAttachment = null,
+            };
 
-                // Command Encoder
-                var commandEncoder = device.CreateCommandEncoder(new() { })!;
+            // Command Encoder
+            var commandEncoder = device.CreateCommandEncoder(new() { })!;
 
-                var RenderPassEncoder = commandEncoder.BeginRenderPass(renderPassDesc);
+            var RenderPassEncoder = commandEncoder.BeginRenderPass(renderPassDesc);
 
-                RenderPassEncoder.End();
+            RenderPassEncoder.End();
 
-                var commandBuffer = commandEncoder.Finish(new() { })!;
+            var commandBuffer = commandEncoder.Finish(new() { })!;
 
-                queue.Submit(commandBuffer);
+            queue.Submit(commandBuffer);
 
-               // wgpu.RenderPassEncoderRelease(RenderPassEncoder);
-               // wgpu.CommandEncoderRelease(commandEncoder);
-            }
+            // wgpu.RenderPassEncoderRelease(RenderPassEncoder);
+            // wgpu.CommandEncoderRelease(commandEncoder);
+
         }
 
 
         public void SetSystemUniform(SystemUniform uniform)
         {
-            unsafe
-            {
-                queue.WriteBuffer(systemBuffer, 0, stackalloc SystemUniform[] { uniform } );
-            }
+            queue.WriteBuffer(systemBuffer, 0, stackalloc SystemUniform[] { uniform });
         }
 
-        public void OnRenderTargetSurfaceResized(RenderTarget rs, int width, int height)
-        {
-            rs.Width = width;
-            rs.Height = height;
-            rs.AspectRatio =   (float)width/ height;
 
-            // dispose the Swapchain
-            // TODO Dispose eventual depthbuffer
-            if(rs.Swapchain != null)
-               WebGPUMarshal.GetOwnedHandle(rs.Swapchain).Dispose();
-            
-            // Create new swapchain with the new size
-            SwapChainDescriptor swapChainDescriptor = new()
-            {
-                Format = rs.Format,
-                Width = (uint)width,
-                Height = (uint)height,
-                Usage = TextureUsage.RenderAttachment,
-                PresentMode = PresentMode.Fifo,
-            };
-            rs.Swapchain = device.CreateSwapChain(rs.Surface, swapChainDescriptor)!;
-
-            // TODO create depth buffer
-        }
-
-        public RenderTarget CreateRenderTarget(Surface surface, int width, int height, TextureFormat format)
-        {
-            var rt = new RenderTarget(surface, surface.GetPreferredFormat(adapter))
-            {
-                Format = format
-            };
-            OnRenderTargetSurfaceResized(rt, width, height);
-            return rt;
-        }
     }
 
     [StructLayout(LayoutKind.Explicit, Size = 144)]

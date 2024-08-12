@@ -125,7 +125,7 @@ internal static partial class Systems
 
             velocity.Value *= 3;
 
-
+            // Query colliders in the world
             var colliders = world.Query(query_colliderTransform);
             foreach (var item in colliders)
             {
@@ -156,6 +156,7 @@ internal static partial class Systems
                 }
             }
 
+            player.lastPosition = transform_player.Position;
 
             entity_player.Set(player);
             entity_player.Set(velocity);
@@ -180,7 +181,6 @@ internal static partial class Systems
 
             if (player.input.shooting)
             {
-
                 if (world.TryGetResource(out GameState gameState))
                 {
                     if ((player.input.targetX >= 0 && player.input.targetX < gameState.mapData.Width) &&
@@ -193,8 +193,8 @@ internal static partial class Systems
                 }
                 world.CreateEntity()
                     .Add(new Transform2D(player.input.targetX, player.input.targetY, -1))
-                .Add(new Sprite() { color = Saket.Engine.Graphics.Color.White, spr = 24 })
-                .Add(new Collider2DBox(Vector2.One))
+                    .Add(new Sprite() { color = Saket.Engine.Graphics.Color.White, spr = 53 })
+                    .Add(new Collider2DBox(Vector2.One))
                 ;
             }
         }

@@ -153,6 +153,7 @@ public class RendererSpriteSimple
                     elements_sprite[currentCount] = sprites[index_entity];
                     currentCount++;
 
+                    // We've reached the max capacity in the cpu buffer. render batch early. this will result in one or more batches
                     if (currentCount >= batchCount)
                     {
                         RenderAction(currentCount);
@@ -191,19 +192,19 @@ public class RendererSpriteSimple
     {
         unsafe
         {
-            var ColorAttachments = new RenderPassColorAttachment[]
-            { 
-                new()
-                {
-                    View = target,
-                    ResolveTarget = new(null),
-                    LoadOp = LoadOp.Load,
-                    StoreOp = StoreOp.Store,
-                }
-            };
+            
             RenderPassDescriptor renderPassDesc = new()
             {
-                ColorAttachments = ColorAttachments,
+                ColorAttachments = new RenderPassColorAttachment[]
+                {
+                    new()
+                    {
+                        View = target,
+                        ResolveTarget = default,
+                        LoadOp = LoadOp.Load,
+                        StoreOp = StoreOp.Store,
+                    }
+                },
                 DepthStencilAttachment = null,
             };
 

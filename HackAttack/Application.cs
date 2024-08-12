@@ -15,11 +15,16 @@ using HackAttack.Components;
 using WebGpuSharp;
 using SDL2;
 using Saket.Engine.Components;
-using System.Reflection.Metadata;
 using NAudio.Wave;
 using System.Diagnostics;
 
 using Saket.Navigation.VectorField;
+using Saket;
+using Saket.Engine.GUI;
+using Saket.Engine.GUI.Styling;
+using Saket.Engine.GUI.Layouting;
+using ImGuiNET;
+using Saket.Engine.IMGUI;
 
 namespace HackAttack;
 
@@ -75,11 +80,11 @@ public class GameState
 internal class Application : Saket.Engine.Application
 {
     World world;
+    World uiworld;
     Pipeline pipeline_update;
 
     RendererSpriteSimple spriteRenderer;
 
-    RenderTarget rt;
     nint sdlwindow;
     WindowInfo windowInfo;
 
@@ -95,9 +100,15 @@ internal class Application : Saket.Engine.Application
     KeyboardState keyboardState;
     MouseState mouseState;
 
-
-   
     GameState gameState;
+
+    Entity[] map;
+    Entity[] dirs;
+    int mapWidth = 16, mapHeight = 16;
+
+    Document doc;
+
+    ImGui_Impl_WebGPUSharp ImGuiImpl;
 
     public unsafe Application()
     {
@@ -115,7 +126,20 @@ internal class Application : Saket.Engine.Application
             // Create SDL window
             sdlwindow = SDL.SDL_CreateWindow("Hack Attack", 30, 30, (int)initialWidth, (int)initialHeight, SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE | SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
 
-            rt = graphics.CreateRenderTarget(CreateWebGPUSurfaceFromSDLWindow(graphics.instance, sdlwindow), initialWidth, initialHeight, graphics.applicationpreferredFormat);
+            Surface surface = CreateWebGPUSurfaceFromSDLWindow(graphics.instance, sdlwindow);
+            
+            SurfaceConfiguration config = new SurfaceConfiguration()
+            {
+                Device = graphics.device,
+                Format = TextureFormat.BGRA8Unorm,
+                Width = (uint)initialWidth,
+                Height = (uint)initialHeight,
+                Usage = TextureUsage.RenderAttachment,
+                PresentMode = PresentMode.Fifo,
+                AlphaMode = CompositeAlphaMode.Auto
+            };
+            surface.Configure(config);
+            
 
             spriteRenderer = new RendererSpriteSimple(graphics, 1000);
 
@@ -148,10 +172,72 @@ internal class Application : Saket.Engine.Application
                 );
         }
 
-        int mapWidth = 16, mapHeight = 16;
+        // Setup IMGUI
+        {
+            IntPtr context = ImGui.CreateContext();
+            ImGui.SetCurrentContext(context);
+
+            var io = ImGui.GetIO();
+            
+
+            var initInfo = new ImGui_ImplWGPU_InitInfo()
+            {
+                device = graphics.device,
+                num_frames_in_flight = 3,
+                rt_format = graphics.applicationpreferredFormat,
+                depth_format = TextureFormat.Undefined,
+            };
+
+            ImGuiImpl = new ImGui_Impl_WebGPUSharp(initInfo);
+
+            io.Fonts.AddFontDefault();
+        }
+
+        // Create GUI
+        if(false)
+        {
+            uiworld = new();
+            doc = new Document(uiworld);
+
+            Style style_window = new Style()
+            {
+                Width = new(100, Measurement.Percentage),
+                Height = new(100, Measurement.Percentage),
+                Axis = Axis.Vertical,
+                AlignContent = AlignContent.end,
+                AlignItems = AlignItems.center
+            };
+
+            // we want the toolbar to always fill 80% of the screen
+            Style style_toolbar = new Style()
+            {
+                Width = new(80, Measurement.Percentage),
+                Height = new(64),
+                Axis = Axis.Horizontal,
+                AlignContent = AlignContent.center,
+                AlignItems = AlignItems.center
+            };
 
 
+            Style buttonStyle = new Style()
+            {
+                Width = new(32),
+                Height = new(32)
+            };
+           
+            // Create window which is the base container
+            var window = doc.CreateGUIEntity(new () { style = style_window });
 
+            // Create toolbar
+            var toolbar = doc.CreateGUIEntity(new () { parent = window, style = style_toolbar });
+
+            // Create buttons
+            doc.CreateGUIEntity(new () { parent = toolbar, style = buttonStyle });
+            doc.CreateGUIEntity(new () { parent = toolbar, style = buttonStyle });
+            
+            // Do layouting at startup since it doesn't change at runtime
+           // Layouting.LayoutEntity(window, new Constraints(0, 1920, 0, 1080));
+        }
         
         // Create Entities
         {
@@ -171,7 +257,7 @@ internal class Application : Saket.Engine.Application
             camera.camera = world.CreateEntity()
                  .Add(new Transform2D(0, 0,-10))
                  .Add(new MoveTowardsTarget() { moveSpeed = 1, target = entity_player.EntityPointer})
-                 .Add(new CameraOrthographic(16f, rt.AspectRatio, 0.1f, 100f)).EntityPointer;
+                 .Add(new CameraOrthographic(16f, 16f/9f, 0.1f, 100f)).EntityPointer;
             world.SetResource(camera);
 
             var enemy = world.CreateEntity()
@@ -185,13 +271,20 @@ internal class Application : Saket.Engine.Application
                 .Add(new Sprite() { color = Saket.Engine.Graphics.Color.White, spr = 32 })
                 .Add(new RotateTowardsTarget() { rotationSpeed = 5, target = enemy.EntityPointer });
 
+
+            map = new Entity[mapHeight * mapWidth];
+            dirs = new Entity[mapHeight * mapWidth];
             for (int y = 0; y < mapHeight; y++)
             {
                 for (int x = 0; x < mapWidth; x++)
                 {
-                    world.CreateEntity()
-                     .Add(new Transform2D(x, y))
-                     .Add(new Sprite() { color = new Saket.Engine.Graphics.Color(0,40,0), spr = 51 });
+                    map[x+y*mapWidth] = world.CreateEntity()
+                                     .Add(new Transform2D(x, y))
+                                     .Add(new Sprite() { color = new Saket.Engine.Graphics.Color(0,40,0), spr = 51 });
+
+                    dirs[x + y * mapWidth] = world.CreateEntity()
+                                     .Add(new Transform2D(x, y))
+                                     .Add(new Sprite() { color = new Saket.Engine.Graphics.Color(0, 40, 0), spr = 52 });
                 }
             }
         }
@@ -220,8 +313,6 @@ internal class Application : Saket.Engine.Application
             mouseState = new();
             world.SetResource(mouseState);
         }
-
-
 
         {
             /*
@@ -307,7 +398,7 @@ SDLMixer test
             {
                 if (e.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
                 {
-                    graphics.OnRenderTargetSurfaceResized(rt, e.window.data1, e.window.data2);
+                    //graphics.OnRenderTargetSurfaceResized(rt, e.window.data1, e.window.data2);
                     world.GetEntity(camera.camera).Set( new CameraOrthographic(16f, rt.AspectRatio, 0.1f, 100f)) ;
                     windowInfo.width = e.window.data1;
                     windowInfo.height = e.window.data2;
@@ -330,10 +421,41 @@ SDLMixer test
         // Poll graphic events
         graphics.instance.ProcessEvents();
 
+        // Navigation
         if (gameState.IsDirty)
         {
             gameState.heatmap = HeatmapGenerator.GenerateAffectorHeatmap(gameState.mapData, new Saket.Navigation.Affector() { Position = new Vector3(16 / 2, 16 / 2, 0), Main = true });
-            gameState.field = VectorFieldGenerator.GenerateVectorField(gameState.heatmap);
+
+
+
+            float max = gameState.heatmap.Max();   
+            float min = gameState.heatmap.Min();   
+
+
+            for (int y = 0; y < mapHeight; y++)
+            {
+                for (int x = 0; x < mapWidth; x++)
+                {
+                    Sprite spr = map[x + y * mapWidth].Get<Sprite>();
+                    float val = Mathf.Remap(gameState.heatmap[x, y], min, max, 0, 1);
+                    spr.color = new Saket.Engine.Graphics.Color(val, val, val);
+                    map[x + y * mapWidth].Set<Sprite>(spr);
+                }
+            }
+
+
+            gameState.field = VectorFieldGenerator.GenerateVectorFieldA(gameState.heatmap);
+
+            for (int y = 0; y < mapHeight; y++)
+            {
+                for (int x = 0; x < mapWidth; x++)
+                {
+                    Transform2D transform = dirs[x + y * mapWidth].Get<Transform2D>();
+                    transform.rx = MathF.Atan2(gameState.field[x, y].Y, gameState.field[x, y].X);
+                    dirs[x + y * mapWidth].Set(transform);
+                }
+            }
+
             gameState.lastNavVersion = gameState.navVersion;
         }
 
@@ -349,9 +471,6 @@ SDLMixer test
         // TODO, For each Camera
         unsafe
         {
-            // To present frame to the window use the swapchain
-            var swapchain = rt.Swapchain;
-
             var cam = world.GetEntity(camera.camera).Get<CameraOrthographic>();
 
             graphics.SetSystemUniform(new SystemUniform()
@@ -368,12 +487,82 @@ SDLMixer test
             graphics.Clear(textureView, new Saket.Engine.Graphics.Color(0, 40, 0));
 
             spriteRenderer.IterateForRender(world, (f) => { spriteRenderer.SubmitBatch(textureView, shader_sprite.pipeline, atlas); });
+
+            {
+                ImGuiIOPtr io = ImGui.GetIO();
+                io.DisplaySize = new Vector2(1280, 720);
+                io.DisplayFramebufferScale = Vector2.One;
+                io.DeltaTime = (float)DeltaTime;
+                
+                ImGuiImpl.NewFrame();
+                ImGui.NewFrame();
+                //
+
+                ImGui.Begin("a");
+                ImGui.Text("This is some useful text.");
+                ImGui.End();
+               
+
+
+                MouseState MouseState = mouseState;
+                KeyboardState KeyboardState = keyboardState;
+
+                io.MouseDown[0] = MouseState[MouseButton.Left];
+                io.MouseDown[1] = MouseState[MouseButton.Right];
+                io.MouseDown[2] = MouseState[MouseButton.Middle];
+                io.MousePos = new Vector2(MouseState.X, MouseState.Y);
+
+                foreach (Keys key in Enum.GetValues(typeof(Keys)))
+                {
+                    io.AddKeyEvent((ImGuiKey)(key), KeyboardState.IsKeyDown(key));
+                }
+
+                ImGui.Render();
+
+                RenderPassDescriptor renderPassDesc = new()
+                {
+                    ColorAttachments = new RenderPassColorAttachment[]
+                {
+                        new()
+                        {
+                            View = textureView,
+                            ResolveTarget = default,
+                            LoadOp = LoadOp.Load,
+                            StoreOp = StoreOp.Store,
+                        }
+                },
+                    DepthStencilAttachment = null,
+                };
+                // Command Encoder
+                var commandEncoder = graphics.device.CreateCommandEncoder(new() { });
+
+                var RenderPassEncoder = commandEncoder.BeginRenderPass(renderPassDesc);
+                ImGuiImpl.RenderDrawData(ImGui.GetDrawData(), RenderPassEncoder);
+
+                // Finish Rendering
+                RenderPassEncoder.End();
+                var commandBuffer = commandEncoder.Finish(new() { });
+
+                graphics.queue.Submit(commandBuffer);
+            }
+            // Render GUI
+            /* {
+                 graphics.SetSystemUniform(new SystemUniform()
+                 {
+                     projectionMatrix = Matrix4x4.CreateOrthographic(1920,1080,0,10),
+                     viewMatrix = Matrix4x4.Identity,
+                     frame = Frame
+                 });
+
+                 doc.Render(spriteRenderer);
+                 spriteRenderer.SubmitBatch(textureView, shader_sprite.pipeline, atlas);
+             }*/
+
+
+
             //spriteRenderer.Draw(new Sprite(0, 0, Saket.Engine.Graphics.Color.Blue), new Transform2D());
             // spriteRenderer.SubmitBatch(textureView, shader_sprite.pipeline, atlas);
 
-
-            // This is not how you use TextureViewHandle.Release
-            //TextureViewHandle.Release( WebGPUMarshal.GetOwnedHandle(textureView));
 
             // Preset swapchain
             swapchain.Present();
@@ -381,6 +570,9 @@ SDLMixer test
 
     }
 
+
+
+    // only works with windows
     public static Surface? CreateWebGPUSurfaceFromSDLWindow(Instance instance, nint windowHandle)
     {
         unsafe

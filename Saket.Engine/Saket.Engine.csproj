@@ -21,9 +21,8 @@
 	<!-- References -->
 
 	<ItemGroup>
-	
-		
-		<PackageReference Include="StbImageSharp" Version="2.27.12" />
+		<PackageReference Include="ImGui.NET" Version="1.91.0.1" />
+		<PackageReference Include="StbImageSharp" Version="2.27.14" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -34,6 +33,7 @@
 
 	<ItemGroup>
 	  <Folder Include="Audio\" />
+	  <Folder Include="IMGUI\" />
 	  <Folder Include="Platform\" />
 	</ItemGroup>
 

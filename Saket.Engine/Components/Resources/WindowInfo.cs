@@ -10,6 +10,7 @@ namespace Saket.Engine
     {
         public int width;
         public int height;
+        public float AspectRatio => (float)width / (float)height;
         public WindowInfo()
         {
         }

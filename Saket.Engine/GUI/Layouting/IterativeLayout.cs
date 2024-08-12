@@ -6,49 +6,48 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Saket.Engine.GUI.Layouting
+namespace Saket.Engine.GUI.Layouting;
+
+public class IterativeLayout
 {
-    public class IterativeLayout
+    static Query query = new Query().With<(Widget, HierarchyEntity, GUILayout, Style)>();
+
+
+    public void LayoutWorld(World world)
     {
-        static Query query = new Query().With<(Widget, HierarchyEntity, GUILayout, Style)>();
 
 
-        public void LayoutWorld(World world)
+        var entities = world.Query(query);
+
+        bool finished = true;
+
+        do
         {
+            finished = true;
 
 
-            var entities = world.Query(query);
 
-            bool finished = true;
-
-            do
+            foreach (var entitiy in entities)
             {
-                finished = true;
+
+            }
 
 
+            // https://www.rfleury.com/p/ui-part-2-build-it-every-frame-immediate
+            // [Any] Calculate fixed
 
-                foreach (var entitiy in entities)
-                {
+            // [Top down] parent dependent sizing (percentage)
 
-                }
+            // [Bottom up] ( stretch)
 
-
-                // https://www.rfleury.com/p/ui-part-2-build-it-every-frame-immediate
-                // [Any] Calculate fixed
-
-                // [Top down] parent dependent sizing (percentage)
-
-                // [Bottom up] ( stretch)
-
-                // [top down] Solve overflow
+            // [top down] Solve overflow
 
 
 
 
 
 
-            } while (!finished);
+        } while (!finished);
 
-        }
     }
 }

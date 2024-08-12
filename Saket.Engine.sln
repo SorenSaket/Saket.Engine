@@ -19,7 +19,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebGpuSharp", "WebGPUSharp\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDL2-CS", "SDL2-CS\SDL2-CS.csproj", "{13224123-8D1C-44EF-ABB0-357620D941C5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Saket", "Saket\Saket.csproj", "{CF25F746-B0DF-47FC-A003-FAD6E61A9CE0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saket", "Saket\Saket.csproj", "{CF25F746-B0DF-47FC-A003-FAD6E61A9CE0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "TestApp\TestApp.csproj", "{9279E69B-3111-49CD-A7DB-BE4B653AABA4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -76,6 +78,14 @@ Global
 		{CF25F746-B0DF-47FC-A003-FAD6E61A9CE0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CF25F746-B0DF-47FC-A003-FAD6E61A9CE0}.Release|x64.ActiveCfg = Release|Any CPU
 		{CF25F746-B0DF-47FC-A003-FAD6E61A9CE0}.Release|x64.Build.0 = Release|Any CPU
+		{9279E69B-3111-49CD-A7DB-BE4B653AABA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9279E69B-3111-49CD-A7DB-BE4B653AABA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9279E69B-3111-49CD-A7DB-BE4B653AABA4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9279E69B-3111-49CD-A7DB-BE4B653AABA4}.Debug|x64.Build.0 = Debug|Any CPU
+		{9279E69B-3111-49CD-A7DB-BE4B653AABA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9279E69B-3111-49CD-A7DB-BE4B653AABA4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9279E69B-3111-49CD-A7DB-BE4B653AABA4}.Release|x64.ActiveCfg = Release|Any CPU
+		{9279E69B-3111-49CD-A7DB-BE4B653AABA4}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

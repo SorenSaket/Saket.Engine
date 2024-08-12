@@ -5,6 +5,7 @@ using Saket.Engine.Math.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -39,20 +40,18 @@ internal static partial class Systems
         if(!world.TryGetResource(out GameState gameState))
             return;
         
-
-
         QueryResult entities = world.Query(query_enemy);
         foreach (var entity in entities)
         {
             Transform2D transform = entity.Get<Transform2D>();
             Velocity velocity = entity.Get<Velocity>();
 
-            int x = (int)MathF.Round( transform.Position.X);
+            int x = (int)MathF.Round(transform.Position.X);
             int y = (int)MathF.Round(transform.Position.Y);
 
-            if((x >= 0 && x <gameState.mapData.Width ) && 
+            if ((x >= 0 && x < gameState.mapData.Width) &&
                 (y >= 0 && y < gameState.mapData.Height))
-                velocity.Value = gameState.field[x, y];
+                velocity.Value = gameState.field[x, y]; 
 
             entity.Set(velocity);
         }
