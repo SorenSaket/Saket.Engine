@@ -1,109 +1,15 @@
-﻿using ImDrawIdx = ushort; // figure out what size index buffer imgui uses
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+﻿using System;
 using System.Numerics;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System;
 
 using ImGuiNET;
 using WebGpuSharp;
 using WebGpuSharp.FFI;
 
+using ImDrawIdx = ushort; // figure out what size index buffer imgui uses
 
 namespace Saket.Engine.IMGUI;
-
-
-#region Structures
-
-/// <summary>
-/// Initialization data, for ImGui_ImplWGPU_Init()
-/// </summary>
-public struct ImGui_ImplWGPU_InitInfo
-{
-    public required Device device;
-    public uint num_frames_in_flight;
-    public TextureFormat rt_format;
-    public TextureFormat depth_format;
-    public MultisampleState PipelineMultisampleState;
-
-    public ImGui_ImplWGPU_InitInfo()
-    {
-        num_frames_in_flight = 3;
-        rt_format = TextureFormat.Undefined;
-        depth_format = TextureFormat.Undefined;
-        PipelineMultisampleState.Count = 1;
-        PipelineMultisampleState.Mask = uint.MaxValue;
-        PipelineMultisampleState.AlphaToCoverageEnabled = false;
-    }
-};
-
-/// <summary>
-/// A structure containing all data used internally for the renderer/WebGPU implementation. 
-/// These are mostly WebGPU Resources.
-/// </summary>
-internal struct RenderResources
-{
-    // Font texture
-    public Texture FontTexture;
-    // Texture view for font texture
-    public TextureView FontTextureView;
-    // Sampler for the font texture
-    public Sampler FontTextureSampler;
-    // Shader uniforms
-    public WebGpuSharp.Buffer Uniforms;
-    // Resources bind-group to bind the common resources to pipeline
-    public BindGroup CommonBindGroup;
-    // Resources bind-group to bind the font/image resources to pipeline (this is a key->value map)
-    public Dictionary<int, BindGroup> ImageBindGroups;
-    // Default fonImGuiStoraget-resource of Dear ImGui
-    public BindGroup ImageBindGroup;
-    // Cache layout used for the image bind group. Avoids allocating unnecessary JS objects when working with WebASM
-    public BindGroupLayout ImageBindGroupLayout;
-};
-
-/// <summary>
-/// A structure contraining frame specific data.
-/// </summary>
-public struct FrameResources
-{
-    public WebGpuSharp.Buffer IndexBuffer;
-    public WebGpuSharp.Buffer VertexBuffer;
-    public ImDrawIdx[] IndexBufferHost;
-    public ImDrawVert[] VertexBufferHost;
-    public int IndexBufferSize;
-    public int VertexBufferSize;
-};
-
-/// <summary>
-/// A structure containing all data for the Implementation per IMGUI context
-/// </summary>
-internal struct ImGui_ImplWGPU_Data
-{
-    public ImGui_ImplWGPU_InitInfo InitInfo;
-    public Device device;
-    public Queue defaultQueue;
-    public TextureFormat renderTargetFormat;
-    public TextureFormat depthStencilFormat;
-
-    public RenderPipeline pipeline;
-
-    public RenderResources renderResources;
-    public FrameResources[] pFrameResources;
-    public uint numFramesInFlight;
-    public uint frameIndex;
-
-};
-
-/// <summary>
-/// Uniform structure
-/// </summary>
-internal struct Uniforms
-{
-    public Matrix4x4 MVP;
-    public float Gamma;
-}
-
-#endregion
 
 delegate void UserCallbackDelegate(ImDrawListPtr parent_list, ImDrawCmdPtr cmd);
 
@@ -113,6 +19,98 @@ delegate void UserCallbackDelegate(ImDrawListPtr parent_list, ImDrawCmdPtr cmd);
 /// </summary>
 public class ImGui_Impl_WebGPUSharp : IDisposable
 {
+    #region Structures
+
+    /// <summary>
+    /// Initialization data, for ImGui_ImplWGPU_Init()
+    /// </summary>
+    public struct ImGui_ImplWGPU_InitInfo
+    {
+        public required Device device;
+        public uint num_frames_in_flight;
+        public TextureFormat rt_format;
+        public TextureFormat depth_format;
+        public MultisampleState PipelineMultisampleState;
+
+        public ImGui_ImplWGPU_InitInfo()
+        {
+            num_frames_in_flight = 3;
+            rt_format = TextureFormat.Undefined;
+            depth_format = TextureFormat.Undefined;
+            PipelineMultisampleState.Count = 1;
+            PipelineMultisampleState.Mask = uint.MaxValue;
+            PipelineMultisampleState.AlphaToCoverageEnabled = false;
+        }
+    };
+
+    /// <summary>
+    /// A structure containing all data used internally for the renderer/WebGPU implementation. 
+    /// These are mostly WebGPU Resources.
+    /// </summary>
+    internal struct RenderResources
+    {
+        // Font texture
+        public Texture FontTexture;
+        // Texture view for font texture
+        public TextureView FontTextureView;
+        // Sampler for the font texture
+        public Sampler FontTextureSampler;
+        // Shader uniforms
+        public WebGpuSharp.Buffer Uniforms;
+        // Resources bind-group to bind the common resources to pipeline
+        public BindGroup CommonBindGroup;
+        // Resources bind-group to bind the font/image resources to pipeline (this is a key->value map)
+        public Dictionary<int, BindGroup> ImageBindGroups;
+        // Default fonImGuiStoraget-resource of Dear ImGui
+        public BindGroup ImageBindGroup;
+        // Cache layout used for the image bind group. Avoids allocating unnecessary JS objects when working with WebASM
+        public BindGroupLayout ImageBindGroupLayout;
+    };
+
+    /// <summary>
+    /// A structure contraining frame specific data.
+    /// </summary>
+    public struct FrameResources
+    {
+        public WebGpuSharp.Buffer IndexBuffer;
+        public WebGpuSharp.Buffer VertexBuffer;
+        public ImDrawIdx[] IndexBufferHost;
+        public ImDrawVert[] VertexBufferHost;
+        public int IndexBufferSize;
+        public int VertexBufferSize;
+    };
+
+    /// <summary>
+    /// A structure containing all data for the Implementation per IMGUI context
+    /// </summary>
+    internal struct ImGui_ImplWGPU_Data
+    {
+        public ImGui_ImplWGPU_InitInfo InitInfo;
+        public Device device;
+        public Queue defaultQueue;
+        public TextureFormat renderTargetFormat;
+        public TextureFormat depthStencilFormat;
+
+        public RenderPipeline pipeline;
+
+        public RenderResources renderResources;
+        public FrameResources[] pFrameResources;
+        public uint numFramesInFlight;
+        public uint frameIndex;
+
+    };
+
+    /// <summary>
+    /// Uniform structure
+    /// </summary>
+    internal struct Uniforms
+    {
+        public Matrix4x4 MVP;
+        public float Gamma;
+    }
+
+    #endregion
+
     #region Shaders
     private const string __shader_vert_wgsl = @"
 struct VertexInput
@@ -180,7 +178,7 @@ fn main(in: VertexInput) -> VertexOutput {
     // Backend data stored in io.BackendRendererUserData to allow support for multiple Dear ImGui contexts
     // It is STRONGLY preferred that you use docking branch with multi-viewports (== single Dear ImGui context + multiple windows) instead of multiple Dear ImGui contexts.
     unsafe static ref ImGui_ImplWGPU_Data GetBackendData()
-    {
+    {   // TODO  implement this to support multi viewport. Current problem is suspected GC collection
         return ref data; // Unsafe.AsRef<ImGui_ImplWGPU_Data>((void*)ImGui.GetIO().BackendRendererUserData);
     }
     internal static T MEMALIGN<T>(T size, T align) where T : IBinaryInteger<T>
@@ -192,8 +190,8 @@ fn main(in: VertexInput) -> VertexOutput {
 
     #region Variables
     private bool disposedValue;
-
-    private static ImGui_ImplWGPU_Data data;
+ 
+    private static ImGui_ImplWGPU_Data data; // Workaround
     #endregion
 
     /// <summary>
@@ -240,7 +238,6 @@ fn main(in: VertexInput) -> VertexOutput {
             fr.VertexBufferSize = 5000;
         }
 
-        CreateDeviceObjects();
     }
 
     #region Setup
@@ -255,11 +252,11 @@ fn main(in: VertexInput) -> VertexOutput {
             return false;
 
         BindGroupLayout[] bindGroupLayouts = new BindGroupLayout[2];
+        
         // Create render pipeline
         {
             // Pipeline
             PipelineLayout layout;
-
             {
                 BindGroupLayout BindGroupLayoutCommon = bindGroupLayouts[0] = bd.device.CreateBindGroupLayout(new BindGroupLayoutDescriptor()
                 {
@@ -277,7 +274,7 @@ fn main(in: VertexInput) -> VertexOutput {
                             Visibility = ShaderStage.Fragment,
                             Sampler = new(SamplerBindingType.Filtering)
                         }
-              ]
+                    ]
                 })!;
 
                 BindGroupLayout BindGroupLayoutImage = bindGroupLayouts[1] = bd.device.CreateBindGroupLayout(new BindGroupLayoutDescriptor()
@@ -309,44 +306,38 @@ fn main(in: VertexInput) -> VertexOutput {
             VertexState vertexState;
             {
                 var vertexDescriptor = new ShaderModuleWGSLDescriptor() { Code = __shader_vert_wgsl };
-                ShaderModule shaderModule = bd.device.CreateShaderModule(new ShaderModuleDescriptor(ref vertexDescriptor))!;
-
-                // Vertex input configuration
-
-                VertexBufferLayoutList vertexBufferLayouts =
-                [
-                    new()
-                    {
-                        ArrayStride = (ulong)Marshal.SizeOf<ImGuiNET.ImDrawVert>(),
-                        StepMode = VertexStepMode.Vertex,
-                        Attributes =
-                        [
-                            new()
-                            {
-                                Format = VertexFormat.Float32x2,
-                                Offset = (ulong)Marshal.OffsetOf<ImGuiNET.ImDrawVert>("pos"), // TODO fix: Causes GC
-                                ShaderLocation = 0,
-                            },
-                            new()
-                            {
-                                Format = VertexFormat.Float32x2,
-                                Offset = (ulong)Marshal.OffsetOf<ImGuiNET.ImDrawVert>("uv"),
-                                ShaderLocation = 1,
-                            },
-                            new()
-                            {
-                                Format = VertexFormat.Unorm8x4,
-                                Offset = (ulong)Marshal.OffsetOf<ImGuiNET.ImDrawVert>("col"),
-                                ShaderLocation = 2,
-                            }
-                        ]
-                    },
-                ];
 
                 vertexState = new VertexState()
                 {
-                    Module = shaderModule,
-                    Buffers = vertexBufferLayouts,
+                    Module = bd.device.CreateShaderModule(new ShaderModuleDescriptor(ref vertexDescriptor))!,
+                    Buffers = [
+                         new()
+                         {
+                             ArrayStride = (ulong)Marshal.SizeOf<ImGuiNET.ImDrawVert>(),
+                             StepMode = VertexStepMode.Vertex,
+                             Attributes =
+                            [
+                                new()
+                                {
+                                    Format = VertexFormat.Float32x2,
+                                    Offset = (ulong)Marshal.OffsetOf<ImGuiNET.ImDrawVert>("pos"), // TODO fix: Causes GC
+                                    ShaderLocation = 0,
+                                },
+                                new()
+                                {
+                                    Format = VertexFormat.Float32x2,
+                                    Offset = (ulong)Marshal.OffsetOf<ImGuiNET.ImDrawVert>("uv"),
+                                    ShaderLocation = 1,
+                                },
+                                new()
+                                {
+                                    Format = VertexFormat.Unorm8x4,
+                                    Offset = (ulong)Marshal.OffsetOf<ImGuiNET.ImDrawVert>("col"),
+                                    ShaderLocation = 2,
+                                }
+                            ]
+                         },
+                    ],
                 };
             }
 
@@ -354,27 +345,23 @@ fn main(in: VertexInput) -> VertexOutput {
             FragmentState fragmentState;
             {
                 var fragmentDescriptor = new ShaderModuleWGSLDescriptor() { Code = __shader_frag_wgsl };
-                ShaderModule shaderModule = bd.device.CreateShaderModule(new ShaderModuleDescriptor(ref fragmentDescriptor))!;
-
-                var colorState = new ColorTargetStateList
-                {
-                    new ColorTargetState()
-                    {
-                        Format = bd.renderTargetFormat,
-                        Blend = new BlendState()
-                        {
-                            Alpha = new(BlendOperation.Add, BlendFactor.One, BlendFactor.OneMinusSrcAlpha),
-                            Color = new(BlendOperation.Add, BlendFactor.SrcAlpha, BlendFactor.OneMinusSrcAlpha)
-                        },
-                        WriteMask = ColorWriteMask.All
-                    }
-                };
-
-
+                
                 fragmentState = new FragmentState()
                 {
-                    Module = shaderModule,
-                    Targets = colorState,
+                    Module = bd.device.CreateShaderModule(new ShaderModuleDescriptor(ref fragmentDescriptor))!,
+                    Targets =
+                    [
+                        new ColorTargetState()
+                        {
+                            Format = bd.renderTargetFormat,
+                            Blend = new BlendState()
+                            {
+                                Alpha = new(BlendOperation.Add, BlendFactor.One, BlendFactor.OneMinusSrcAlpha),
+                                Color = new(BlendOperation.Add, BlendFactor.SrcAlpha, BlendFactor.OneMinusSrcAlpha)
+                            },
+                            WriteMask = ColorWriteMask.All
+                        }
+                    ],
                 };
             }
 

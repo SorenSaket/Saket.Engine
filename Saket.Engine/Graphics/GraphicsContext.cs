@@ -171,14 +171,56 @@ namespace Saket.Engine.Graphics
 
         }
 
-
         public void SetSystemUniform(SystemUniform uniform)
         {
             queue.WriteBuffer(systemBuffer, 0, stackalloc SystemUniform[] { uniform });
         }
 
+        public static Tuple<Texture, TextureView, Sampler> CreateDeapthTexture(Device device, uint width, uint height, TextureFormat format, string label)
+        {
+            TextureDescriptor texturedescriptor = new()
+            {
+                Label = label,
+                Dimension = TextureDimension.D2,
+                Size = new Extent3D(width, height, 1),
+                SampleCount = 1,
+                Format = format,
+                MipLevelCount = 1,
+                Usage = TextureUsage.RenderAttachment | TextureUsage.TextureBinding,
+            };
+            Texture gputex = device.CreateTexture(texturedescriptor)!;
 
+            TextureViewDescriptor textureViewDescriptor = new()
+            {
+                Label = label + " TextureView",
+                Format = format,
+                Dimension = TextureViewDimension.D2,
+                BaseMipLevel = 0,
+                MipLevelCount = 1,
+                BaseArrayLayer = 0,
+                ArrayLayerCount = 1,
+                Aspect = TextureAspect.All,
+            };
+            TextureView gputexview = gputex.CreateView(textureViewDescriptor)!;
+
+            SamplerDescriptor descriptor_sampler = new()
+            {
+                AddressModeU = AddressMode.ClampToEdge,
+                AddressModeV = AddressMode.ClampToEdge,
+                AddressModeW = AddressMode.ClampToEdge,
+                MagFilter = FilterMode.Linear,
+                MinFilter = FilterMode.Linear,
+                MipmapFilter = MipmapFilterMode.Nearest,
+                Compare = CompareFunction.LessEqual,
+                LodMinClamp = 0,
+                LodMaxClamp = 100,
+            };
+            Sampler sampler = device.CreateSampler(descriptor_sampler)!;
+
+            return new Tuple<Texture, TextureView, Sampler>(gputex, gputexview, sampler);
+        }
     }
+
 
     [StructLayout(LayoutKind.Explicit, Size = 144)]
     public struct SystemUniform

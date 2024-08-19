@@ -23,20 +23,20 @@ namespace Saket.Engine.Input
         }
         
         public void SetKeyboardState(Span<byte> state)
-        {
+        {// Todo make only one copy by switching buffers
             // Save the current state as the old state
             pressedKeys.CopyTo(lastKeys.AsSpan());
             // Set the new state
             state.CopyTo(pressedKeys.AsSpan());
         }
 
-        public bool IsKeyDown(Keys keyCode)
+        public bool IsKeyDown(Keys key)
         {
-            return pressedKeys[(int)keyCode] == 1;
+            return pressedKeys[(int)key] == 1;
         }
-        public bool IsKeyDown(int keyCode)
+        public bool IsKeyDown(int key)
         {
-            return pressedKeys[keyCode] == 1;
+            return pressedKeys[key] == 1;
         }
 
         public ButtonState GetButtonState(int index)

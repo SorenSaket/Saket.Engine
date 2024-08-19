@@ -11,6 +11,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AssimpNet" Version="4.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Saket.Engine\Saket.Engine.csproj" />
     <ProjectReference Include="..\SDL2-CS\SDL2-CS.csproj" />
   </ItemGroup>

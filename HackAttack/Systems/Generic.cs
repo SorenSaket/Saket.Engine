@@ -12,7 +12,6 @@ namespace HackAttack;
 
 internal static partial class Systems
 {
-    static Query query_camera = new Query().With<(CameraOrthographic, Transform2D)>();
 
     static Query query_VelocityTransform = new Query().With<(Velocity, Transform2D)>();
 

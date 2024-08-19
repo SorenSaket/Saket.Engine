@@ -113,6 +113,11 @@ public class MouseState
         Position = new Vector2(x, y);
     }
 
+    public void SetScroll(float x, float y)
+    {
+        PreviousScroll = Scroll;
+        Scroll = new Vector2(x, y);
+    }
 
 
     #region 

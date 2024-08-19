@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,6 +11,7 @@ namespace Saket.Engine
     {
         public int width;
         public int height;
+        public Vector2 Size => new Vector2(width, height);
         public float AspectRatio => (float)width / (float)height;
         public WindowInfo()
         {

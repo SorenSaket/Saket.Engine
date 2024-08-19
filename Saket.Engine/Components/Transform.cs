@@ -17,5 +17,15 @@ namespace Saket.Engine
         public Quaternion Rotation;
         [FieldOffset(96)]
         public Vector3 Scale;
+
+        public Transform()
+        {
+            Scale = Vector3.One;
+        }
+
+        public Matrix4x4 TRS()
+        {
+            return Matrix4x4.CreateTranslation(Position) * Matrix4x4.CreateFromQuaternion(Rotation) * Matrix4x4.CreateScale(Scale);
+        }
     }
 }
