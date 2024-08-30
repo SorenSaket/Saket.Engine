@@ -23,9 +23,9 @@ namespace Saket.Engine
             Scale = Vector3.One;
         }
 
-        public Matrix4x4 TRS()
+        public readonly Matrix4x4 TRS()
         {
-            return Matrix4x4.CreateTranslation(Position) * Matrix4x4.CreateFromQuaternion(Rotation) * Matrix4x4.CreateScale(Scale);
+            return Matrix4x4.CreateScale(Scale) * Matrix4x4.CreateFromQuaternion(Rotation) * Matrix4x4.CreateTranslation(Position);
         }
     }
 }

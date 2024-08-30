@@ -190,7 +190,7 @@ fn main(in: VertexInput) -> VertexOutput {
 
     #region Variables
     private bool disposedValue;
- 
+
     private static ImGui_ImplWGPU_Data data; // Workaround
     #endregion
 
@@ -251,52 +251,49 @@ fn main(in: VertexInput) -> VertexOutput {
         if (bd.device == null)
             return false;
 
-        BindGroupLayout[] bindGroupLayouts = new BindGroupLayout[2];
-        
+        BindGroupLayout[] bindGroupLayouts;
+
         // Create render pipeline
         {
             // Pipeline
             PipelineLayout layout;
             {
-                BindGroupLayout BindGroupLayoutCommon = bindGroupLayouts[0] = bd.device.CreateBindGroupLayout(new BindGroupLayoutDescriptor()
-                {
-                    Label = "Bind Group Layout Common",
-                    Entries = [
-                      new BindGroupLayoutEntry()
-                      {
-                          Binding = 0,
-                          Visibility = ShaderStage.Vertex | ShaderStage.Fragment,
-                          Buffer = new(BufferBindingType.Uniform),
-                      },
-                        new BindGroupLayoutEntry()
-                        {
-                            Binding = 1,
-                            Visibility = ShaderStage.Fragment,
-                            Sampler = new(SamplerBindingType.Filtering)
-                        }
-                    ]
-                })!;
-
-                BindGroupLayout BindGroupLayoutImage = bindGroupLayouts[1] = bd.device.CreateBindGroupLayout(new BindGroupLayoutDescriptor()
-                {
-                    Label = "Bind Group Layout Image",
-                    Entries = [
-                        new BindGroupLayoutEntry()
-                        {
-                            Binding = 0,
-                            Visibility = ShaderStage.Fragment,
-                            Texture = new TextureBindingLayout(TextureSampleType.Float, TextureViewDimension.D2)
-                        },
-                    ]
-                })!;
-
                 var descriptor = new PipelineLayoutDescriptor()
                 {
-                    BindGroupLayouts = new BindGroupLayout[]
-                    {
-                        BindGroupLayoutCommon,
-                        BindGroupLayoutImage,
-                    }
+                    BindGroupLayouts = bindGroupLayouts =
+                    [
+                        bd.device.CreateBindGroupLayout(new ()
+                        {
+                            Label = "Bind Group Layout Common",
+                            Entries = [
+                                  new ()
+                                  {
+                                      Binding = 0,
+                                      Visibility = ShaderStage.Vertex | ShaderStage.Fragment,
+                                      Buffer = new(BufferBindingType.Uniform),
+                                  },
+                                new ()
+                                {
+                                    Binding = 1,
+                                    Visibility = ShaderStage.Fragment,
+                                    Sampler = new(SamplerBindingType.Filtering)
+                                }
+                            ]
+                        })!,
+                        bd.device.CreateBindGroupLayout(new ()
+                        {
+                            Label = "Bind Group Layout Image",
+                            Entries = [
+                                new ()
+                                {
+                                    Binding = 0,
+                                    Visibility = ShaderStage.Fragment,
+                                    Texture = new TextureBindingLayout(TextureSampleType.Float, TextureViewDimension.D2)
+                                },
+                            ]
+                        })!
+                    ]
+
                 };
 
                 layout = bd.device.CreatePipelineLayout(descriptor)!;
@@ -305,7 +302,7 @@ fn main(in: VertexInput) -> VertexOutput {
             // Vertex shader
             VertexState vertexState;
             {
-                var vertexDescriptor = new ShaderModuleWGSLDescriptor() { Code = __shader_vert_wgsl };
+                ShaderModuleWGSLDescriptor vertexDescriptor = new() { Code = __shader_vert_wgsl };
 
                 vertexState = new VertexState()
                 {
@@ -344,8 +341,8 @@ fn main(in: VertexInput) -> VertexOutput {
             // Fragment Shader
             FragmentState fragmentState;
             {
-                var fragmentDescriptor = new ShaderModuleWGSLDescriptor() { Code = __shader_frag_wgsl };
-                
+                ShaderModuleWGSLDescriptor fragmentDescriptor = new() { Code = __shader_frag_wgsl };
+
                 fragmentState = new FragmentState()
                 {
                     Module = bd.device.CreateShaderModule(new ShaderModuleDescriptor(ref fragmentDescriptor))!,
@@ -515,7 +512,7 @@ fn main(in: VertexInput) -> VertexOutput {
         // Create the associated sampler
         // (Bilinear sampling is required by default. Set 'io.Fonts->Flags |= ImFontAtlasFlags_NoBakedLines' or 'style.AntiAliasedLinesUseTex = false' to allow point/nearest sampling)
         {
-            SamplerDescriptor descriptor = new ()
+            SamplerDescriptor descriptor = new()
             {
                 MinFilter = FilterMode.Linear,
                 MagFilter = FilterMode.Linear,
@@ -540,7 +537,7 @@ fn main(in: VertexInput) -> VertexOutput {
         BufferDescriptor bufferDescriptor = new()
         {
             Label = "Dear ImGui Uniform Buffer",
-            Size = (ulong)MEMALIGN(Marshal.SizeOf<Uniforms>(),16),
+            Size = (ulong)MEMALIGN(Marshal.SizeOf<Uniforms>(), 16),
             Usage = BufferUsage.CopyDst | BufferUsage.Uniform,
             MappedAtCreation = false,
         };
@@ -577,7 +574,7 @@ fn main(in: VertexInput) -> VertexOutput {
     public static void SetupRenderState(ImDrawDataPtr drawDataPtr, RenderPassEncoder ctx, in FrameResources frameResources)
     {
         ref ImGui_ImplWGPU_Data bd = ref GetBackendData();
-        
+
         // Setup orthographic projection matrix into our constant buffer
         // Our visible imgui space lies from draw_data->DisplayPos (top left) to draw_data->DisplayPos+data_data->DisplaySize (bottom right).
         {
@@ -588,7 +585,7 @@ fn main(in: VertexInput) -> VertexOutput {
             float B = drawDataPtr.DisplayPos.Y + drawDataPtr.DisplaySize.Y;
             //TODO validate matrix 
             // use Matrix4x4.CreateOrthographicOffCenter
-            Matrix4x4 mvp = new (
+            Matrix4x4 mvp = new(
                 2.0f / (R - L), 0.0f, 0.0f, 0.0f,
                 0.0f, 2.0f / (T - B), 0.0f, 0.0f,
                 0.0f, 0.0f, 0.5f, 0.0f,
@@ -687,7 +684,7 @@ fn main(in: VertexInput) -> VertexOutput {
                     MappedAtCreation = false,
                 };
                 fr.VertexBuffer = bd.device.CreateBuffer(vb_descriptor)!;
-                
+
                 fr.VertexBufferHost = new ImDrawVert[fr.VertexBufferSize];
 
 
@@ -704,7 +701,7 @@ fn main(in: VertexInput) -> VertexOutput {
                     MappedAtCreation = false,
                 };
                 fr.IndexBuffer = bd.device.CreateBuffer(ib_desc)!;
-                
+
                 fr.IndexBufferHost = new ImDrawIdx[fr.IndexBufferSize];
             }
         }
@@ -730,7 +727,7 @@ fn main(in: VertexInput) -> VertexOutput {
                 idx_count += cmd_list.IdxBuffer.Size;
             }
             bd.defaultQueue.WriteBuffer(fr.VertexBuffer, 0, vtx_dst[..MEMALIGN(vtx_count, 4)]);
-            bd.defaultQueue.WriteBuffer(fr.IndexBuffer, 0,  idx_dst[..MEMALIGN(idx_count, 4)]);
+            bd.defaultQueue.WriteBuffer(fr.IndexBuffer, 0, idx_dst[..MEMALIGN(idx_count, 4)]);
         }
 
         // Setup desired render state
@@ -781,7 +778,7 @@ fn main(in: VertexInput) -> VertexOutput {
                             BindGroup image_bind_group = ImGui_ImplWGPU_CreateImageBindGroup(bd.renderResources.ImageBindGroupLayout, tex);
 
                             bd.renderResources.ImageBindGroups.Add(tex_id_hash, image_bind_group);
-                            
+
                             renderPassEncoder.SetBindGroup(1, image_bind_group);
                         }
 
@@ -807,7 +804,7 @@ fn main(in: VertexInput) -> VertexOutput {
             }
         }
     }
-   
+
     /// <summary>
     /// reevaluaate the need for this
     /// </summary>
@@ -817,7 +814,7 @@ fn main(in: VertexInput) -> VertexOutput {
         if (bd.pipeline == null)
             CreateDeviceObjects();
     }
-    
+
     #region Disposal
 
     protected virtual void Dispose(bool disposing)
