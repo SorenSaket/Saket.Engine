@@ -18,9 +18,21 @@ namespace Saket.Engine
         [FieldOffset(96)]
         public Vector3 Scale;
 
+
+
+
         public Transform()
         {
+            Position = new Vector3();
             Scale = Vector3.One;
+            Rotation = Quaternion.Identity;
+        }
+
+        public Transform(Vector3 position, Quaternion rotation, Vector3 scale)
+        {
+            Position = position;
+            Rotation = rotation;
+            Scale = scale;
         }
 
         public readonly Matrix4x4 TRS()

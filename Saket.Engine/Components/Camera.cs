@@ -25,10 +25,11 @@ namespace Saket.Engine
                 if (entity.Has<Transform>())
                 {
                     var transform = entity.Get<Transform>();
-                    camera.viewMatrix =  Matrix4x4.CreateTranslation(transform.Position); // Matrix4x4.CreateFromQuaternion(transform.Rotation) *
+                    camera.UpdateView(transform);
                 }
 
                 camera.UpdateProjection(aspectRatio);
+
                 entity.Set(camera);
             }
         }
@@ -126,10 +127,13 @@ namespace Saket.Engine
             this.projectionMatrix = Matrix4x4.Identity;
         }
 
+     
 
         public void UpdateView(Transform transform)
         {
             viewMatrix = Matrix4x4.CreateScale(transform.Scale) * Matrix4x4.CreateFromQuaternion(transform.Rotation) * Matrix4x4.CreateTranslation(transform.Position);
+
+            Matrix4x4.Invert(viewMatrix, out viewMatrix);
         }
 
         public void UpdateProjection(float screenAspectRatio)
