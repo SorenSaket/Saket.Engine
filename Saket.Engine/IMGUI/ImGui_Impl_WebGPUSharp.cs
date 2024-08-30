@@ -60,7 +60,7 @@ public class ImGui_Impl_WebGPUSharp : IDisposable
         // Resources bind-group to bind the common resources to pipeline
         public BindGroup CommonBindGroup;
         // Resources bind-group to bind the font/image resources to pipeline (this is a key->value map)
-        public Dictionary<int, BindGroup> ImageBindGroups;
+        public Dictionary<nint, BindGroup> ImageBindGroups;
         // Default fonImGuiStoraget-resource of Dear ImGui
         public BindGroup ImageBindGroup;
         // Cache layout used for the image bind group. Avoids allocating unnecessary JS objects when working with WebASM
@@ -437,9 +437,12 @@ fn main(in: VertexInput) -> VertexOutput {
 
                 bd.renderResources.ImageBindGroup = ImGui_ImplWGPU_CreateImageBindGroup(bindGroupLayouts[1], bd.renderResources.FontTextureView);
                 bd.renderResources.ImageBindGroupLayout = bindGroupLayouts[1];
+
+
+                nint key = unchecked((nint)WebGPUMarshal.GetBorrowHandle(bd.renderResources.FontTextureView).GetAddress());
                 bd.renderResources.ImageBindGroups = new()
                 {
-                    { bd.renderResources.FontTextureView.GetHashCode(), bd.renderResources.ImageBindGroup }
+                    {key, bd.renderResources.ImageBindGroup }
                 };
             }
         }
@@ -526,7 +529,9 @@ fn main(in: VertexInput) -> VertexOutput {
             bd.renderResources.FontTextureSampler = bd.device.CreateSampler(ref descriptor)!;
         }
         // easier way to do this??
-        io.Fonts.SetTexID(bd.renderResources.FontTextureView.GetHashCode());
+
+        nint key = unchecked((nint)WebGPUMarshal.GetBorrowHandle(bd.renderResources.FontTextureView).GetAddress());
+        io.Fonts.SetTexID(key);
 
         io.Fonts.ClearTexData();
     }
@@ -763,10 +768,10 @@ fn main(in: VertexInput) -> VertexOutput {
                     else
                     {
                         // Bind custom texture
-                        nint tex_id = pcmd.GetTexID();
-                        int tex_id_hash = tex_id.GetHashCode();
+                        IntPtr tex_id = pcmd.GetTexID();
+                        UIntPtr u = unchecked((nuint)tex_id);
 
-                        BindGroup bind_group = bd.renderResources.ImageBindGroups[tex_id_hash];
+                        bd.renderResources.ImageBindGroups.TryGetValue(tex_id, out BindGroup? bind_group);
 
                         if (bind_group != null)
                         {
@@ -774,10 +779,10 @@ fn main(in: VertexInput) -> VertexOutput {
                         }
                         else
                         {
-                            TextureView tex = new TextureViewHandle((nuint)tex_id).ToSafeHandle(false)!;
+                            TextureView tex = new TextureViewHandle(u).ToSafeHandle(false)!;
                             BindGroup image_bind_group = ImGui_ImplWGPU_CreateImageBindGroup(bd.renderResources.ImageBindGroupLayout, tex);
 
-                            bd.renderResources.ImageBindGroups.Add(tex_id_hash, image_bind_group);
+                            bd.renderResources.ImageBindGroups.Add(tex_id, image_bind_group);
 
                             renderPassEncoder.SetBindGroup(1, image_bind_group);
                         }
