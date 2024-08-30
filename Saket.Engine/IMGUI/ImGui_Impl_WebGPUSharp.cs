@@ -186,6 +186,11 @@ fn main(in: VertexInput) -> VertexOutput {
         return (size + (align - T.One)) & ~(align - T.One);
     }
 
+    public static nint GetTextureViewID(TextureView view)
+    {
+        return unchecked((nint)WebGPUMarshal.GetBorrowHandle(view).GetAddress());
+    }
+
     #endregion
 
     #region Variables
@@ -438,11 +443,9 @@ fn main(in: VertexInput) -> VertexOutput {
                 bd.renderResources.ImageBindGroup = ImGui_ImplWGPU_CreateImageBindGroup(bindGroupLayouts[1], bd.renderResources.FontTextureView);
                 bd.renderResources.ImageBindGroupLayout = bindGroupLayouts[1];
 
-
-                nint key = unchecked((nint)WebGPUMarshal.GetBorrowHandle(bd.renderResources.FontTextureView).GetAddress());
                 bd.renderResources.ImageBindGroups = new()
                 {
-                    {key, bd.renderResources.ImageBindGroup }
+                    {GetTextureViewID(bd.renderResources.FontTextureView), bd.renderResources.ImageBindGroup }
                 };
             }
         }
@@ -528,10 +531,7 @@ fn main(in: VertexInput) -> VertexOutput {
 
             bd.renderResources.FontTextureSampler = bd.device.CreateSampler(ref descriptor)!;
         }
-        // easier way to do this??
-
-        nint key = unchecked((nint)WebGPUMarshal.GetBorrowHandle(bd.renderResources.FontTextureView).GetAddress());
-        io.Fonts.SetTexID(key);
+        io.Fonts.SetTexID(GetTextureViewID(bd.renderResources.FontTextureView));
 
         io.Fonts.ClearTexData();
     }
@@ -596,7 +596,6 @@ fn main(in: VertexInput) -> VertexOutput {
                 0.0f, 0.0f, 0.5f, 0.0f,
                 (R + L) / (L - R), (T + B) / (B - T), 0.5f, 1.0f
             );
-            bd.defaultQueue.WriteBuffer(bd.renderResources.Uniforms, (ulong)Marshal.OffsetOf<Uniforms>("MVP"), mvp);
 
             // Upload Gamma
             float gamma;
@@ -630,7 +629,8 @@ fn main(in: VertexInput) -> VertexOutput {
                     gamma = 1.0f;
                     break;
             }
-            bd.defaultQueue.WriteBuffer(bd.renderResources.Uniforms, (ulong)Marshal.OffsetOf<Uniforms>("Gamma"), gamma);
+
+            bd.defaultQueue.WriteBuffer(bd.renderResources.Uniforms, 0, new Uniforms() { MVP = mvp, Gamma = gamma});
         }
 
         // Setup viewport

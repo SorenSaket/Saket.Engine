@@ -98,7 +98,7 @@ namespace Saket.Engine.Graphics
             // Create system uniform bindgroup
             {
                 // This buffer contains only the SystemUniform
-                ulong size = (ulong)Marshal.SizeOf<SystemUniform>();
+                ulong size = Extensions_Math.RoundUpToNextMultiple<ulong>((ulong) Marshal.SizeOf<SystemUniform>(),16);
 
                 systemBuffer = device.CreateBuffer(new BufferDescriptor()
                 {
@@ -139,7 +139,6 @@ namespace Saket.Engine.Graphics
 
         public void Clear(TextureView target, Saket.Engine.Graphics.Color clearColor)
         {
-
             RenderPassDescriptor renderPassDesc = new()
             {
                 ColorAttachments = [
@@ -165,15 +164,11 @@ namespace Saket.Engine.Graphics
             var commandBuffer = commandEncoder.Finish(new() { })!;
 
             queue.Submit(commandBuffer);
-
-            // wgpu.RenderPassEncoderRelease(RenderPassEncoder);
-            // wgpu.CommandEncoderRelease(commandEncoder);
-
         }
 
         public void SetSystemUniform(SystemUniform uniform)
         {
-            queue.WriteBuffer(systemBuffer, 0, stackalloc SystemUniform[] { uniform });
+            queue.WriteBuffer(systemBuffer, 0, uniform);
         }
 
         public static Tuple<Texture, TextureView, Sampler> CreateDeapthTexture(Device device, uint width, uint height, TextureFormat format, string label)
@@ -222,14 +217,19 @@ namespace Saket.Engine.Graphics
     }
 
 
-    [StructLayout(LayoutKind.Explicit, Size = 144)]
+    [StructLayout(LayoutKind.Sequential)]
     public struct SystemUniform
     {
-        [FieldOffset(0)]
+        public Matrix4x4 viewProjectionMatrix;
         public Matrix4x4 projectionMatrix;
-        [FieldOffset(64)]
         public Matrix4x4 viewMatrix;
-        [FieldOffset(128)]
+
+        public Matrix4x4 inverseViewProjectionMatrix;
+        public Matrix4x4 inverseProjectionMatrix;
+        public Matrix4x4 inverseViewMatrix;
+
+        public float Time;
+        public float DeltaTime;
         public UInt32 frame;
     }
 }
