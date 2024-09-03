@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 using WebGpuSharp.FFI;
 using System.Text.Unicode;
 using System.Diagnostics;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Reflection.Emit;
+using System.Threading;
 
 namespace Saket.Engine.Graphics
 {
@@ -171,7 +174,7 @@ namespace Saket.Engine.Graphics
             queue.WriteBuffer(systemBuffer, 0, uniform);
         }
 
-        public static Tuple<Texture, TextureView, Sampler> CreateDeapthTexture(Device device, uint width, uint height, TextureFormat format, string label)
+        public static TextureGroup CreateDeapthTexture(Device device, uint width, uint height, TextureFormat format, string label)
         {
             TextureDescriptor texturedescriptor = new()
             {
@@ -212,7 +215,30 @@ namespace Saket.Engine.Graphics
             };
             Sampler sampler = device.CreateSampler(descriptor_sampler)!;
 
-            return new Tuple<Texture, TextureView, Sampler>(gputex, gputexview, sampler);
+            return new TextureGroup(gputex, gputexview, sampler);
+        }
+
+        public TextureGroup UploadToGpuFromData(Image image, Sampler? sampler = null)
+        {
+            if (!image.IsUploadedToGPU)
+            {
+                image.GPUCreateTexture(this);
+                image.GPUWriteTexture(this);
+            }
+            TextureViewDescriptor textureViewDescriptor = new()
+            {
+                Label = "TextureView_" + image.name,
+                Format = applicationpreferredFormat,
+                Dimension = TextureViewDimension.D2,
+                BaseMipLevel = 0,
+                MipLevelCount = 1,
+                BaseArrayLayer = 0,
+                ArrayLayerCount = 1,
+                Aspect = TextureAspect.All,
+            };
+            TextureView gputexview = image.texture!.CreateView(textureViewDescriptor)!;
+
+            return new TextureGroup(image.texture!, gputexview, sampler ?? defaultSampler);
         }
     }
 

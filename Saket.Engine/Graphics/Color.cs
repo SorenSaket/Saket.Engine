@@ -3,6 +3,7 @@ using System.Text;
 using System.Runtime.Serialization;
 using System.Numerics;
 using Saket.Engine;
+using System.Text.RegularExpressions;
 
 namespace Saket.Engine.Graphics
 {

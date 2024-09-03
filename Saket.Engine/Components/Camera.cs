@@ -113,6 +113,8 @@ namespace Saket.Engine
         public Matrix4x4 ProjectionMatrix { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => ProjectionMatrix; }
 
 
+        public Matrix4x4 viewProjectionMatrix;
+        public Matrix4x4 inverseViewProjectionMatrix;
         public Matrix4x4 viewMatrix;
         public Matrix4x4 projectionMatrix;
 
@@ -132,7 +134,6 @@ namespace Saket.Engine
         public void UpdateView(Transform transform)
         {
             viewMatrix = Matrix4x4.CreateScale(transform.Scale) * Matrix4x4.CreateFromQuaternion(transform.Rotation) * Matrix4x4.CreateTranslation(transform.Position);
-
             Matrix4x4.Invert(viewMatrix, out viewMatrix);
         }
 
@@ -144,8 +145,15 @@ namespace Saket.Engine
             }
             else
             {
-                projectionMatrix = Matrix4x4.CreateOrthographic(size, size / screenAspectRatio, near, far);
+                projectionMatrix = Matrix4x4.CreateOrthographic(size * screenAspectRatio, size , near, far);
             }
+        }
+
+
+        public void UpdateInternalValues()
+        {
+            viewProjectionMatrix = viewMatrix * projectionMatrix;
+            Matrix4x4.Invert(viewProjectionMatrix, out var inverseViewProjectionMatrix);
         }
 
         #region Utils
@@ -162,8 +170,8 @@ namespace Saket.Engine
         {
             // Convert screen position to normalized device coordinates (NDC)
             Vector3 ndc = new Vector3(
-                (2.0f * screenPosition.X) / screenWidth - 1.0f,
-                1.0f - (2.0f * screenPosition.Y) / screenHeight,
+                ((2.0f * screenPosition.X) / screenWidth) - 1.0f,
+                1.0f - ((2.0f * screenPosition.Y) / screenHeight),
                 depth // Z-value in NDC space
             );
 

@@ -301,7 +301,6 @@ internal class Application : Saket.Engine.Application
                 ImGui.Render();
 
 
-       
                 // Command Encoder
                 var commandEncoder = graphics.device.CreateCommandEncoder(new() {Label = "Main Command Encoder" });
 
