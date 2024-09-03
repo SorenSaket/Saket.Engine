@@ -108,7 +108,7 @@ namespace Saket.Engine.Graphics
                 // Check that the image is uploaded as a texture
                 if (gpuTexture == null)
                 {
-                    gpuTexture = image.UploadToGPU(graphics);
+                    gpuTexture = image.GPUCreateTexture(graphics);
                     gpuTextureView = gpuTexture.CreateView(new TextureViewDescriptor()
                     {
                         Format = graphics.applicationpreferredFormat,
