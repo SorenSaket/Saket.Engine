@@ -17,7 +17,7 @@ delegate void UserCallbackDelegate(ImDrawListPtr parent_list, ImDrawCmdPtr cmd);
 ///  https://github.com/ocornut/imgui/blob/master/backends/imgui_impl_wgpu.cpp
 /// A translation of the webgpu backend for imgui
 /// </summary>
-public class ImGui_Impl_WebGPUSharp : IDisposable
+public static class ImGui_Impl_WebGPUSharp 
 {
     #region Structures
 
@@ -193,17 +193,14 @@ fn main(in: VertexInput) -> VertexOutput {
 
     #endregion
 
-    #region Variables
-    private bool disposedValue;
+    private static ImGui_ImplWGPU_Data data; 
 
-    private static ImGui_ImplWGPU_Data data; // Workaround
-    #endregion
 
     /// <summary>
     /// Constructs a new ImGuiController.
     /// https://github.com/ocornut/imgui/blob/aa5a6098ee24ca30b3e0a180282619777e95fc67/backends/imgui_impl_wgpu.cpp#L724
     /// </summary>
-    public ImGui_Impl_WebGPUSharp(in ImGui_ImplWGPU_InitInfo initInfo)
+    public static void Init(in ImGui_ImplWGPU_InitInfo initInfo)
     {
         //
         var io = ImGui.GetIO();
@@ -217,8 +214,8 @@ fn main(in: VertexInput) -> VertexOutput {
 
 
         // Setup backend capabilities flags
-        nint bdPtr = Marshal.AllocHGlobal(Marshal.SizeOf<ImGui_ImplWGPU_Data>());
-        io.BackendRendererUserData = bdPtr;
+        //nint bdPtr = Marshal.AllocHGlobal(Marshal.SizeOf<ImGui_ImplWGPU_Data>());
+        //io.BackendRendererUserData = bdPtr;
         //io.BackendRendererName ="imgui_impl_webgpu";
         // We can honor the ImDrawCmd::VtxOffset field, allowing for large meshes.
         io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
@@ -250,7 +247,7 @@ fn main(in: VertexInput) -> VertexOutput {
     /// <summary>
     /// 
     /// </summary>
-    public bool CreateDeviceObjects()
+    public static bool CreateDeviceObjects()
     {
         ref ImGui_ImplWGPU_Data bd = ref GetBackendData();
         if (bd.device == null)
@@ -549,7 +546,7 @@ fn main(in: VertexInput) -> VertexOutput {
         bd.renderResources.Uniforms = bd.device.CreateBuffer(bufferDescriptor)!;
     }
 
-    BindGroup ImGui_ImplWGPU_CreateImageBindGroup(BindGroupLayout layout, TextureView texture)
+    static BindGroup ImGui_ImplWGPU_CreateImageBindGroup(BindGroupLayout layout, TextureView texture)
     {
         ref ImGui_ImplWGPU_Data bd = ref GetBackendData();
 
@@ -653,7 +650,7 @@ fn main(in: VertexInput) -> VertexOutput {
     /// <param name="draw_data"></param>
     /// <param name="renderPassEncoder"></param>
     /// <exception cref="NotImplementedException"></exception>
-    public void RenderDrawData(ImDrawDataPtr draw_data, WebGpuSharp.RenderPassEncoder renderPassEncoder)
+    public static void RenderDrawData(ImDrawDataPtr draw_data, WebGpuSharp.RenderPassEncoder renderPassEncoder)
     {
         // Framebuffer size
         int fb_width = (int)(draw_data.DisplaySize.X * draw_data.FramebufferScale.X);
@@ -813,43 +810,10 @@ fn main(in: VertexInput) -> VertexOutput {
     /// <summary>
     /// reevaluaate the need for this
     /// </summary>
-    public void NewFrame()
+    public static void NewFrame()
     {
         ref ImGui_ImplWGPU_Data bd = ref GetBackendData();
         if (bd.pipeline == null)
             CreateDeviceObjects();
     }
-
-    #region Disposal
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!disposedValue)
-        {
-            if (disposing)
-            {
-                // TODO: dispose managed state (managed objects)
-            }
-
-            // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-            // TODO: set large fields to null
-            disposedValue = true;
-            Marshal.FreeHGlobal(ImGui.GetIO().BackendRendererUserData);
-        }
-    }
-
-    // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    ~ImGui_Impl_WebGPUSharp()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: false);
-    }
-
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
-    }
-    #endregion
 }

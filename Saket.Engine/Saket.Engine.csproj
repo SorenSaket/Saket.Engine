@@ -32,7 +32,6 @@
 
 	<ItemGroup>
 	  <Folder Include="Audio\" />
-	  <Folder Include="IMGUI\" />
 	  <Folder Include="Platform\" />
 	</ItemGroup>
 
