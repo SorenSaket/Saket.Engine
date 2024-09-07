@@ -22,6 +22,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="StbImageSharp" Version="2.27.14" />
+		<PackageReference Include="StbImageWriteSharp" Version="1.16.7" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -38,6 +39,7 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\ImGui.NET\src\ImGui.NET\ImGui.NET.csproj" />
 	  <ProjectReference Include="..\Saket.ECS\Saket.ECS\Saket.ECS.csproj" />
+	  <ProjectReference Include="..\Saket.Serialization\Saket.Serialization\Saket.Serialization.csproj" />
 	  <ProjectReference Include="..\WebGPUSharp\WebGpuSharp.csproj" />
 	</ItemGroup>
 

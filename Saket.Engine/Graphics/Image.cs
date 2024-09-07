@@ -15,9 +15,9 @@ namespace Saket.Engine.Graphics
     {
         #region Properties
         public string Name { get { return name; } set { name = value; } }
-        public TextureFormat Format { get { return Format; }  }
-        public uint Width { get { return Width; } }
-        public uint Height { get { return Height; } }
+        public TextureFormat Format { get { return format; }  }
+        public uint Width { get { return width; } }
+        public uint Height { get { return height; } }
         public byte[] Data { get { return data; } }
         public Texture? Texture { get { return texture; } set { texture = value;  } }
         public bool IsUploadedToGPU => texture != null;
@@ -34,7 +34,15 @@ namespace Saket.Engine.Graphics
         internal Texture? texture;
         internal Extent3D extendsTexture;
         #endregion
-
+        
+        public Image()
+        {
+            name = "texture_image";
+            format = TextureFormat.BGRA8Unorm;
+            width = 0;
+            height = 0;
+            data = [];
+        }
         public Image(byte[] data, uint width, uint height, string name = "texture_image", TextureFormat format = TextureFormat.BGRA8Unorm)
         {
             this.name = name;
@@ -200,6 +208,9 @@ namespace Saket.Engine.Graphics
             serializer.Serialize(ref data);
         }
 
+        // This is basically video compression betweena a I-frame
+        // Todo later for now we upload the whole picture
+
         public Span<byte> ComputeDelta(ISerializer source, ISerializer dest)
         {
             throw new NotImplementedException();
@@ -207,7 +218,7 @@ namespace Saket.Engine.Graphics
 
         public void ApplyDelta(ISerializer delta)
         {
-
+            throw new NotImplementedException();
         }
         #endregion
     }
