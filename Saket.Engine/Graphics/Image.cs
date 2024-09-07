@@ -1,25 +1,39 @@
 ﻿using System;
-using System.Drawing;
+using System.IO;
+using Saket.Serialization;
+using StbImageSharp;
+using StbImageWriteSharp;
 using WebGpuSharp;
 
 namespace Saket.Engine.Graphics
 {
     // TODO
-    // Convert to platform angostic image loading
     // QOI image format
     // Unload image from memory uption after upload to gpu, so that it doesn't take ram.
 
-    public class Image
+    public class Image : ISerializable
     {
-        public string name;
-        public byte[] data;
-        public TextureFormat format;
-        public uint width;
-        public uint height;
-
+        #region Properties
+        public string Name { get { return name; } set { name = value; } }
+        public TextureFormat Format { get { return Format; }  }
+        public uint Width { get { return Width; } }
+        public uint Height { get { return Height; } }
+        public byte[] Data { get { return data; } }
+        public Texture? Texture { get { return texture; } set { texture = value;  } }
         public bool IsUploadedToGPU => texture != null;
-        public Texture? texture;
+        #endregion
+
+        #region Variables
+        internal string name;
+        internal TextureFormat format;
+        internal uint width;
+        internal uint height;
+        internal byte[] data;
+
+        // GPU
+        internal Texture? texture;
         internal Extent3D extendsTexture;
+        #endregion
 
         public Image(byte[] data, uint width, uint height, string name = "texture_image", TextureFormat format = TextureFormat.BGRA8Unorm)
         {
@@ -32,7 +46,7 @@ namespace Saket.Engine.Graphics
         }
 
         /// <summary>
-        /// Call 
+        /// Call this if you want to change the data
         /// </summary>
         /// <param name="data"></param>
         /// <param name="width"></param>
@@ -44,13 +58,84 @@ namespace Saket.Engine.Graphics
             this.height = height;
         }
 
+        public void ClearData()
+        {
+            data = null;
+        }
 
+        #region File
+        /// <summary>
+        /// Load image from path
+        /// </summary>
+        /// <param name="path"></param>
+        public Image(string path)
+        {
+            var stream = File.ReadAllBytes(path);
+
+            StbImage.stbi_set_flip_vertically_on_load(1);
+            
+            ImageResult result = ImageResult.FromMemory(stream, StbImageSharp.ColorComponents.RedGreenBlueAlpha);
+
+            // convert from rgba to bgra
+            for (int i = 0; i < result.Width * result.Height; ++i)
+            {
+                byte temp = result.Data[i * 4];
+                result.Data[i * 4] = result.Data[i * 4 + 2];
+                result.Data[i * 4 + 2] = temp;
+            }
+
+            this.name = Path.GetFileNameWithoutExtension(path);
+            this.data = result.Data;
+            this.format = TextureFormat.BGRA8Unorm;
+            this.width = (uint)result.Width;
+            this.height = (uint)result.Height;
+        }
+        /// <summary>
+        /// Save Image to path
+        /// </summary>
+        /// <param name="path"></param>
+        public void SaveToPath(string path)
+        {
+            string ext = Path.GetExtension(path);
+
+            // TODO covert back to rgba
+
+            using (Stream stream = File.OpenWrite(path))
+            {
+                var w = new StbImageWriteSharp.ImageWriter();
+                switch (ext)
+                {
+                    case ".png":
+                        w.WritePng(data, (int)this.width, (int)this.height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream);
+                        break;
+                    case ".jpeg":
+                    case ".jpg":
+                        w.WriteJpg(data, (int)this.width, (int)this.height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream, 100);
+                        break;
+                    case ".bmp":
+                        w.WriteBmp(data, (int)this.width, (int)this.height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream);
+                        break;
+                    case ".tga":
+                        w.WriteTga(data, (int)this.width, (int)this.height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream);
+                        break;
+                    case ".hdr":
+                        w.WriteHdr(data, (int)this.width, (int)this.height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+        #endregion
+
+        #region GPU
         public Texture? GPUCreateTexture(GraphicsContext graphics)
         {
             if(texture != null)
             {
                 throw new Exception("Image " + name + " already exsists on gpu");
             }
+            this.extendsTexture = new Extent3D(width, height, 1);
 
             Texture tex = graphics.device.CreateTexture(new TextureDescriptor()
             {
@@ -65,7 +150,6 @@ namespace Saket.Engine.Graphics
             }) ?? throw new Exception("Texture Creation for image " + name + " failed");
 
             this.texture = tex;
-            this.extendsTexture = new Extent3D(width, height, 1);
 
             return tex;
         }
@@ -77,6 +161,10 @@ namespace Saket.Engine.Graphics
                 // The texture requires resizing
                 throw new Exception("");
             }
+            if(this.data == null)
+            {
+                throw new Exception("Data is null, cannot upload to gpu");
+            }
 
 
             graphics.queue.WriteTexture(
@@ -86,7 +174,8 @@ namespace Saket.Engine.Graphics
                 },
                 data,
                 new TextureDataLayout()
-                { // TODO get layout from format
+                { 
+                    // TODO get layout from format
                     BytesPerRow = 4 * extendsTexture.Width,
                     RowsPerImage = extendsTexture.Height,
                 },
@@ -99,5 +188,27 @@ namespace Saket.Engine.Graphics
             texture?.Destroy();
             texture = null;
         }
+        #endregion
+
+        #region Serialization
+        public void Serialize(ISerializer serializer)
+        {
+            serializer.Serialize(ref name);
+            serializer.Serialize(ref format);
+            serializer.Serialize(ref width);
+            serializer.Serialize(ref height);
+            serializer.Serialize(ref data);
+        }
+
+        public Span<byte> ComputeDelta(ISerializer source, ISerializer dest)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ApplyDelta(ISerializer delta)
+        {
+
+        }
+        #endregion
     }
 }
