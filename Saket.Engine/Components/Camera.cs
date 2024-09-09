@@ -117,8 +117,10 @@ namespace Saket.Engine
         public Matrix4x4 inverseViewProjectionMatrix;
         public Matrix4x4 viewMatrix;
         public Matrix4x4 projectionMatrix;
+        public Matrix4x4 inverseViewMatrix;
+        public Matrix4x4 inversprojectionMatrix;
 
-        
+
         public Camera(CameraType cameraType, float size, float ratio, float near, float far)
         {
             this.cameraType = cameraType;
@@ -133,8 +135,8 @@ namespace Saket.Engine
 
         public void UpdateView(Transform transform)
         {
-            viewMatrix = Matrix4x4.CreateScale(transform.Scale) * Matrix4x4.CreateFromQuaternion(transform.Rotation) * Matrix4x4.CreateTranslation(transform.Position);
-            Matrix4x4.Invert(viewMatrix, out viewMatrix);
+            inverseViewMatrix = Matrix4x4.CreateScale(transform.Scale) * Matrix4x4.CreateFromQuaternion(transform.Rotation) * Matrix4x4.CreateTranslation(transform.Position);
+            Matrix4x4.Invert(inverseViewMatrix, out viewMatrix);
         }
 
         public void UpdateProjection(float screenAspectRatio)
@@ -145,15 +147,17 @@ namespace Saket.Engine
             }
             else
             {
-                projectionMatrix = Matrix4x4.CreateOrthographic(size * screenAspectRatio, size , near, far);
+                projectionMatrix = Matrix4x4.CreateOrthographic(size * screenAspectRatio, size, near, far);
+
             }
+            Matrix4x4.Invert(projectionMatrix, out inversprojectionMatrix);
         }
 
 
         public void UpdateInternalValues()
         {
-            viewProjectionMatrix = viewMatrix * projectionMatrix;
-            Matrix4x4.Invert(viewProjectionMatrix, out var inverseViewProjectionMatrix);
+            viewProjectionMatrix = projectionMatrix * viewMatrix;
+            Matrix4x4.Invert(viewProjectionMatrix, out inverseViewProjectionMatrix);
         }
 
         #region Utils
@@ -171,18 +175,15 @@ namespace Saket.Engine
             // Convert screen position to normalized device coordinates (NDC)
             Vector3 ndc = new Vector3(
                 ((2.0f * screenPosition.X) / screenWidth) - 1.0f,
-                1.0f - ((2.0f * screenPosition.Y) / screenHeight),
+                ((2.0f * screenPosition.Y) / screenHeight) - 1.0f,
                 depth // Z-value in NDC space
             );
 
             // Construct a clip-space position from NDC (homogeneous coordinates)
             Vector4 clipSpacePos = new Vector4(ndc, 1.0f);
-
-            // Compute the inverse of view * projection matrix
-            Matrix4x4.Invert(viewMatrix * projectionMatrix, out var viewProjectionInverse);
-
+            
             // Transform clip space coordinates to world coordinates
-            Vector4 worldPos = Vector4.Transform(clipSpacePos, viewProjectionInverse);
+            Vector4 worldPos = Vector4.Transform(clipSpacePos, inverseViewProjectionMatrix);
 
             // Perform perspective divide
             Vector3 worldPosition = new Vector3(worldPos.X, worldPos.Y, worldPos.Z) / worldPos.W;

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.IO;
+using System.Numerics;
 using Saket.Serialization;
 using StbImageSharp;
 using StbImageWriteSharp;
 using WebGpuSharp;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Saket.Engine.Graphics
 {
@@ -19,6 +21,10 @@ namespace Saket.Engine.Graphics
         public uint Width { get { return width; } }
         public uint Height { get { return height; } }
         public byte[] Data { get { return data; } }
+
+
+        public int BytesPerPixel { get { return 4; } } // Todo do based of Textureformat
+
         public Texture? Texture { get { return texture; } set { texture = value;  } }
         public bool IsUploadedToGPU => texture != null;
         #endregion
@@ -71,16 +77,41 @@ namespace Saket.Engine.Graphics
             data = null;
         }
 
+
+        #region Pixel Maniuplation
+
+
+        public void SetPixel(int index, Color color)
+        {
+            int a = index * BytesPerPixel;
+            data[a + 2] = color.R;
+            data[a + 1] = color.G;
+            data[a] = color.B;
+            data[a + 3] = color.A;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index">The pixel index</param>
+        /// <returns></returns>
+        public Color GetPixel(int index)
+        {
+            int a = index * BytesPerPixel;
+            return new Color(data[a+2], data[a+1], data[a], data[a+3]); 
+        }
+        #endregion
+
         #region File
         /// <summary>
         /// Load image from path
         /// </summary>
         /// <param name="path"></param>
-        public Image(string path)
+        public Image(string path, bool flipVertically = true)
         {
             var stream = File.ReadAllBytes(path);
 
-            StbImage.stbi_set_flip_vertically_on_load(1);
+            StbImage.stbi_set_flip_vertically_on_load(flipVertically ? 1 : 0);
             
             ImageResult result = ImageResult.FromMemory(stream, StbImageSharp.ColorComponents.RedGreenBlueAlpha);
 
