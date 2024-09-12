@@ -65,5 +65,10 @@ namespace Saket.Engine
             return new Vector2(0, MathF.Sign(v.Y));
         }
 
+        public static bool IsWithin(this Vector2 v, Vector2 min, Vector2 max)
+        {
+            return v.X >= min.X && v.X < max.X && 
+                    v.Y >= min.Y && v.Y < max.Y;
+        }
     }
 }

@@ -5,7 +5,6 @@ using Saket.Serialization;
 using StbImageSharp;
 using StbImageWriteSharp;
 using WebGpuSharp;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Saket.Engine.Graphics
 {
@@ -133,11 +132,12 @@ namespace Saket.Engine.Graphics
         /// Save Image to path
         /// </summary>
         /// <param name="path"></param>
-        public void SaveToPath(string path)
+        public void SaveToPath(string path, bool flipVertically = true)
         {
             string ext = Path.GetExtension(path);
 
             // TODO covert back to rgba
+            StbImageWriteSharp.StbImageWrite.stbi_flip_vertically_on_write(flipVertically ? 1 : 0);
 
             using (Stream stream = File.OpenWrite(path))
             {

@@ -191,12 +191,17 @@ namespace Saket.Engine.Graphics
 		{
 		}
 
-		/// <summary>
-		/// Constructs an RGBA color from a <see cref="Color"/> and an alpha value.
-		/// </summary>
-		/// <param name="color">A <see cref="Color"/> for RGB values of new <see cref="Color"/> instance.</param>
-		/// <param name="alpha">The alpha component value from 0 to 255.</param>
-		public Color(Color color, int alpha)
+        public Color(Vector3 color, int alpha) : this((int)(color.X * 255), (int)(color.Y * 255), (int)(color.Z * 255), alpha)
+        {
+
+        }
+
+        /// <summary>
+        /// Constructs an RGBA color from a <see cref="Color"/> and an alpha value.
+        /// </summary>
+        /// <param name="color">A <see cref="Color"/> for RGB values of new <see cref="Color"/> instance.</param>
+        /// <param name="alpha">The alpha component value from 0 to 255.</param>
+        public Color(Color color, int alpha)
 		{
 			if ((alpha & 0xFFFFFF00) != 0)
 			{

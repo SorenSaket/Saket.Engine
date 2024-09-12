@@ -201,7 +201,7 @@ namespace Saket.Engine
         public Vector2 WorldToScreenPoint(Vector3 worldPosition, int screenWidth, int screenHeight)
         {
             // Transform the world position by the view and projection matrices
-            Vector4 clipSpacePos = Vector4.Transform(worldPosition, viewMatrix * projectionMatrix);
+            Vector4 clipSpacePos = Vector4.Transform(worldPosition, viewProjectionMatrix);
 
             // Perform perspective divide to get normalized device coordinates (NDC)
             Vector3 ndc = new Vector3(clipSpacePos.X, clipSpacePos.Y, clipSpacePos.Z) / clipSpacePos.W;
