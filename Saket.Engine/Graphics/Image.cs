@@ -10,7 +10,7 @@ namespace Saket.Engine.Graphics
 {
     // TODO
     // QOI image format
-    // Unload image from memory uption after upload to gpu, so that it doesn't take ram.
+    // Image only supports internal format of bgraunorm8 since thats the only supported surface format anyways
 
     public class Image : ISerializable
     {
@@ -135,6 +135,18 @@ namespace Saket.Engine.Graphics
         public void SaveToPath(string path, bool flipVertically = true)
         {
             string ext = Path.GetExtension(path);
+
+
+            byte[] data = new byte[Data.Length];
+
+            // convert back from bgra to rgba
+            for (int i = 0; i < data.Length/4; ++i)
+            {
+                data[i * 4 + 0] = Data[i * 4 + 2];
+                data[i * 4 + 1] = Data[i * 4 + 1];
+                data[i * 4 + 2] = Data[i * 4 + 0];
+                data[i * 4 + 3] = Data[i * 4 + 3];
+            }
 
             // TODO covert back to rgba
             StbImageWriteSharp.StbImageWrite.stbi_flip_vertically_on_write(flipVertically ? 1 : 0);

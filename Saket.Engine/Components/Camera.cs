@@ -26,9 +26,15 @@ namespace Saket.Engine
                 {
                     var transform = entity.Get<Transform>();
                     camera.UpdateView(transform);
+
+                    camera.UpdateProjection(transform, aspectRatio);
+                }
+                else
+                {
+                    camera.UpdateProjection(new Transform(), aspectRatio);
                 }
 
-                camera.UpdateProjection(aspectRatio);
+
 
                 entity.Set(camera);
             }
@@ -139,7 +145,7 @@ namespace Saket.Engine
             Matrix4x4.Invert(inverseViewMatrix, out viewMatrix);
         }
 
-        public void UpdateProjection(float screenAspectRatio)
+        public void UpdateProjection(Transform transform, float screenAspectRatio)
         {
             if (cameraType == CameraType.Perspective)
             {
@@ -147,7 +153,16 @@ namespace Saket.Engine
             }
             else
             {
-                projectionMatrix = Matrix4x4.CreateOrthographic(size * screenAspectRatio, size, near, far);
+                float halfSize = size/2f;  // The "size" of the orthographic view
+
+                // Adjust the orthographic projection based on the camera position
+                float left = transform.Position.X - halfSize * screenAspectRatio;
+                float right = transform.Position.X + halfSize * screenAspectRatio;
+                float bottom = transform.Position.Y - halfSize;
+                float top = transform.Position.Y + halfSize;
+
+                projectionMatrix = Matrix4x4.CreateOrthographicOffCenter(left, right, bottom, top, near, far);
+                //projectionMatrix = Matrix4x4.CreateOrthographic(size * screenAspectRatio, size, near, far);
 
             }
             Matrix4x4.Invert(projectionMatrix, out inversprojectionMatrix);
