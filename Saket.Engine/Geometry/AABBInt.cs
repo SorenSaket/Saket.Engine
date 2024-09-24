@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Saket.Engine.Math.Geometry
-{
-    public interface IShape : ISDF2D, IBounds2D
-    {
+namespace Saket.Engine.Geometry;
 
-    }
+public struct AABBInt
+{
+    public int x, y;
+    public int width, height;
 }

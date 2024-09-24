@@ -18,4 +18,30 @@ public static class Extensions_Math
 
         return ((number + multiple - T.One) / multiple) * multiple;
     }
+    public static T Min<T>(params Span<T> values) where T : INumber<T>
+    {
+        T min = values[0];
+
+        for (int i = 1; i < values.Length; i++)
+        {
+            if (min > values[i])
+                min = values[i];
+        }
+
+        return min;
+    }
+
+    public static T Max<T>(params Span<T> values) where T : INumber<T>
+    {
+        T max = values[0];
+
+        for (int i = 1; i < values.Length; i++)
+        {
+            if(max < values[i])
+                max = values[i];
+        }
+
+        return max;
+    }
+
 }

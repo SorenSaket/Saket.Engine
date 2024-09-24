@@ -70,5 +70,13 @@ namespace Saket.Engine
             return v.X >= min.X && v.X < max.X && 
                     v.Y >= min.Y && v.Y < max.Y;
         }
+
+        public static bool IsCollinear(Vector2 a, Vector2 b, Vector2 c, float e = 0.0001f)
+        {
+            // Calculate the area of the triangle formed by the points
+            // If the area is 0, the points are collinear
+            float area = (a.X) * (b.Y - c.Y) + b.X * (c.Y - a.Y) + c.X * (a.Y - b.Y);
+            return area < e;
+        }
     }
 }

@@ -116,7 +116,7 @@ namespace Saket.Engine
         public CameraType cameraType;
 
         public Matrix4x4 ViewMatrix { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => viewMatrix; }
-        public Matrix4x4 ProjectionMatrix { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => ProjectionMatrix; }
+        public Matrix4x4 ProjectionMatrix { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => projectionMatrix; }
 
 
         public Matrix4x4 viewProjectionMatrix;
@@ -137,10 +137,9 @@ namespace Saket.Engine
             this.projectionMatrix = Matrix4x4.Identity;
         }
 
-     
-
         public void UpdateView(Transform transform)
         {
+            // It's inverse because the camera applies the opposite transform too all objs
             inverseViewMatrix = Matrix4x4.CreateScale(transform.Scale) * Matrix4x4.CreateFromQuaternion(transform.Rotation) * Matrix4x4.CreateTranslation(transform.Position);
             Matrix4x4.Invert(inverseViewMatrix, out viewMatrix);
         }
@@ -161,8 +160,8 @@ namespace Saket.Engine
                 float bottom = transform.Position.Y - halfSize;
                 float top = transform.Position.Y + halfSize;
 
-                projectionMatrix = Matrix4x4.CreateOrthographicOffCenter(left, right, bottom, top, near, far);
-                //projectionMatrix = Matrix4x4.CreateOrthographic(size * screenAspectRatio, size, near, far);
+                //projectionMatrix = Matrix4x4.CreateOrthographicOffCenter(left, right, bottom, top, near, far);
+                projectionMatrix = Matrix4x4.CreateOrthographic(size * screenAspectRatio, size, near, far);
 
             }
             Matrix4x4.Invert(projectionMatrix, out inversprojectionMatrix);

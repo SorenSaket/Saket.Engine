@@ -6,10 +6,9 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Saket.Engine.Math.Geometry
+namespace Saket.Engine.Geometry.Splines;
+
+public static class Spline
 {
-    public static class Spline
-    {
-       
-    }
+
 }

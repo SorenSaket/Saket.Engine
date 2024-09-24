@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Saket.Engine.Math.Geometry
+namespace Saket.Engine.Geometry;
+
+public interface IShape : ISDF2D, IBounds2D
 {
-    public interface IBounds2D
-    {
-        public BoundingBox2D Bounds();
-    }
+
 }

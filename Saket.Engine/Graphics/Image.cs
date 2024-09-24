@@ -99,6 +99,11 @@ namespace Saket.Engine.Graphics
             int a = index * BytesPerPixel;
             return new Color(data[a+2], data[a+1], data[a], data[a+3]); 
         }
+        public bool WithinBounds(int index)
+        {
+            return index >= 0 && index < (width*height);
+        }
+
         #endregion
 
         #region File
