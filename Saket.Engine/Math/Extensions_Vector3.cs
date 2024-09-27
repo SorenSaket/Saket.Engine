@@ -20,6 +20,24 @@ namespace Saket.Engine
             return new Vector3(MathF.Round(v.X), MathF.Round(v.Y), MathF.Round(v.Z));
         }
 
+
+
+
+        public static Vector3 Clamp(this Vector3 value, Vector3 min, Vector3 max)
+        {
+            float x = Math.Clamp(value.X, min.X, max.X);
+            float y = Math.Clamp(value.Y, min.Y, max.Y);
+            float z = Math.Clamp(value.Z, min.Z, max.Z);
+            return new Vector3(x, y, z);
+        }
+        public static Vector3 Clamp(this Vector3 value, float min, float max)
+        {
+            float x = Math.Clamp(value.X, min, max);
+            float y = Math.Clamp(value.Y, min, max);
+            float z = Math.Clamp(value.Z, min, max);
+            return new Vector3(x, y, z);
+        }
+
         // To vector 2
         public static Vector2 XY(this Vector3 v)
         {

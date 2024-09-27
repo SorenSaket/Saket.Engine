@@ -1,7 +1,5 @@
 ﻿using Saket.Engine.Graphics;
 using Saket.Engine.Graphics.SDF;
-using Saket.Engine.Math.Geometry;
-using Saket.Engine.Math.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;

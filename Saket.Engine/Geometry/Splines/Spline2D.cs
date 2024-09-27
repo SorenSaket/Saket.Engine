@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Runtime.CompilerServices;
 using Saket.Engine.Geometry.Curves;
+using Saket.Engine.Types;
 
 
 namespace Saket.Engine.Geometry.Splines;

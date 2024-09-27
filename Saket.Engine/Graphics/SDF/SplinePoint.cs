@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Saket.Engine.Math;
+using Saket.Engine.Types;
 
 namespace Saket.Engine.Graphics.SDF
 {

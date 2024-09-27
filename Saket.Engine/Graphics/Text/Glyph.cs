@@ -1,4 +1,4 @@
-﻿using Saket.Engine.Math.Geometry;
+﻿using Saket.Engine.Geometry;
 using System.Collections.Generic;
 using System.Numerics;
 

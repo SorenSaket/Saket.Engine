@@ -1,5 +1,4 @@
-﻿using Saket.Engine.Math.Types;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 

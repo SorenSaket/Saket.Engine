@@ -1,4 +1,4 @@
-﻿using Saket.Engine.Math.Geometry;
+﻿using Saket.Engine.Geometry;
 using StbImageSharp;
 using System;
 using System.Collections.Generic;

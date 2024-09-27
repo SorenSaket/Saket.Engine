@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Saket.Engine.Types;
+using System;
 using System.Numerics;
 
 namespace Saket.Engine.Geometry.Curves;

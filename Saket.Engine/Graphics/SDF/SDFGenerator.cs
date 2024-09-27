@@ -1,7 +1,6 @@
-﻿using Saket.Engine.Math;
-using Saket.Engine.Math.Geometry;
-using Saket.Engine.Math.Types;
-
+﻿using Saket.Engine.Geometry;
+using Saket.Engine.Geometry.Splines;
+using Saket.Engine.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;

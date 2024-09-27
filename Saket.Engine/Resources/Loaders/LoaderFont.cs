@@ -6,7 +6,6 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using Saket.Engine.Graphics.Text;
-using Saket.Engine.Math.Geometry;
 using Saket.Engine.Resources.Loaders;
 
 #if false
