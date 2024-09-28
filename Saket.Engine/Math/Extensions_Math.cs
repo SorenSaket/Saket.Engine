@@ -9,7 +9,11 @@ namespace Saket.Engine;
 
 public static class Extensions_Math
 {
-   public static T RoundUpToNextMultiple<T>(T number, T multiple) where T : INumber<T>
+    public static T Mod<T>(T value, T mod) where T : INumber<T>
+    {
+        return (value % mod + mod) % mod;
+    }
+    public static T RoundUpToNextMultiple<T>(T number, T multiple) where T : INumber<T>
     {
         if (multiple == T.Zero)
         {
