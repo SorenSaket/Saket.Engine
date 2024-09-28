@@ -46,7 +46,7 @@ namespace Saket.Engine.Graphics
 #endif
 
                 // Create WebGPU instance 
-                instance = WebGPU.CreateInstance()!;
+                instance = WebGPU.CreateInstance() ?? throw new Exception("Failed to create webgpu instance");
 
                 // Create Adapter
                 adapter = instance.RequestAdapterAsync(new()
@@ -58,16 +58,20 @@ namespace Saket.Engine.Graphics
 
                 SupportedLimits supportedLimits = adapter.GetLimits()!.Value;
 
+
                 // Create Device
                 DeviceDescriptor deviceDescriptor = new DeviceDescriptor()
                 {
                     RequiredLimits = new WGPUNullableRef<RequiredLimits>(
-                        new RequiredLimits(supportedLimits.Limits)
+                        new RequiredLimits() { Limits = supportedLimits.Limits }
                         ),
                     DefaultQueue = new QueueDescriptor(),
                     UncapturedErrorCallback = (ErrorType type, ReadOnlySpan<byte> message) =>
                     {
-                        Console.Error.WriteLine($"{Enum.GetName(type)} : {Encoding.UTF8.GetString(message)}");
+                        string str = $"{Enum.GetName(type)} : {Encoding.UTF8.GetString(message)}";
+
+                        Console.Error.WriteLine(str);
+                        Debug.WriteLine(str);
                     },
                     DeviceLostCallback = (DeviceLostReason lostReason, ReadOnlySpan<byte> message) =>
                     {
@@ -81,7 +85,7 @@ namespace Saket.Engine.Graphics
             }
 
             // Create Queue
-            queue = device.GetQueue()!;
+            queue = device.GetQueue() ?? throw new Exception("Failed to create Queue");
 
             // Create the default sampler. For miscellaneous uses
             defaultSampler = device.CreateSampler(new SamplerDescriptor()
