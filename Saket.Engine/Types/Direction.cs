@@ -11,16 +11,7 @@ namespace Saket.Engine.Types;
 [Flags]
 public enum Direction : byte
 {
-    Undefined = 0,
-
-    E = 1 << 0,
-    SE = 1 << 1,
-    S = 1 << 2,
-    SW = 1 << 3,
-    W = 1 << 4,
-    NW = 1 << 5,
-    N = 1 << 6,
-    NE = 1 << 7,
+   
 
     // Aliases
     Right = E,
@@ -29,9 +20,20 @@ public enum Direction : byte
     Up = N,
     Bottom = Down,
     Top = Up,
+
     Cardial = E | S | W | N,
-    Intercardinal = SE | SW | NW | NE,
-    All = Cardial | Intercardinal,
+    Ordinal = SE | SW | NW | NE,
+    All = Cardial | Ordinal,
+
+    Undefined = 0,
+    E = 1 << 0,
+    SE = 1 << 1,
+    S = 1 << 2,
+    SW = 1 << 3,
+    W = 1 << 4,
+    NW = 1 << 5,
+    N = 1 << 6,
+    NE = 1 << 7,
 }
 
 
