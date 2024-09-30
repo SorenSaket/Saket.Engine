@@ -9,6 +9,7 @@ using WebGpuSharp;
 namespace Saket.Engine.Graphics
 {
     // TODO
+    // Convert width/height to int for easier use with c#. 
     // QOI image format
     // Image only supports internal format of bgraunorm8 since thats the only supported surface format anyways
 
@@ -99,6 +100,12 @@ namespace Saket.Engine.Graphics
             int a = index * BytesPerPixel;
             return new Color(data[a+2], data[a+1], data[a], data[a+3]); 
         }
+
+        public Vector2 GetPixelPosition(int index)
+        {
+            return new Vector2(index % width, index / height);
+        }
+
         public bool WithinBounds(int index)
         {
             return index >= 0 && index < (width*height);

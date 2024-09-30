@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -24,6 +25,10 @@ public enum Direction : byte
     Cardial = E | S | W | N,
     Ordinal = SE | SW | NW | NE,
     All = Cardial | Ordinal,
+
+    Horizontal = E | SE | SW | W | NW | NE,
+    Vertical =  S | SE | SW | N  | NW | NE,
+
 
     Undefined = 0,
     E = 1 << 0,
@@ -113,6 +118,35 @@ public static class Extenstions_Direction
         float y = (float)Math.Sin(radians);
         return new Vector2(x, y);
     }
+
+    /// <summary>
+    /// Converts a Direction to a unit Vector2.
+    /// </summary>
+    public static Vector2 DirectionToSquareVector2(this Direction direction)
+    {
+        switch (direction)
+        {
+            case Direction.E:
+                return new Vector2(1, 0);
+            case Direction.SE:
+                return new Vector2(1, -1);
+            case Direction.S:
+                return new Vector2(0, -1);
+            case Direction.SW:
+                return new Vector2(-1, -1);
+            case Direction.W:
+                return new Vector2(-1, 0);
+            case Direction.NW:
+                return new Vector2(-1, 1);
+            case Direction.N:
+                return new Vector2(0, 1);
+            case Direction.NE:
+                return new Vector2(1, 1);
+            default:
+                return new Vector2(0, 0);
+        }
+    }
+
 
     /// <summary>
     /// Converts degrees to the closest Direction.
