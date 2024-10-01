@@ -68,5 +68,12 @@ namespace Saket.Engine
             return new Vector3(f.X, 0, f.Z);
         }
 
+        // To Vector4
+
+        public static Vector4 ToVector4(this Vector3 v, float w)
+        {
+            return new Vector4(v, w);
+        }
+
     }
 }
