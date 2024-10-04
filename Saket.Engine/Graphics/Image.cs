@@ -58,6 +58,14 @@ namespace Saket.Engine.Graphics
             this.width = width;
             this.height = height;
         }
+        public Image(uint width, uint height, string name = "texture_image", TextureFormat format = TextureFormat.BGRA8Unorm)
+        {
+            this.name = name;
+            this.data = new byte[width*height*4];
+            this.format = format;
+            this.width = width;
+            this.height = height;
+        }
 
         /// <summary>
         /// Call this if you want to change the data
