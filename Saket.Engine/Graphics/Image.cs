@@ -148,6 +148,24 @@ namespace Saket.Engine.Graphics
             this.width = (uint)result.Width;
             this.height = (uint)result.Height;
         }
+
+        /// <summary>
+        /// Load image from memory
+        /// </summary>
+        /// <param name="path"></param>
+        public Image(byte[] file, string name ="image",  bool flipVertically = true)
+        {
+            StbImage.stbi_set_flip_vertically_on_load(flipVertically ? 1 : 0);
+
+            ImageResult result = ImageResult.FromMemory(file, StbImageSharp.ColorComponents.RedGreenBlueAlpha);
+
+            this.name = name;
+            this.data = result.Data;
+            this.format = TextureFormat.BGRA8Unorm;
+            this.width = (uint)result.Width;
+            this.height = (uint)result.Height;
+        }
+
         /// <summary>
         /// Save Image to path
         /// </summary>
