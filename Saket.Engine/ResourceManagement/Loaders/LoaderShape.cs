@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-namespace Saket.Engine.Resources.Loaders
+namespace Saket.Engine.ResourceManagement.Loaders
 {
     public class LoaderShape : ResourceLoader<StyledShapeCollection>
     {

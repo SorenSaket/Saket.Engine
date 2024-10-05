@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Saket.Engine.Resources.Databases
+namespace Saket.Engine.ResourceManagement.Databases
 {
     public abstract class Database
     {

@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Saket.Engine.Resources.Databases
+namespace Saket.Engine.ResourceManagement.Databases
 {
     public class DatabaseEmbedded : Database
     {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Numerics;
+using Saket.Engine.Types;
 using Saket.Serialization;
 using StbImageSharp;
 using StbImageWriteSharp;
@@ -89,6 +90,94 @@ namespace Saket.Engine.Graphics
 
 
         #region Pixel Maniuplation
+        public static void Blit(byte[] sourceImage, int sourceWidth, int sourceHeight, byte[] targetImage, int targetWidth, int targetHeight, Direction anchor)
+        {
+            // Calculate aspect ratio
+            float sourceAspect = (float)sourceWidth / sourceHeight;
+            float targetAspect = (float)targetWidth / targetHeight;
+
+            // Calculate new dimensions to preserve aspect ratio
+            int newWidth, newHeight;
+            if (sourceAspect > targetAspect)
+            {
+                newWidth = targetWidth;
+                newHeight = (int)(targetWidth / sourceAspect);
+            }
+            else
+            {
+                newWidth = (int)(targetHeight * sourceAspect);
+                newHeight = targetHeight;
+            }
+
+            // Calculate anchor position
+            int xPos, yPos;
+            switch (anchor)
+            {
+                case Direction.NW:
+                    xPos = 0;
+                    yPos = 0;
+                    break;
+                case Direction.N:
+                    xPos = (targetWidth - sourceWidth) / 2;
+                    yPos = 0;
+                    break;
+                case Direction.NE:
+                    xPos = targetWidth - sourceWidth;
+                    yPos = 0;
+                    break;
+                case Direction.W:
+                    xPos = 0;
+                    yPos = (targetHeight - sourceHeight) / 2;
+                    break;
+                case Direction.Undefined:
+                    xPos = (targetWidth - sourceWidth) / 2;
+                    yPos = (targetHeight - sourceHeight) / 2;
+                    break;
+                case Direction.E:
+                    xPos = targetWidth - sourceWidth;
+                    yPos = (targetHeight - sourceHeight) / 2;
+                    break;
+                case Direction.SW:
+                    xPos = 0;
+                    yPos = targetHeight - sourceHeight;
+                    break;
+                case Direction.S:
+                    xPos = (targetWidth - sourceWidth) / 2;
+                    yPos = targetHeight - sourceHeight;
+                    break;
+                case Direction.SE:
+                    xPos = targetWidth - sourceWidth;
+                    yPos = targetHeight - sourceHeight;
+                    break;
+                default:
+                    xPos = 0;
+                    yPos = 0;
+                    break;
+            }
+            // Blit the source image onto the target image without resizing
+            for (int y = 0; y < sourceHeight; y++)
+            {
+                for (int x = 0; x < sourceWidth; x++)
+                {
+                    // Make sure the target position is within bounds
+                    int targetX = xPos + x;
+                    int targetY = yPos + y;
+
+                    if (targetX >= 0 && targetX < targetWidth && targetY >= 0 && targetY < targetHeight)
+                    {
+                        // Calculate the source and target pixel indices (assuming RGBA format, 4 bytes per pixel)
+                        int sourceIndex = (y * sourceWidth + x) * 4;
+                        int targetIndex = (targetY * targetWidth + targetX) * 4;
+
+                        // Copy RGBA pixel from source to target
+                        targetImage[targetIndex] = sourceImage[sourceIndex];         // R
+                        targetImage[targetIndex + 1] = sourceImage[sourceIndex + 1]; // G
+                        targetImage[targetIndex + 2] = sourceImage[sourceIndex + 2]; // B
+                        targetImage[targetIndex + 3] = sourceImage[sourceIndex + 3]; // A
+                    }
+                }
+            }
+        }
 
         public void FillAllPixels(Color color)
         {

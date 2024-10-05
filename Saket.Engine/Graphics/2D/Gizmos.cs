@@ -7,8 +7,143 @@ using System.Threading.Tasks;
 
 namespace Saket.Engine.Graphics._2D;
 
-public static class LineRenderer
+public static class Gizmos
 {
+
+    public static List<Vertex2D> GenerateQuads(IEnumerable<Vector2> points, Vector2 halfSize, params ReadOnlySpan<Color> color)
+    {
+        List<Vertex2D> vertices = [];
+        int c = 0;
+        foreach (var point in points)
+        {
+         
+            vertices.AddRange(Quad(point, halfSize, color[c%color.Length] ));
+            c++;
+        }
+        return vertices;
+    }
+
+
+    public static Vertex2D[] Quad(Vector2 position, Vector2 halfSize, Color color)
+    {
+        ReadOnlySpan<Vertex2D> vertices = [
+            new Vertex2D(new Vector2(position.X-halfSize.X, position.Y-halfSize.Y), new Vector2(0,0), color), // BL
+            new Vertex2D(new Vector2(position.X-halfSize.X, position.Y+halfSize.Y), new Vector2(0,1), color), // TL
+            new Vertex2D(new Vector2(position.X+halfSize.X, position.Y-halfSize.Y), new Vector2(1,0), color), // BR
+            new Vertex2D(new Vector2(position.X-halfSize.X, position.Y+halfSize.Y), new Vector2(0,1), color), // TL
+            new Vertex2D(new Vector2(position.X+halfSize.X, position.Y+halfSize.Y), new Vector2(1,1), color), // TR
+            new Vertex2D(new Vector2(position.X+halfSize.X, position.Y-halfSize.Y), new Vector2(1,0), color), // BR
+        ];
+        return vertices.ToArray();
+    }
+
+
+
+    public static List<Vertex2D> GenerateLineMesh(
+        List<Vector2> points,
+        float lineWidth,
+        bool roundCorners,
+        int cornerSections)
+    {
+        if (points == null || points.Count < 2)
+        {
+            return []; // Need at least two points
+        }
+
+        List<Vertex2D> vertexList = new List<Vertex2D>();
+        float halfWidth = lineWidth / 2f;
+
+        // Store the left and right positions at each point
+        List<Vector2> leftPositions = new List<Vector2>();
+        List<Vector2> rightPositions = new List<Vector2>();
+
+        // Process each point to calculate offsets
+        for (int i = 0; i < points.Count; i++)
+        {
+            Vector2 p = points[i];
+            Vector2 dirPrev, dirNext;
+
+            if (i == 0)
+            {
+                dirNext = Vector2.Normalize(points[i + 1] - p);
+                dirPrev = dirNext;
+            }
+            else if (i == points.Count - 1)
+            {
+                dirPrev = Vector2.Normalize(p - points[i - 1]);
+                dirNext = dirPrev;
+            }
+            else
+            {
+                dirPrev = Vector2.Normalize(p - points[i - 1]);
+                dirNext = Vector2.Normalize(points[i + 1] - p);
+            }
+
+            Vector2 normalPrev = new Vector2(-dirPrev.Y, dirPrev.X);
+            Vector2 normalNext = new Vector2(-dirNext.Y, dirNext.X);
+
+            if (roundCorners && i > 0 && i < points.Count - 1)
+            {
+                // Compute angle between directions
+                float dot = Vector2.Dot(dirPrev, dirNext);
+                dot = Math.Clamp(dot, -1.0f, 1.0f); // Ensure dot is in valid range
+                float angle = (float)Math.Acos(dot);
+
+                if (Math.Abs(angle) > 0.01f) // If angle is significant
+                {
+                    // Generate rounded corner
+                    int segments = Math.Max(1, cornerSections);
+                    for (int j = 0; j <= segments; j++)
+                    {
+                        float t = (float)j / segments;
+                        // Spherical linear interpolation between normals
+                        Vector2 normal = Slerp(normalPrev, normalNext, t);
+                        Vector2 offsetA = normal * halfWidth;
+                        leftPositions.Add(p + offsetA);
+                        rightPositions.Add(p - offsetA);
+                    }
+                    continue; // Skip adding the current point's offsets again
+                }
+            }
+
+            // Calculate miter vector for the corner
+            Vector2 miter = Vector2.Normalize(normalPrev + normalNext);
+            float miterLength = halfWidth / Vector2.Dot(miter, normalPrev);
+
+            // Limit the miter length to avoid spikes at sharp angles
+            float maxMiterLength = 4 * halfWidth; // Adjust as needed
+            if (miterLength > maxMiterLength)
+            {
+                miterLength = maxMiterLength;
+            }
+
+            Vector2 offset = miter * miterLength;
+
+            leftPositions.Add(p + offset);
+            rightPositions.Add(p - offset);
+        }
+
+        // Generate the triangle list
+        int index = 0;
+        for (int i = 0; i < leftPositions.Count - 1; i++)
+        {
+            // First triangle
+            vertexList.Add(new Vertex2D { pos = leftPositions[i], uv = new Vector2(0, 0), col = 0xffffffff });
+            vertexList.Add(new Vertex2D { pos = rightPositions[i], uv = new Vector2(0, 1), col = 0xffffffff });
+            vertexList.Add(new Vertex2D { pos = leftPositions[i + 1], uv = new Vector2(1, 0), col = 0xffffffff });
+
+            // Second triangle
+            vertexList.Add(new Vertex2D { pos = leftPositions[i + 1], uv = new Vector2(1, 0), col = 0xffffffff });
+            vertexList.Add(new Vertex2D { pos = rightPositions[i], uv = new Vector2(0, 1), col = 0xffffffff });
+            vertexList.Add(new Vertex2D { pos = rightPositions[i + 1], uv = new Vector2(1, 1), col = 0xffffffff });
+
+            index += 6;
+        }
+
+        return vertexList;
+    }
+
+
     public static void GenerateLineMesh(
         List<Vector2> points,
         float lineWidth,

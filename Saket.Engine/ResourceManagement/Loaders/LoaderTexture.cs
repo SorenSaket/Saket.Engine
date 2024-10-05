@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using StbImageSharp;
 using Saket.Engine.Graphics;
 
-namespace Saket.Engine.Resources.Loaders
+namespace Saket.Engine.ResourceManagement.Loaders
 {
     public class LoaderTexture : ResourceLoader<Image>
     {

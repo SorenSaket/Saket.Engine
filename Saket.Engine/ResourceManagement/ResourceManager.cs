@@ -1,6 +1,6 @@
 ﻿using Saket.Engine.Graphics;
-using Saket.Engine.Resources.Databases;
-using Saket.Engine.Resources.Loaders;
+using Saket.Engine.ResourceManagement.Databases;
+using Saket.Engine.ResourceManagement.Loaders;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
