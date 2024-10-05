@@ -5,6 +5,7 @@ using Saket.Serialization;
 using StbImageSharp;
 using StbImageWriteSharp;
 using WebGpuSharp;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Saket.Engine.Graphics
 {
@@ -20,6 +21,7 @@ namespace Saket.Engine.Graphics
         public TextureFormat Format { get { return format; }  }
         public uint Width { get { return width; } }
         public uint Height { get { return height; } }
+        public uint PixelCount { get { return Width * Height; } }
         public byte[] Data { get { return data; } }
 
 
@@ -88,6 +90,16 @@ namespace Saket.Engine.Graphics
 
         #region Pixel Maniuplation
 
+        public void FillAllPixels(Color color)
+        {
+            for (int i = 0; i < data.Length; i+=4)
+            {
+                data[i + 2] = color.R;
+                data[i + 1] = color.G;
+                data[i] = color.B;
+                data[i + 3] = color.A;
+            }
+        }
 
         public void SetPixel(int index, Color color)
         {
