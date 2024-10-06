@@ -20,9 +20,9 @@ namespace Saket.Engine.Graphics
         #region Properties
         public string Name { get { return name; } set { name = value; } }
         public TextureFormat Format { get { return format; }  }
-        public uint Width { get { return width; } }
-        public uint Height { get { return height; } }
-        public uint PixelCount { get { return Width * Height; } }
+        public int Width { get { return width; } }
+        public int Height { get { return height; } }
+        public int PixelCount { get { return Width * Height; } }
         public byte[] Data { get { return data; } }
 
 
@@ -35,8 +35,8 @@ namespace Saket.Engine.Graphics
         #region Variables
         internal string name;
         internal TextureFormat format;
-        internal uint width;
-        internal uint height;
+        internal int width;
+        internal int height;
         internal byte[] data;
 
         // GPU
@@ -52,7 +52,7 @@ namespace Saket.Engine.Graphics
             height = 0;
             data = [];
         }
-        public Image(byte[] data, uint width, uint height, string name = "texture_image", TextureFormat format = TextureFormat.BGRA8Unorm)
+        public Image(byte[] data, int width, int height, string name = "texture_image", TextureFormat format = TextureFormat.BGRA8Unorm)
         {
             this.name = name;
             this.data = data;
@@ -61,7 +61,7 @@ namespace Saket.Engine.Graphics
             this.width = width;
             this.height = height;
         }
-        public Image(uint width, uint height, string name = "texture_image", TextureFormat format = TextureFormat.BGRA8Unorm)
+        public Image(int width, int height, string name = "texture_image", TextureFormat format = TextureFormat.BGRA8Unorm)
         {
             this.name = name;
             this.data = new byte[width*height*4];
@@ -76,7 +76,7 @@ namespace Saket.Engine.Graphics
         /// <param name="data"></param>
         /// <param name="width"></param>
         /// <param name="height"></param>
-        public void Edit(byte[] data, uint width, uint height)
+        public void Edit(byte[] data, int width, int height)
         {
             this.data = data;
             this.width = width;
@@ -246,8 +246,8 @@ namespace Saket.Engine.Graphics
             this.name = Path.GetFileNameWithoutExtension(path);
             this.data = result.Data;
             this.format = TextureFormat.BGRA8Unorm;
-            this.width = (uint)result.Width;
-            this.height = (uint)result.Height;
+            this.width = result.Width;
+            this.height = result.Height;
         }
 
         /// <summary>
@@ -263,8 +263,8 @@ namespace Saket.Engine.Graphics
             this.name = name;
             this.data = result.Data;
             this.format = TextureFormat.BGRA8Unorm;
-            this.width = (uint)result.Width;
-            this.height = (uint)result.Height;
+            this.width = result.Width;
+            this.height = result.Height;
         }
 
         /// <summary>
@@ -325,7 +325,7 @@ namespace Saket.Engine.Graphics
             {
                 throw new Exception("Image " + name + " already exsists on gpu");
             }
-            this.extendsTexture = new Extent3D(width, height, 1);
+            this.extendsTexture = new Extent3D((uint)width, (uint)height, 1);
 
             Texture tex = graphics.device.CreateTexture(new TextureDescriptor()
             {

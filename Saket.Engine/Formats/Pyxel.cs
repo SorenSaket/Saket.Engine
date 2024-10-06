@@ -99,7 +99,7 @@ namespace Saket.Engine.Formats
                 result.Data[i * 4 + 2] = temp;
             }
 
-            Image image = new Image(result.Data, (uint)result.Width, (uint)result.Height);
+            Image image = new Image(result.Data, result.Width, result.Height);
 
            
             uint columns = docData.canvas.width / docData.canvas.tileWidth;

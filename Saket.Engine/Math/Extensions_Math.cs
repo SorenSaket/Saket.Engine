@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -48,4 +49,9 @@ public static class Extensions_Math
         return max;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsWithin<T>(this T v, T a, T b) where T : INumber<T>
+    {
+        return v >= a && v < b;
+    }
 }

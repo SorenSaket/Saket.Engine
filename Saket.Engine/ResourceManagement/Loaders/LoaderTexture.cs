@@ -28,7 +28,7 @@ namespace Saket.Engine.ResourceManagement.Loaders
                     StbImage.stbi_set_flip_vertically_on_load(1);
                     ImageResult image = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
                     
-                    Image tex = new Image(image.Data, (uint)image.Width, (uint)image.Height);
+                    Image tex = new Image(image.Data, image.Width, image.Height);
                     return tex;
                 }
             }
