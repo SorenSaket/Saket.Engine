@@ -50,7 +50,7 @@ public static class Gizmos
         return vertices;
     }
 
-    public static Vertex2D[] GenerateHollowSquare(Vector2 min, Vector2 max, uint color, float lineThickness)
+    public static Vertex2D[] GenerateHollowSquare(Vector2 min, Vector2 max, float lineThickness, Color color)
     {
         float width = max.X - min.X;
         float height = max.Y - min.Y;

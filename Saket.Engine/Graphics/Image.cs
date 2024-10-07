@@ -181,86 +181,55 @@ namespace Saket.Engine.Graphics
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sourceData"></param>
-        /// <param name="sourceWidth"></param>
-        /// <param name="sourceHeight"></param>
-        /// <param name="sourceBox">Bounding box of the source to copy</param>
-        /// <param name="targetData"></param>
-        /// <param name="targetWidth"></param>
-        /// <param name="targetHeight"></param>
-        /// <param name="targetPosition">the bottom left pixel to copy to</param>
-        public static void Blit(
-        byte[] sourceData, 
-        int sourceWidth, 
-        int sourceHeight,
-        BoundingBox2D sourceBox, 
+    
 
-        byte[] targetData,
-        int targetWidth,
-        int targetHeight,
-        Vector2 targetPosition
-            )
+        public static void Blit(
+           byte[] sourceData, int sourceWidth, int sourceHeight, BoundingBox2D sourceBoundingBox,
+           byte[] targetData, int targetWidth, int targetHeight, BoundingBox2D targetBoundingBox)
         {
             int bytesPerPixel = 4; // Assuming RGBA format
 
-            // Test if sourceBox is within source size
-            // Debug.Assert(targetWidth * targetHeight * bytesPerPixel <= targetData.Length);
+            // Calculate the dimensions of the source and target bounding boxes
+            float sourceBoxWidth = sourceBoundingBox.Max.X - sourceBoundingBox.Min.X;
+            float sourceBoxHeight = sourceBoundingBox.Max.Y - sourceBoundingBox.Min.Y;
 
+            float targetBoxWidth = targetBoundingBox.Max.X - targetBoundingBox.Min.X;
+            float targetBoxHeight = targetBoundingBox.Max.Y - targetBoundingBox.Min.Y;
 
-            // Convert bounding box coordinates to integers
-            int source_startX = (int)sourceBox.min.X;
-            int source_startY = (int)sourceBox.min.Y;
-            int source_endX = (int)sourceBox.max.X;
-            int source_endY = (int)sourceBox.max.Y;
-
-            
-
-            // Clamp the coordinates to the source image bounds
-            source_startX   = Math.Max(0, Math.Min(source_startX, sourceWidth - 1));
-            source_startY   = Math.Max(0, Math.Min(source_startY, sourceHeight - 1));
-            source_endX     = Math.Max(0, Math.Min(source_endX, sourceWidth - 1));
-            source_endY     = Math.Max(0, Math.Min(source_endY, sourceHeight - 1));
-
-            // Calculate the width and height of the bounding box
-            int copyWidth = source_endX - source_startX + 1;
-            int copyHeight = source_endY - source_startY + 1;
-
-            int target_startX = (int)targetPosition.X;
-            int target_startY = (int)targetPosition.Y;
-            int target_endX = (int)targetPosition.X+copyWidth;
-            int target_endY = (int)targetPosition.Y+copyHeight;
-
-            // Loop through each row in the bounding box
-            for (int y = 0; y < copyHeight; y++)
+            // Loop through each pixel in the target bounding box
+            for (int y = 0; y < (int)targetBoxHeight; y++)
             {
-                int sourceY = source_startY + y;
-                int targetY = target_startY + y; // Copying to the same position
+                int targetY = (int)targetBoundingBox.Min.Y + y;
 
                 if (targetY < 0 || targetY >= targetHeight)
                     continue; // Skip rows outside the target image
 
-                for (int x = 0; x < copyWidth; x++)
+                for (int x = 0; x < (int)targetBoxWidth; x++)
                 {
-                    int sourceX = source_startX + x;
-                    int targetX = target_startX + x; // Copying to the same position
+                    int targetX = (int)targetBoundingBox.Min.X + x;
 
                     if (targetX < 0 || targetX >= targetWidth)
                         continue; // Skip columns outside the target image
 
+                    // Calculate the corresponding source coordinates
+                    float sourceXFloat = sourceBoundingBox.Min.X + (x / targetBoxWidth) * sourceBoxWidth;
+                    float sourceYFloat = sourceBoundingBox.Min.Y + (y / targetBoxHeight) * sourceBoxHeight;
+
+                    int sourceX = (int)sourceXFloat;
+                    int sourceY = (int)sourceYFloat;
+
+                    if (sourceX < 0 || sourceX >= sourceWidth || sourceY < 0 || sourceY >= sourceHeight)
+                        continue; // Skip if source coordinates are out of bounds
+
                     int sourceIndex = (sourceY * sourceWidth + sourceX) * bytesPerPixel;
                     int targetIndex = (targetY * targetWidth + targetX) * bytesPerPixel;
 
+                    if( sourceData[sourceIndex+3] != 0)
                     // Copy the pixel data
-                    System.Buffer.BlockCopy(sourceData, sourceIndex, targetData, targetIndex, bytesPerPixel);
+                        System.Buffer.BlockCopy(sourceData, sourceIndex, targetData, targetIndex, bytesPerPixel);
                 }
-
             }
         }
-
-
 
         public void FillAllPixels(Color color)
         {
