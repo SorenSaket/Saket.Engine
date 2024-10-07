@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Numerics;
+using Saket.Engine.Geometry;
 using Saket.Engine.Types;
 using Saket.Serialization;
 using StbImageSharp;
@@ -179,6 +181,87 @@ namespace Saket.Engine.Graphics
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sourceData"></param>
+        /// <param name="sourceWidth"></param>
+        /// <param name="sourceHeight"></param>
+        /// <param name="sourceBox">Bounding box of the source to copy</param>
+        /// <param name="targetData"></param>
+        /// <param name="targetWidth"></param>
+        /// <param name="targetHeight"></param>
+        /// <param name="targetPosition">the bottom left pixel to copy to</param>
+        public static void Blit(
+        byte[] sourceData, 
+        int sourceWidth, 
+        int sourceHeight,
+        BoundingBox2D sourceBox, 
+
+        byte[] targetData,
+        int targetWidth,
+        int targetHeight,
+        Vector2 targetPosition
+            )
+        {
+            int bytesPerPixel = 4; // Assuming RGBA format
+
+            // Test if sourceBox is within source size
+            // Debug.Assert(targetWidth * targetHeight * bytesPerPixel <= targetData.Length);
+
+
+            // Convert bounding box coordinates to integers
+            int source_startX = (int)sourceBox.min.X;
+            int source_startY = (int)sourceBox.min.Y;
+            int source_endX = (int)sourceBox.max.X;
+            int source_endY = (int)sourceBox.max.Y;
+
+            
+
+            // Clamp the coordinates to the source image bounds
+            source_startX   = Math.Max(0, Math.Min(source_startX, sourceWidth - 1));
+            source_startY   = Math.Max(0, Math.Min(source_startY, sourceHeight - 1));
+            source_endX     = Math.Max(0, Math.Min(source_endX, sourceWidth - 1));
+            source_endY     = Math.Max(0, Math.Min(source_endY, sourceHeight - 1));
+
+            // Calculate the width and height of the bounding box
+            int copyWidth = source_endX - source_startX + 1;
+            int copyHeight = source_endY - source_startY + 1;
+
+            int target_startX = (int)targetPosition.X;
+            int target_startY = (int)targetPosition.Y;
+            int target_endX = (int)targetPosition.X+copyWidth;
+            int target_endY = (int)targetPosition.Y+copyHeight;
+
+            // Loop through each row in the bounding box
+            for (int y = 0; y < copyHeight; y++)
+            {
+                int sourceY = source_startY + y;
+                int targetY = target_startY + y; // Copying to the same position
+
+                if (targetY < 0 || targetY >= targetHeight)
+                    continue; // Skip rows outside the target image
+
+                for (int x = 0; x < copyWidth; x++)
+                {
+                    int sourceX = source_startX + x;
+                    int targetX = target_startX + x; // Copying to the same position
+
+                    if (targetX < 0 || targetX >= targetWidth)
+                        continue; // Skip columns outside the target image
+
+                    int sourceIndex = (sourceY * sourceWidth + sourceX) * bytesPerPixel;
+                    int targetIndex = (targetY * targetWidth + targetX) * bytesPerPixel;
+
+                    // Copy the pixel data
+                    System.Buffer.BlockCopy(sourceData, sourceIndex, targetData, targetIndex, bytesPerPixel);
+                }
+
+            }
+        }
+
+
+
         public void FillAllPixels(Color color)
         {
             for (int i = 0; i < data.Length; i+=4)
@@ -259,6 +342,14 @@ namespace Saket.Engine.Graphics
             StbImage.stbi_set_flip_vertically_on_load(flipVertically ? 1 : 0);
 
             ImageResult result = ImageResult.FromMemory(file, StbImageSharp.ColorComponents.RedGreenBlueAlpha);
+           
+            // convert from rgba to bgra
+            for (int i = 0; i < result.Width * result.Height; ++i)
+            {
+                byte temp = result.Data[i * 4];
+                result.Data[i * 4] = result.Data[i * 4 + 2];
+                result.Data[i * 4 + 2] = temp;
+            }
 
             this.name = name;
             this.data = result.Data;

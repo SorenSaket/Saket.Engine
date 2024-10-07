@@ -103,7 +103,7 @@ public struct QuadraticBezier : ICurve2D
     //TODO doc
     public BoundingBox2D Bounds()
     {
-        BoundingBox2D bounds = BoundingBox2D.Infinite;
+        BoundingBox2D bounds = BoundingBox2D.Null;
         bounds.AddPoint(Start);
         bounds.AddPoint(End);
 

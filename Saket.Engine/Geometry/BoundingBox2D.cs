@@ -7,10 +7,17 @@ namespace Saket.Engine.Geometry;
 /// </summary>
 public struct BoundingBox2D
 {
-    public static BoundingBox2D Infinite = new BoundingBox2D(new Vector2(float.PositiveInfinity), new Vector2(float.NegativeInfinity));
+    public static readonly BoundingBox2D Null = new(new Vector2(float.PositiveInfinity), new Vector2(float.NegativeInfinity));
+    public readonly Vector2 Size => max - min;
 
     public Vector2 min;
     public Vector2 max;
+
+
+
+    public BoundingBox2D()
+    {
+    }
 
     public BoundingBox2D(Vector2 min, Vector2 max)
     {

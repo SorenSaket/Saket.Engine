@@ -227,7 +227,6 @@ namespace Saket.Engine.Graphics
             if (image.IsUploadedToGPU)
             {
                 image.GPUDestroyTexture();
-                
             }
             
             image.GPUCreateTexture(this);

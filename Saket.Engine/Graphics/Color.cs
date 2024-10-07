@@ -413,11 +413,17 @@ namespace Saket.Engine.Graphics
 		public static implicit operator uint(Color a) => a._packedValue;
 		public static implicit operator Color(uint a) => new Color(a);
 
-		/// <summary>
-		/// Gets the hash code of this <see cref="Color"/>.
-		/// </summary>
-		/// <returns>Hash code of this <see cref="Color"/>.</returns>
-		public override int GetHashCode()
+        public static implicit operator Vector3(Color a) => a.ToVector3();
+        public static implicit operator Color(Vector3 a) => new Color(a);
+
+        public static implicit operator Vector4(Color a) => a.ToVector4();
+        public static implicit operator Color(Vector4 a) => new Color(a);
+
+        /// <summary>
+        /// Gets the hash code of this <see cref="Color"/>.
+        /// </summary>
+        /// <returns>Hash code of this <see cref="Color"/>.</returns>
+        public override int GetHashCode()
 		{
 			return this._packedValue.GetHashCode();
 		}

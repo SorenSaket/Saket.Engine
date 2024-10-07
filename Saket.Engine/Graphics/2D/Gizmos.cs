@@ -26,7 +26,7 @@ public static class Gizmos
 
     public static Vertex2D[] Quad(Vector2 position, Vector2 halfSize, Color color)
     {
-        ReadOnlySpan<Vertex2D> vertices = [
+        Vertex2D[] vertices = [
             new Vertex2D(new Vector2(position.X-halfSize.X, position.Y-halfSize.Y), new Vector2(0,0), color), // BL
             new Vertex2D(new Vector2(position.X-halfSize.X, position.Y+halfSize.Y), new Vector2(0,1), color), // TL
             new Vertex2D(new Vector2(position.X+halfSize.X, position.Y-halfSize.Y), new Vector2(1,0), color), // BR
@@ -34,9 +34,97 @@ public static class Gizmos
             new Vertex2D(new Vector2(position.X+halfSize.X, position.Y+halfSize.Y), new Vector2(1,1), color), // TR
             new Vertex2D(new Vector2(position.X+halfSize.X, position.Y-halfSize.Y), new Vector2(1,0), color), // BR
         ];
-        return vertices.ToArray();
+        return vertices;
     }
 
+    public static Vertex2D[] QuadMinMax(Vector2 min, Vector2 max, Color color)
+    {
+        Vertex2D[] vertices = [
+            new Vertex2D(new Vector2(min.X, min.Y), new Vector2(0,0), color), // BL
+            new Vertex2D(new Vector2(min.X, max.Y), new Vector2(0,1), color), // TL
+            new Vertex2D(new Vector2(max.X, min.Y), new Vector2(1,0), color), // BR
+            new Vertex2D(new Vector2(min.X, max.Y), new Vector2(0,1), color), // TL
+            new Vertex2D(new Vector2(max.X, max.Y), new Vector2(1,1), color), // TR
+            new Vertex2D(new Vector2(max.X, min.Y), new Vector2(1,0), color), // BR
+        ];
+        return vertices;
+    }
+
+    public static Vertex2D[] GenerateHollowSquare(Vector2 min, Vector2 max, uint color, float lineThickness)
+    {
+        float width = max.X - min.X;
+        float height = max.Y - min.Y;
+
+        // Ensure lineThickness is positive and does not exceed half of the min dimension
+        float maxThickness = MathF.Min(width, height) / 2f;
+        if (lineThickness > maxThickness)
+            lineThickness = maxThickness;
+
+        // Define the outer and inner rectangle corners
+        // Outer corners (p0 to p3)
+        Vector2 p0 = new Vector2(min.X, min.Y); // Outer Top Left
+        Vector2 p1 = new Vector2(max.X, min.Y); // Outer Top Right
+        Vector2 p2 = new Vector2(max.X, max.Y); // Outer Bottom Right
+        Vector2 p3 = new Vector2(min.X, max.Y); // Outer Bottom Left
+
+        // Inner corners (p4 to p7)
+        Vector2 p4 = new Vector2(min.X + lineThickness, min.Y + lineThickness); // Inner Top Left
+        Vector2 p5 = new Vector2(max.X - lineThickness, min.Y + lineThickness); // Inner Top Right
+        Vector2 p6 = new Vector2(max.X - lineThickness, max.Y - lineThickness); // Inner Bottom Right
+        Vector2 p7 = new Vector2(min.X + lineThickness, max.Y - lineThickness); // Inner Bottom Left
+
+        // Collect all unique vertices
+        Vector2[] points = new Vector2[] { p0, p1, p2, p3, p4, p5, p6, p7 };
+
+        // Compute UVs
+        Vector2[] uvs = new Vector2[8];
+        for (int i = 0; i < 8; i++)
+        {
+            float u = (points[i].X - min.X) / width;
+            float v = (points[i].Y - min.Y) / height;
+            uvs[i] = new Vector2(u, v);
+        }
+
+        // Define triangles with indices into the points array, ensuring clockwise winding order
+        int[][] triangles = new int[][]
+        {
+            // Top Side
+            new int[] { 0, 4, 1 }, // Triangle 1
+            new int[] { 1, 4, 5 }, // Triangle 2
+
+            // Right Side
+            new int[] { 1, 5, 2 }, // Triangle 3
+            new int[] { 2, 5, 6 }, // Triangle 4
+
+            // Bottom Side
+            new int[] { 2, 6, 3 }, // Triangle 5
+            new int[] { 3, 6, 7 }, // Triangle 6
+
+            // Left Side
+            new int[] { 3, 7, 0 }, // Triangle 7
+            new int[] { 0, 7, 4 }, // Triangle 8
+        };
+
+        // Create the vertex list
+        List<Vertex2D> vertexList = new List<Vertex2D>();
+
+        foreach (var tri in triangles)
+        {
+            // For each triangle, add the vertices in the correct order
+            for (int i = 0; i < 3; i++)
+            {
+                int idx = tri[i];
+                vertexList.Add(new Vertex2D
+                {
+                    pos = points[idx],
+                    uv = uvs[idx],
+                    col = color
+                });
+            }
+        }
+
+        return vertexList.ToArray();
+    }
 
 
     public static List<Vertex2D> GenerateLineMesh(
