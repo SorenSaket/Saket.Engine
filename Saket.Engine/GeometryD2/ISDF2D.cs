@@ -1,7 +1,7 @@
 ﻿using Saket.Engine.Types;
 using System.Numerics;
 
-namespace Saket.Engine.Geometry2D;
+namespace Saket.Engine.GeometryD2;
 
 public interface ISDF2D
 {

@@ -3,11 +3,11 @@ using System.Numerics;
 using System.Collections.Generic;
 using System.Collections;
 using System.Runtime.CompilerServices;
-using Saket.Engine.Geometry2D.Curves;
+using Saket.Engine.GeometryD2.Curves;
 using Saket.Engine.Types;
 
 
-namespace Saket.Engine.Geometry2D.Splines;
+namespace Saket.Engine.GeometryD2.Splines;
 
 /// <summary>
 /// A single continuous contour of a shape.

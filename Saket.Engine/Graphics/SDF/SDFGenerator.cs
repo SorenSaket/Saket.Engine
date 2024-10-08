@@ -1,4 +1,4 @@
-﻿using Saket.Engine.Geometry2D.Splines;
+﻿using Saket.Engine.GeometryD2.Splines;
 using Saket.Engine.Types;
 using Saket.Engine.Vector;
 using System;

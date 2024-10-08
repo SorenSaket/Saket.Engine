@@ -3,7 +3,7 @@ using Saket.Serialization;
 using System;
 using System.Numerics;
 
-namespace Saket.Engine.Geometry2D.Shapes;
+namespace Saket.Engine.GeometryD2.Shapes;
 
 public enum ShapeType
 {

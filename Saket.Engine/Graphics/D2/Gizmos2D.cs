@@ -1,4 +1,4 @@
-﻿using Saket.Engine.Geometry2D.Shapes;
+﻿using Saket.Engine.GeometryD2.Shapes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,8 +10,15 @@ namespace Saket.Engine.Graphics.D2;
 
 public static class Gizmos2D
 {
+    public static List<Vertex2D> CreateHandle(Vector2 position)
+    { 
+        return Triangulate.TriangulateShape(
+            new Rectangle(position, new Vector2(0.5f, 0.5f), 0),
+            new Engine.Vector.ShapeStyle(Color.White, Color.Gray, Engine.Vector.BorderType.Center, 0.1f));
+    }
 
-    public static List<Vertex2D> GenerateQuads(IEnumerable<Vector2> points, Vector2 halfSize, params ReadOnlySpan<Color> color)
+
+        public static List<Vertex2D> GenerateQuads(IEnumerable<Vector2> points, Vector2 halfSize, params ReadOnlySpan<Color> color)
     {
         List<Vertex2D> vertices = [];
         int c = 0;

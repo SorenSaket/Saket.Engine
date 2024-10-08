@@ -85,11 +85,23 @@ public static class Extensions_Vector2
         return area < e;
     }
 
+
+
     public static (Vector2 min, Vector2 max) MinMax(Vector2 A, Vector2 B)
     {
         return (
                new Vector2(MathF.Min(A.X,B.X), MathF.Min(A.Y, B.Y)),
                 new Vector2(MathF.Max(A.X, B.X), MathF.Max(A.Y, B.Y)));
-    
+    }
+
+
+    public static float Min(this Vector2 value)
+    {
+        return MathF.Min(value.X, value.Y);
+    }
+
+    public static float Max(this Vector2 value)
+    {
+        return MathF.Max(value.X, value.Y);
     }
 }

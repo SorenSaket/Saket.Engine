@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Saket.Engine.Geometry2D.Splines;
+namespace Saket.Engine.GeometryD2.Splines;
 
 public static class Spline
 {

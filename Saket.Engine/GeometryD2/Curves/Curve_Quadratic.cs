@@ -2,7 +2,7 @@
 using System;
 using System.Numerics;
 
-namespace Saket.Engine.Geometry2D.Curves;
+namespace Saket.Engine.GeometryD2.Curves;
 
 /// <summary>
 /// Bezier cruve from 3 points

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Saket.Engine.Geometry2D;
+namespace Saket.Engine.GeometryD2;
 
 
 /// <summary>

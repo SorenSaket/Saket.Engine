@@ -1,4 +1,4 @@
-﻿namespace Saket.Engine.Geometry2D.Curves;
+﻿namespace Saket.Engine.GeometryD2.Curves;
 
 public enum CurveType
 {

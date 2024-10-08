@@ -6,7 +6,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Saket.Engine.Geometry2D.Shapes;
+namespace Saket.Engine.GeometryD2.Shapes;
 
 public struct Circle : IShape
 {
