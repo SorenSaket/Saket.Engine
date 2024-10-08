@@ -10,11 +10,11 @@ namespace Saket.Engine.Graphics.D2;
 
 public static class Gizmos2D
 {
-    public static List<Vertex2D> CreateHandle(Vector2 position)
+    public static List<Vertex2D> CreateHandle(Rectangle rect, float border)
     { 
         return Triangulate.TriangulateShape(
-            new Rectangle(position, new Vector2(0.5f, 0.5f), 0),
-            new Engine.Vector.ShapeStyle(Color.White, Color.Gray, Engine.Vector.BorderType.Center, 0.1f));
+            rect,
+            new Engine.Vector.ShapeStyle(Color.White, Color.Gray, Engine.Vector.BorderType.Center, border));
     }
 
 

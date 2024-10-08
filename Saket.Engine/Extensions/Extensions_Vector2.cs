@@ -71,6 +71,12 @@ public static class Extensions_Vector2
         return new Vector2(0, MathF.Sign(v.Y));
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector2 Sign(this Vector2 v)
+    {
+        return new Vector2(MathF.Sign(v.X), MathF.Sign(v.Y));
+    }
+
     public static bool IsWithin(this Vector2 v, Vector2 min, Vector2 max)
     {
         return v.X >= min.X && v.X < max.X && 

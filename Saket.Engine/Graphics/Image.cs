@@ -184,57 +184,6 @@ namespace Saket.Engine.Graphics
 
     
 
-        public static void Blita(
-           byte[] sourceData, int sourceWidth, int sourceHeight, Rectangle sourceBoundingBox,
-           byte[] targetData, int targetWidth, int targetHeight, Rectangle targetBoundingBox)
-        {
-            int bytesPerPixel = 4; // Assuming RGBA format
-
-            // Create transformation matrices for source and target bounding boxes
-            Matrix3x2 sourceTransform = sourceBoundingBox.CreateTransformMatrix();
-
-            Matrix3x2 targetTransform = targetBoundingBox.CreateTransformMatrix();
-            
-            // Compute the inverse transformation matrix from target to source space
-            Matrix3x2.Invert(sourceTransform, out Matrix3x2 inverseSourceTransform);
-            Matrix3x2 combinedTransform = targetTransform * inverseSourceTransform;
-
-            // Calculate the axis-aligned bounding rectangle of the target bounding box
-            BoundingBox2D targetRect = targetBoundingBox.GetBounds();
-
-            // Loop through each pixel in the target bounding box
-            for (int y = (int)targetRect.Bottom; y <= targetRect.Top; y++)
-            {
-                for (int x = (int)targetRect.Left; x <= targetRect.Right; x++)
-                {
-                    // Target pixel position
-                    Vector2 targetPixel = new Vector2(x, y);
-                    Vector2 sourcePixel = Vector2.Transform(targetPixel, inverseSourceTransform);
-                    
-                    if (sourcePixel.X >= 0 && sourcePixel.X < sourceWidth &&
-                    sourcePixel.Y >= 0 && sourcePixel.Y < sourceHeight)
-                    {
-                        // Use nearest-neighbor sampling (you can replace this with bilinear interpolation)
-                        int sourceX = (int)MathF.Floor( sourcePixel.X);
-                        int sourceY = (int)MathF.Floor(sourcePixel.Y);
-
-                        int sourceIndex = (sourceY * sourceWidth + sourceX) * bytesPerPixel;
-                        int targetIndex = (y * targetWidth + x) * bytesPerPixel;
-
-                        // Ensure indices are within array bounds
-                        if (sourceIndex >= 0 && (sourceIndex + bytesPerPixel) <= sourceData.Length &&
-                            targetIndex >= 0 && (targetIndex + bytesPerPixel) <= targetData.Length)
-                        {
-                            if (sourceData[sourceIndex + 3] != 0)
-                                // Copy the pixel data
-                                System.Buffer.BlockCopy(sourceData, sourceIndex, targetData, targetIndex, bytesPerPixel);
-                        }
-                    }
-                }
-            }
-        }
-
-
         public static void Blit(
         byte[] sourceData, int sourceWidth, int sourceHeight, Rectangle sourceBoundingBox,
         byte[] targetData, int targetWidth, int targetHeight, Rectangle targetBoundingBox,
@@ -281,9 +230,10 @@ namespace Saket.Engine.Graphics
                         {
                             int sourceIndex = (y_s_int * sourceWidth + x_s_int) * bytesPerPixel;
                             int targetIndex = (y_t * targetWidth + x_t) * bytesPerPixel;
-
-                            // Copy pixel data
-                            Array.Copy(sourceData, sourceIndex, targetData, targetIndex, bytesPerPixel);
+                            
+                            if (sourceData[sourceIndex + 3] != 0)
+                                // Copy pixel data
+                                Array.Copy(sourceData, sourceIndex, targetData, targetIndex, bytesPerPixel);
                         }
                     }
                 }

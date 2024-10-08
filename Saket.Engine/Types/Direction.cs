@@ -26,9 +26,11 @@ public enum Direction : byte
     Ordinal = SE | SW | NW | NE,
     All = Cardial | Ordinal,
 
-    Horizontal = E | SE | SW | W | NW | NE,
-    Vertical =  S | SE | SW | N  | NW | NE,
+    AnyHorizontal = E | SE | SW | W | NW | NE,
+    AnyVertical =  S | SE | SW | N  | NW | NE,
 
+    Horizontal = E | W ,
+    Vertical = S | N ,
 
     Undefined = 0,
     E = 1 << 0,

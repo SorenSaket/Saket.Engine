@@ -9,7 +9,7 @@ public static class Extensions
     {
         foreach (T value in (Enum.GetValues(input.GetType())) )
         {
-            if (input.HasFlag(value) )
+            if (input.HasFlag(value))
                 yield return value;
         }
             

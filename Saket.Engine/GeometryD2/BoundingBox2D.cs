@@ -31,7 +31,6 @@ public struct BoundingBox2D : ISerializable
     public BoundingBox2D(Vector2 min, Vector2 max)
     {
         // might validate the min and max?
-        Debug.Assert(min.LengthSquared() <= max.LengthSquared());
         this.Min = min;
         this.Max = max;
     }

@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Saket.Engine;
 
@@ -23,6 +24,35 @@ public static class Extensions_Math
 
         return ((number + multiple - T.One) / multiple) * multiple;
     }
+
+
+    public static T RoundToNearestMultiple<T>(this T number, T multiple, MidpointRounding mode = MidpointRounding.AwayFromZero) where T : INumber<T>
+    {
+        if (multiple == T.Zero)
+        {
+            return number;
+        }
+
+        T remainder = number % multiple;
+        if (remainder == T.Zero)
+        {
+            return number;
+        }
+
+        T halfMultiple = multiple / T.CreateChecked(2);
+
+        if (remainder >= halfMultiple)
+        {
+            return number + (multiple - remainder);
+        }
+        else
+        {
+            return number - remainder;
+        }
+    }
+
+
+
     public static T Min<T>(params Span<T> values) where T : INumber<T>
     {
         T min = values[0];
