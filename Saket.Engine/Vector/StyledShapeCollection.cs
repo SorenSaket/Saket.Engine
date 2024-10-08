@@ -1,15 +1,15 @@
-
+using Saket.Engine.Geometry2D;
 using Saket.Engine.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
-namespace Saket.Engine.Geometry;
+namespace Saket.Engine.Vector;
 
 /// <summary>
-	/// Vector shape representation.
-	/// </summary>
+/// Vector shape representation.
+/// </summary>
 public class StyledShapeCollection : List<IShape>, IShape
 {
     public List<IShape> Shapes => this;
@@ -83,12 +83,12 @@ public class StyledShapeCollection : List<IShape>, IShape
             contour.Bounds(box);*/
     }
 
-    public SignedDistance GetSignedDistance(System.Numerics.Vector2 point)
+    public SignedDistance GetSignedDistance(Vector2 point)
     {
         return SignedDistance.GetShortest(Shapes, point);
     }
 
-    BoundingBox2D IBounds2D.Bounds()
+    BoundingBox2D IBounds2D.GetBounds()
     {
         throw new NotImplementedException();
     }

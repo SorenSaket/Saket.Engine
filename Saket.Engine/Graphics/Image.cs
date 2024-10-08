@@ -2,7 +2,8 @@
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
-using Saket.Engine.Geometry;
+using Saket.Engine.Geometry2D;
+using Saket.Engine.Geometry2D.Shapes;
 using Saket.Engine.Types;
 using Saket.Serialization;
 using StbImageSharp;
@@ -183,55 +184,113 @@ namespace Saket.Engine.Graphics
 
     
 
-        public static void Blit(
-           byte[] sourceData, int sourceWidth, int sourceHeight, BoundingBox2D sourceBoundingBox,
-           byte[] targetData, int targetWidth, int targetHeight, BoundingBox2D targetBoundingBox)
+        public static void Blita(
+           byte[] sourceData, int sourceWidth, int sourceHeight, Rectangle sourceBoundingBox,
+           byte[] targetData, int targetWidth, int targetHeight, Rectangle targetBoundingBox)
         {
             int bytesPerPixel = 4; // Assuming RGBA format
 
-            // Calculate the dimensions of the source and target bounding boxes
-            float sourceBoxWidth = sourceBoundingBox.Max.X - sourceBoundingBox.Min.X;
-            float sourceBoxHeight = sourceBoundingBox.Max.Y - sourceBoundingBox.Min.Y;
+            // Create transformation matrices for source and target bounding boxes
+            Matrix3x2 sourceTransform = sourceBoundingBox.CreateTransformMatrix();
 
-            float targetBoxWidth = targetBoundingBox.Max.X - targetBoundingBox.Min.X;
-            float targetBoxHeight = targetBoundingBox.Max.Y - targetBoundingBox.Min.Y;
+            Matrix3x2 targetTransform = targetBoundingBox.CreateTransformMatrix();
+            
+            // Compute the inverse transformation matrix from target to source space
+            Matrix3x2.Invert(sourceTransform, out Matrix3x2 inverseSourceTransform);
+            Matrix3x2 combinedTransform = targetTransform * inverseSourceTransform;
+
+            // Calculate the axis-aligned bounding rectangle of the target bounding box
+            BoundingBox2D targetRect = targetBoundingBox.GetBounds();
 
             // Loop through each pixel in the target bounding box
-            for (int y = 0; y < (int)targetBoxHeight; y++)
+            for (int y = (int)targetRect.Bottom; y <= targetRect.Top; y++)
             {
-                int targetY = (int)targetBoundingBox.Min.Y + y;
-
-                if (targetY < 0 || targetY >= targetHeight)
-                    continue; // Skip rows outside the target image
-
-                for (int x = 0; x < (int)targetBoxWidth; x++)
+                for (int x = (int)targetRect.Left; x <= targetRect.Right; x++)
                 {
-                    int targetX = (int)targetBoundingBox.Min.X + x;
+                    // Target pixel position
+                    Vector2 targetPixel = new Vector2(x, y);
+                    Vector2 sourcePixel = Vector2.Transform(targetPixel, inverseSourceTransform);
+                    
+                    if (sourcePixel.X >= 0 && sourcePixel.X < sourceWidth &&
+                    sourcePixel.Y >= 0 && sourcePixel.Y < sourceHeight)
+                    {
+                        // Use nearest-neighbor sampling (you can replace this with bilinear interpolation)
+                        int sourceX = (int)MathF.Floor( sourcePixel.X);
+                        int sourceY = (int)MathF.Floor(sourcePixel.Y);
 
-                    if (targetX < 0 || targetX >= targetWidth)
-                        continue; // Skip columns outside the target image
+                        int sourceIndex = (sourceY * sourceWidth + sourceX) * bytesPerPixel;
+                        int targetIndex = (y * targetWidth + x) * bytesPerPixel;
 
-                    // Calculate the corresponding source coordinates
-                    float sourceXFloat = sourceBoundingBox.Min.X + (x / targetBoxWidth) * sourceBoxWidth;
-                    float sourceYFloat = sourceBoundingBox.Min.Y + (y / targetBoxHeight) * sourceBoxHeight;
-
-                    int sourceX = (int)sourceXFloat;
-                    int sourceY = (int)sourceYFloat;
-
-                    if (sourceX < 0 || sourceX >= sourceWidth || sourceY < 0 || sourceY >= sourceHeight)
-                        continue; // Skip if source coordinates are out of bounds
-
-                    int sourceIndex = (sourceY * sourceWidth + sourceX) * bytesPerPixel;
-                    int targetIndex = (targetY * targetWidth + targetX) * bytesPerPixel;
-
-                    if( sourceData[sourceIndex+3] != 0)
-                    // Copy the pixel data
-                        System.Buffer.BlockCopy(sourceData, sourceIndex, targetData, targetIndex, bytesPerPixel);
+                        // Ensure indices are within array bounds
+                        if (sourceIndex >= 0 && (sourceIndex + bytesPerPixel) <= sourceData.Length &&
+                            targetIndex >= 0 && (targetIndex + bytesPerPixel) <= targetData.Length)
+                        {
+                            if (sourceData[sourceIndex + 3] != 0)
+                                // Copy the pixel data
+                                System.Buffer.BlockCopy(sourceData, sourceIndex, targetData, targetIndex, bytesPerPixel);
+                        }
+                    }
                 }
             }
         }
 
-        public void FillAllPixels(Color color)
+
+        public static void Blit(
+        byte[] sourceData, int sourceWidth, int sourceHeight, Rectangle sourceBoundingBox,
+        byte[] targetData, int targetWidth, int targetHeight, Rectangle targetBoundingBox,
+        int bytesPerPixel = 4) // Assuming RGBA format by default
+        {
+            // Create transformation matrices
+            Matrix3x2 sourceTransform = sourceBoundingBox.CreateTransformMatrix();
+            Matrix3x2 targetInverseTransform = targetBoundingBox.CreateInverseTransformMatrix();
+
+            var bounds_target = targetBoundingBox.GetBounds();
+      
+            // Clamp to target image bounds
+            int startX = Math.Max((int)Math.Floor(bounds_target.Min.X), 0);
+            int endX = Math.Min((int)Math.Ceiling(bounds_target.Max.X), targetWidth - 1);
+            int startY = Math.Max((int)Math.Floor(bounds_target.Min.Y), 0);
+            int endY = Math.Min((int)Math.Ceiling(bounds_target.Max.Y), targetHeight - 1);
+
+            // Iterate over the pixels within the bounding box
+            for (int y_t = startY; y_t <= endY; y_t++)
+            {
+                for (int x_t = startX; x_t <= endX; x_t++)
+                {
+                    Vector2 targetPixel = new Vector2(x_t, y_t);
+
+                    // Transform the pixel to the rectangle's local space
+                    Vector2 localPos = Vector2.Transform(targetPixel, targetInverseTransform);
+
+                    // Check if the local position is within the rectangle
+                    if (Math.Abs(localPos.X) <= 1 && Math.Abs(localPos.Y) <= 1)
+                    {
+                        // Map local position from target to source space
+                        // First, map from [-1, 1] to source rectangle's local space
+                        Vector2 sourceLocalPos = localPos;
+
+                        // Transform local position to source pixel position
+                        Vector2 sourcePixel = Vector2.Transform(sourceLocalPos, sourceTransform);
+
+                        // Nearest neighbor sampling
+                        int x_s_int = (int)Math.Round(sourcePixel.X);
+                        int y_s_int = (int)Math.Round(sourcePixel.Y);
+
+                        // Check bounds in the source image
+                        if (x_s_int >= 0 && x_s_int < sourceWidth && y_s_int >= 0 && y_s_int < sourceHeight)
+                        {
+                            int sourceIndex = (y_s_int * sourceWidth + x_s_int) * bytesPerPixel;
+                            int targetIndex = (y_t * targetWidth + x_t) * bytesPerPixel;
+
+                            // Copy pixel data
+                            Array.Copy(sourceData, sourceIndex, targetData, targetIndex, bytesPerPixel);
+                        }
+                    }
+                }
+            }
+        }
+
+            public void FillAllPixels(Color color)
         {
             for (int i = 0; i < data.Length; i+=4)
             {

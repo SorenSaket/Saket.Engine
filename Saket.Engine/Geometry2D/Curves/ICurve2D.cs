@@ -2,7 +2,7 @@
 using System;
 using System.Numerics;
 
-namespace Saket.Engine.Geometry.Curves;
+namespace Saket.Engine.Geometry2D.Curves;
 
 /// <summary>
 /// A curve in two dimentions

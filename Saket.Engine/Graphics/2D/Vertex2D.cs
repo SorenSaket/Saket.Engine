@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace Saket.Engine.Graphics._2D;
+namespace Saket.Engine.Graphics.D2;
 
 public struct Vertex2D
 {

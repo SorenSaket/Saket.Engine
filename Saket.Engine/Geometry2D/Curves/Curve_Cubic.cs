@@ -2,12 +2,12 @@
 using System;
 using System.Numerics;
 
-namespace Saket.Engine.Geometry.Curves;
+namespace Saket.Engine.Geometry2D.Curves;
 
 /// <summary>
 /// Bezier curve from 4 points
 /// </summary>
-public struct CubicBezier : ICurve2D
+public struct Curve_Cubic : ICurve2D
 {
     public Vector2 start;
     public Vector2 controlA;
@@ -15,9 +15,7 @@ public struct CubicBezier : ICurve2D
     public Vector2 end;
 
 
-
-
-    public BoundingBox2D Bounds()
+    public BoundingBox2D GetBounds()
     {
         throw new NotImplementedException();
     }

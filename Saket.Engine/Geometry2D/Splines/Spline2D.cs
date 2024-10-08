@@ -3,11 +3,11 @@ using System.Numerics;
 using System.Collections.Generic;
 using System.Collections;
 using System.Runtime.CompilerServices;
-using Saket.Engine.Geometry.Curves;
+using Saket.Engine.Geometry2D.Curves;
 using Saket.Engine.Types;
 
 
-namespace Saket.Engine.Geometry.Splines;
+namespace Saket.Engine.Geometry2D.Splines;
 
 /// <summary>
 /// A single continuous contour of a shape.
@@ -35,17 +35,17 @@ public class Spline2D : IEnumerable<ICurve2D>, IShape
         get { return GetCurve(i); }
     }
 
-    public QuadraticBezier GetCurve(int index)
+    public Curve_Quadratic GetCurve(int index)
     {
         int si = index * 2;
-        return new QuadraticBezier(points[si], points[si + 1], points[(si + 2) % points.Count]);
+        return new Curve_Quadratic(points[si], points[si + 1], points[(si + 2) % points.Count]);
     }
 
     /// <summary>
     /// Computes the bounding box of the contour.
     /// </summary>
     /// <param name="box"></param>
-    public BoundingBox2D Bounds()
+    public BoundingBox2D GetBounds()
     {
         throw new NotImplementedException();
         //foreach (var edge in this) edge.Bounds(box);

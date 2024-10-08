@@ -1,6 +1,6 @@
-﻿using Saket.Engine.Geometry;
-using Saket.Engine.Geometry.Splines;
+﻿using Saket.Engine.Geometry2D.Splines;
 using Saket.Engine.Types;
+using Saket.Engine.Vector;
 using System;
 using System.Collections.Generic;
 using System.Linq;

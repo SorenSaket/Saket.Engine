@@ -5,11 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Saket.Engine.Geometry;
+namespace Saket.Engine.Vector;
 
 public struct ShapeStyle
 {
-    public Color Fill; 
+    public Color Fill;
     public Color Border;
     public float borderRadius;
 }

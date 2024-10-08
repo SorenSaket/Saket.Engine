@@ -2,12 +2,12 @@
 using System;
 using System.Numerics;
 
-namespace Saket.Engine.Geometry.Curves;
+namespace Saket.Engine.Geometry2D.Curves;
 
 /// <summary>
 /// Bezier cruve from 3 points
 /// </summary>
-public struct QuadraticBezier : ICurve2D
+public struct Curve_Quadratic : ICurve2D
 {
     /// <summary>
     /// Starting point
@@ -22,7 +22,7 @@ public struct QuadraticBezier : ICurve2D
     /// </summary>
     public Vector2 End;
 
-    public QuadraticBezier(Vector2 a, Vector2 b, Vector2 c)
+    public Curve_Quadratic(Vector2 a, Vector2 b, Vector2 c)
     {
         Start = a;
         Control = b;
@@ -101,7 +101,7 @@ public struct QuadraticBezier : ICurve2D
     }
 
     //TODO doc
-    public BoundingBox2D Bounds()
+    public BoundingBox2D GetBounds()
     {
         BoundingBox2D bounds = BoundingBox2D.Null;
         bounds.AddPoint(Start);
@@ -128,7 +128,7 @@ public struct QuadraticBezier : ICurve2D
         return bounds;
     }
 
-    public void SplitInThirds(out QuadraticBezier part1, out QuadraticBezier part2, out QuadraticBezier part3)
+    public void SplitInThirds(out Curve_Quadratic part1, out Curve_Quadratic part2, out Curve_Quadratic part3)
     {
         throw new NotImplementedException();
         /*

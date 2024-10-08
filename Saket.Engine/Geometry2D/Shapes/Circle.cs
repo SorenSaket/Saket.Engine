@@ -6,7 +6,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Saket.Engine.Geometry.Shapes;
+namespace Saket.Engine.Geometry2D.Shapes;
 
 public struct Circle : IShape
 {
@@ -28,7 +28,7 @@ public struct Circle : IShape
         return new SignedDistance((point-position).Length()-radius, 0.5f);
     }
 
-    public BoundingBox2D Bounds()
+    public BoundingBox2D GetBounds()
     {
         throw new NotImplementedException();
     }

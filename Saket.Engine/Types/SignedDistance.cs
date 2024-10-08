@@ -1,5 +1,5 @@
 
-using Saket.Engine.Geometry;
+using Saket.Engine.Geometry2D;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -19,7 +19,6 @@ public struct SignedDistance
 
     /// <summary>
     /// Dot is zero when the t value is outside of the range of 0..1
-    /// 
     /// </summary>
     public float Dot;
 

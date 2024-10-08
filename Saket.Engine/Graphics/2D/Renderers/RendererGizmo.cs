@@ -1,4 +1,4 @@
-using Saket.Engine.Graphics._2D;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using WebGpuSharp;
 
-namespace Saket.Engine.Graphics.Renderers;
+namespace Saket.Engine.Graphics.D2.Renderers;
 
 public class RendererGizmo
 {

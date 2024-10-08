@@ -1,4 +1,4 @@
-﻿namespace Saket.Engine.Geometry.Splines;
+﻿namespace Saket.Engine.Geometry2D.Splines;
 
 public enum SplineType
 {

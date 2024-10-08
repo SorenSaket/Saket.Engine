@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Saket.Engine.Geometry.Curves;
+using Saket.Engine.Geometry2D.Curves;
 
-namespace Saket.Engine.Geometry.Splines;
+namespace Saket.Engine.Geometry2D.Splines;
 
 /// <summary>
 /// A 2d spline with support for multiple different Curve types

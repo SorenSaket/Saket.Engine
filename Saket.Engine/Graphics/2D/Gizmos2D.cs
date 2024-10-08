@@ -1,13 +1,14 @@
-﻿using System;
+﻿using Saket.Engine.Geometry2D.Shapes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Saket.Engine.Graphics._2D;
+namespace Saket.Engine.Graphics.D2;
 
-public static class Gizmos
+public static class Gizmos2D
 {
 
     public static List<Vertex2D> GenerateQuads(IEnumerable<Vector2> points, Vector2 halfSize, params ReadOnlySpan<Color> color)
@@ -48,6 +49,140 @@ public static class Gizmos
             new Vertex2D(new Vector2(max.X, min.Y), new Vector2(1,0), color), // BR
         ];
         return vertices;
+    }
+    public static Vertex2D[] RectHollow(Rectangle rect, float lineThickness, Color color)
+    {
+        // Ensure lineThickness does not exceed half the size of the rectangle
+        float halfWidth = rect.Size.X / 2f;
+        float halfHeight = rect.Size.Y / 2f;
+        float maxThickness = MathF.Min(halfWidth, halfHeight);
+        if (lineThickness > maxThickness)
+            lineThickness = maxThickness;
+
+        // Compute half sizes for outer and inner rectangles
+        Vector2 halfSizeOuter = new Vector2(halfWidth, halfHeight);
+        Vector2 halfSizeInner = new Vector2(halfWidth - lineThickness, halfHeight - lineThickness);
+
+        // Ensure inner sizes are not negative
+        if (halfSizeInner.X < 0f) halfSizeInner.X = 0f;
+        if (halfSizeInner.Y < 0f) halfSizeInner.Y = 0f;
+
+        // Define the outer rectangle corners (local coordinates)
+        Vector2[] outerCorners = new Vector2[]
+        {
+            new Vector2(-halfSizeOuter.X, -halfSizeOuter.Y), // p0: Top Left
+            new Vector2(halfSizeOuter.X, -halfSizeOuter.Y),  // p1: Top Right
+            new Vector2(halfSizeOuter.X, halfSizeOuter.Y),   // p2: Bottom Right
+            new Vector2(-halfSizeOuter.X, halfSizeOuter.Y),  // p3: Bottom Left
+        };
+
+        // Define the inner rectangle corners (local coordinates)
+        Vector2[] innerCorners = new Vector2[]
+        {
+            new Vector2(-halfSizeInner.X, -halfSizeInner.Y), // p4: Inner Top Left
+            new Vector2(halfSizeInner.X, -halfSizeInner.Y),  // p5: Inner Top Right
+            new Vector2(halfSizeInner.X, halfSizeInner.Y),   // p6: Inner Bottom Right
+            new Vector2(-halfSizeInner.X, halfSizeInner.Y),  // p7: Inner Bottom Left
+        };
+
+        // Apply rotation and translation to all corners
+        float cosTheta = MathF.Cos(rect.Rotation);
+        float sinTheta = MathF.Sin(rect.Rotation);
+
+        // Function to rotate and translate a point
+        Vector2 Transform(Vector2 point)
+        {
+            // Rotate
+            float xNew = point.X * cosTheta - point.Y * sinTheta;
+            float yNew = point.X * sinTheta + point.Y * cosTheta;
+
+            // Translate
+            return new Vector2(xNew + rect.Position.X, yNew + rect.Position.Y);
+        }
+
+        // Transform all corners
+        for (int i = 0; i < 4; i++)
+        {
+            outerCorners[i] = Transform(outerCorners[i]);
+            innerCorners[i] = Transform(innerCorners[i]);
+        }
+
+        // Compute UVs (assuming UVs range from 0 to 1 across the rectangle before rotation)
+        // Since rotation complicates UV mapping, we'll map UVs based on the unrotated positions
+        // relative to the rectangle center
+
+        // For UV mapping, use the local coordinates before rotation and map them from 0 to 1
+        Vector2 uvMin = new Vector2(-halfWidth, -halfHeight);
+        Vector2 uvMax = new Vector2(halfWidth, halfHeight);
+
+        Vector2 ComputeUV(Vector2 localPoint)
+        {
+            float u = (localPoint.X - uvMin.X) / (uvMax.X - uvMin.X);
+            float v = (localPoint.Y - uvMin.Y) / (uvMax.Y - uvMin.Y);
+            return new Vector2(u, v);
+        }
+
+        // Collect all points and UVs
+        Vector2[] points = new Vector2[8];
+        Vector2[] uvs = new Vector2[8];
+
+        for (int i = 0; i < 4; i++)
+        {
+            // Store transformed outer corners
+            points[i] = outerCorners[i];
+
+            // UVs based on local coordinates before rotation
+            uvs[i] = ComputeUV(outerCorners[i] - rect.Position);
+        }
+
+        for (int i = 0; i < 4; i++)
+        {
+            // Store transformed inner corners
+            points[i + 4] = innerCorners[i];
+
+            // UVs based on local coordinates before rotation
+            uvs[i + 4] = ComputeUV(innerCorners[i] - rect.Position);
+        }
+
+        // Define triangles with indices into the points array, ensuring clockwise winding order
+        int[][] triangles = new int[][]
+        {
+            // Top Side
+            new int[] { 0, 4, 1 }, // Triangle 1
+            new int[] { 1, 4, 5 }, // Triangle 2
+
+            // Right Side
+            new int[] { 1, 5, 2 }, // Triangle 3
+            new int[] { 2, 5, 6 }, // Triangle 4
+
+            // Bottom Side
+            new int[] { 2, 6, 3 }, // Triangle 5
+            new int[] { 3, 6, 7 }, // Triangle 6
+
+            // Left Side
+            new int[] { 3, 7, 0 }, // Triangle 7
+            new int[] { 0, 7, 4 }, // Triangle 8
+        };
+
+        // Create the vertex list
+        List<Vertex2D> vertexList = new List<Vertex2D>();
+
+        foreach (var tri in triangles)
+        {
+            // For each triangle, add the vertices in the correct order
+            for (int i = 0; i < 3; i++)
+            {
+                int idx = tri[i];
+                vertexList.Add(new Vertex2D
+                {
+                    pos = points[idx],
+                    uv = uvs[idx],
+                    col = color
+                });
+            }
+        }
+
+        return vertexList.ToArray();
     }
 
     public static Vertex2D[] GenerateHollowSquare(Vector2 min, Vector2 max, float lineThickness, Color color)

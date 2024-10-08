@@ -1,8 +1,9 @@
 ﻿using Saket.Serialization;
 using System;
+using System.Diagnostics;
 using System.Numerics;
 
-namespace Saket.Engine.Geometry;
+namespace Saket.Engine.Geometry2D;
 
 /// <summary>
 /// Represents an Axis Aligned Bounding Box
@@ -11,6 +12,12 @@ public struct BoundingBox2D : ISerializable
 {
     public static readonly BoundingBox2D Null = new(new Vector2(float.PositiveInfinity), new Vector2(float.NegativeInfinity));
     public readonly Vector2 Size => Max - Min;
+
+    public readonly float Top => Max.Y;
+    public readonly float Bottom => Min.Y;
+    public readonly float Left => Min.X;
+    public readonly float Right => Max.X;
+
 
     public Vector2 Min;
     public Vector2 Max;
@@ -23,6 +30,8 @@ public struct BoundingBox2D : ISerializable
 
     public BoundingBox2D(Vector2 min, Vector2 max)
     {
+        // might validate the min and max?
+        Debug.Assert(min.LengthSquared() <= Max.LengthSquared());
         this.Min = min;
         this.Max = max;
     }
@@ -50,7 +59,6 @@ public struct BoundingBox2D : ISerializable
         AddPoint(b.Min);
         AddPoint(b.Max);
     }
-
 
     public bool IsWithin(Vector2 point)
     {

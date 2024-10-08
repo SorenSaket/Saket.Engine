@@ -12,7 +12,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using WebGpuSharp.FFI;
 
-namespace Saket.Engine.Graphics.Renderers;
+namespace Saket.Engine.Graphics.D2.Renderers;
 
 // TODO(Soren):
 // manual sprite rendering without the need of entities
