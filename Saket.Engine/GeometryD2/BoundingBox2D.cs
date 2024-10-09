@@ -1,4 +1,5 @@
-﻿using Saket.Serialization;
+﻿using Saket.Engine.GeometryD2.Shapes;
+using Saket.Serialization;
 using System;
 using System.Diagnostics;
 using System.Numerics;
@@ -39,6 +40,11 @@ public struct BoundingBox2D : ISerializable
     {
         Min = new Vector2(minX, minY);
         Max = new Vector2(maxX, maxY);
+    }
+
+    public readonly Rectangle ToRect()
+    {
+        return new Rectangle(this);
     }
 
     public void AddPoint(Vector2 p)

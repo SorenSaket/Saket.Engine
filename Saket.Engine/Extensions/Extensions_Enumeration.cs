@@ -1,9 +1,12 @@
+using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace Saket.Engine;
 
 public static class Extensions_Enumeration
 {
+    
     public static bool AddRange<T>(this HashSet<T> source, IEnumerable<T> items)
     {
         bool allAdded = true;

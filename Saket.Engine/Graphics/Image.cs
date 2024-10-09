@@ -195,7 +195,7 @@ namespace Saket.Engine.Graphics
 
             var bounds_target = targetBoundingBox.GetBounds();
       
-            // Clamp to target image bounds
+            // Clamp to target image bo unds
             int startX = Math.Max((int)Math.Floor(bounds_target.Min.X), 0);
             int endX = Math.Min((int)Math.Ceiling(bounds_target.Max.X), targetWidth - 1);
             int startY = Math.Max((int)Math.Floor(bounds_target.Min.Y), 0);

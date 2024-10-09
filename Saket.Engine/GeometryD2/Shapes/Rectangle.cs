@@ -34,8 +34,8 @@ public struct Rectangle : IShape, ISerializable
 
     public Rectangle(BoundingBox2D box)
     {
-        Position = (box.Min+ box.Max)/2f;
-        Size = box.Max-box.Min;
+        Position = (box.Min + box.Max) / 2f;
+        Size = box.Max - box.Min;
         Rotation = 0;
     }
 

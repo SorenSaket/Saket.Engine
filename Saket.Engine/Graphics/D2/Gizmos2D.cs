@@ -59,6 +59,8 @@ public static class Gizmos2D
     }
     public static Vertex2D[] RectHollow(Rectangle rect, float lineThickness, Color color)
     {
+
+
         // Ensure lineThickness does not exceed half the size of the rectangle
         float halfWidth = rect.Size.X / 2f;
         float halfHeight = rect.Size.Y / 2f;
