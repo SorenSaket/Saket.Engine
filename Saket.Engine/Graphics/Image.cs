@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
@@ -187,7 +188,7 @@ namespace Saket.Engine.Graphics
         public static void Blit(
         byte[] sourceData, int sourceWidth, int sourceHeight, Rectangle sourceBoundingBox,
         byte[] targetData, int targetWidth, int targetHeight, Rectangle targetBoundingBox,
-        int bytesPerPixel = 4) // Assuming RGBA format by default
+         List<int> includedSourceIndicies = null, int bytesPerPixel = 4) // Assuming RGBA format by default
         {
             // Create transformation matrices
             Matrix3x2 sourceTransform = sourceBoundingBox.CreateTransformMatrix();
@@ -229,11 +230,16 @@ namespace Saket.Engine.Graphics
                         if (x_s_int >= 0 && x_s_int < sourceWidth && y_s_int >= 0 && y_s_int < sourceHeight)
                         {
                             int sourceIndex = (y_s_int * sourceWidth + x_s_int) * bytesPerPixel;
+
+                            // If we are excluding a pixel or is alpha = 0
+                            if (includedSourceIndicies != null && !includedSourceIndicies.Contains((y_s_int * sourceWidth + x_s_int)))
+                                continue;
+                            if (sourceData[sourceIndex + 3] == 0)
+                                continue;
+
                             int targetIndex = (y_t * targetWidth + x_t) * bytesPerPixel;
-                            
-                            if (sourceData[sourceIndex + 3] != 0)
-                                // Copy pixel data
-                                Array.Copy(sourceData, sourceIndex, targetData, targetIndex, bytesPerPixel);
+                            // Copy pixel data
+                            Array.Copy(sourceData, sourceIndex, targetData, targetIndex, bytesPerPixel);
                         }
                     }
                 }
