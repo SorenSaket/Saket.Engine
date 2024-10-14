@@ -19,6 +19,7 @@ public struct Rectangle : IShape, ISerializable
     /// Rotation angle in radias
     /// </summary>
     public float Rotation;
+    
     public Rectangle()
     {
         Position = Vector2.Zero;
@@ -31,7 +32,6 @@ public struct Rectangle : IShape, ISerializable
         Size = size;
         Rotation = rotation;
     }
-
     public Rectangle(BoundingBox2D box)
     {
         Position = (box.Min + box.Max) / 2f;
@@ -47,28 +47,26 @@ public struct Rectangle : IShape, ISerializable
     public BoundingBox2D GetBounds()
     {
         // Define the corners of the untransformed rectangle (from -0.5 to 0.5)
-        Vector2[] corners = new Vector2[]
-        {
-            new Vector2(-0.5f, -0.5f),
-            new Vector2(0.5f, -0.5f),
-            new Vector2(0.5f, 0.5f),
-            new Vector2(-0.5f, 0.5f)
-        };
+        Vector2[] corners = 
+        [
+            new (-0.5f, -0.5f),
+            new (0.5f, -0.5f),
+            new (0.5f, 0.5f),
+            new (-0.5f, 0.5f)
+        ];
 
         // Create the transformation matrix for the bounding box
         Matrix3x2 transform = this.CreateTransformMatrix();
 
         // Transform the corners
         for (int i = 0; i < corners.Length; i++)
-        {
             corners[i] = Vector2.Transform(corners[i], transform);
-        }
 
         // Find the bounding rectangle
-        float minX = Math.Min(Math.Min(corners[0].X, corners[1].X), Math.Min(corners[2].X, corners[3].X));
-        float minY = Math.Min(Math.Min(corners[0].Y, corners[1].Y), Math.Min(corners[2].Y, corners[3].Y));
-        float maxX = Math.Max(Math.Max(corners[0].X, corners[1].X), Math.Max(corners[2].X, corners[3].X));
-        float maxY = Math.Max(Math.Max(corners[0].Y, corners[1].Y), Math.Max(corners[2].Y, corners[3].Y));
+        float minX = Extensions_Math.Min(corners[0].X, corners[1].X, corners[2].X, corners[3].X);
+        float minY = Extensions_Math.Min(corners[0].Y, corners[1].Y, corners[2].Y, corners[3].Y);
+        float maxX = Extensions_Math.Max(corners[0].X, corners[1].X, corners[2].X, corners[3].X);
+        float maxY = Extensions_Math.Max(corners[0].Y, corners[1].Y, corners[2].Y, corners[3].Y);
 
         return new BoundingBox2D(new Vector2(minX,minY), new Vector2(maxX, maxY));
     }

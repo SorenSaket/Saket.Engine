@@ -198,9 +198,9 @@ namespace Saket.Engine.Graphics
       
             // Clamp to target image bo unds
             int startX = Math.Max((int)Math.Floor(bounds_target.Min.X), 0);
-            int endX = Math.Min((int)Math.Ceiling(bounds_target.Max.X), targetWidth - 1);
+            int endX = Math.Min((int)Math.Ceiling(bounds_target.Max.X), targetWidth-1);
             int startY = Math.Max((int)Math.Floor(bounds_target.Min.Y), 0);
-            int endY = Math.Min((int)Math.Ceiling(bounds_target.Max.Y), targetHeight - 1);
+            int endY = Math.Min((int)Math.Ceiling(bounds_target.Max.Y), targetHeight-1);
 
             // Iterate over the pixels within the bounding box
             for (int y_t = startY; y_t <= endY; y_t++)

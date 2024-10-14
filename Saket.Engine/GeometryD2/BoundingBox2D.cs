@@ -11,7 +11,7 @@ namespace Saket.Engine.GeometryD2;
 /// </summary>
 public struct BoundingBox2D : ISerializable
 {
-    public static readonly BoundingBox2D Null = new(new Vector2(float.PositiveInfinity), new Vector2(float.NegativeInfinity));
+    public static readonly BoundingBox2D Null = new() { Min = new Vector2(float.PositiveInfinity), Max = new Vector2(float.NegativeInfinity) };
     public readonly Vector2 Size => Max - Min;
 
     public readonly float Top => Max.Y;
@@ -27,19 +27,31 @@ public struct BoundingBox2D : ISerializable
 
     public BoundingBox2D()
     {
+        this = Null;
     }
-
+    
+    
+    public BoundingBox2D(params ReadOnlySpan<Vector2> points)
+    {
+        this = Null;
+        for (int i = 0; i < points.Length; i++)
+        {
+            AddPoint(points[i]);
+        }
+    }
+    
     public BoundingBox2D(Vector2 min, Vector2 max)
     {
-        // might validate the min and max?
-        this.Min = min;
-        this.Max = max;
+        this.Min = Vector2.Min(min, max);
+        this.Max = Vector2.Max(min, max);
     }
 
     public BoundingBox2D(float minX, float minY, float maxX, float maxY)
     {
-        Min = new Vector2(minX, minY);
-        Max = new Vector2(maxX, maxY);
+        var a = new Vector2(minX, minY);
+        var b = new Vector2(maxX, maxY);
+        this.Min = Vector2.Min(a, b);
+        this.Max = Vector2.Max(a, b);
     }
 
     public readonly Rectangle ToRect()
