@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Numerics;
+using Saket.Engine.Formats.Aseprite;
 using Saket.Engine.GeometryD2;
 using Saket.Engine.GeometryD2.Shapes;
 using Saket.Engine.Types;
@@ -11,6 +13,7 @@ using StbImageSharp;
 using StbImageWriteSharp;
 using WebGpuSharp;
 using static System.Net.Mime.MediaTypeNames;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Saket.Engine.Graphics
 {
@@ -186,15 +189,16 @@ namespace Saket.Engine.Graphics
     
 
         public static void Blit(
-        byte[] sourceData, int sourceWidth, int sourceHeight, Rectangle sourceBoundingBox,
-        byte[] targetData, int targetWidth, int targetHeight, Rectangle targetBoundingBox,
+        byte[] sourceData, int sourceWidth, int sourceHeight, Rectangle sourceRect,
+        byte[] targetData, int targetWidth, int targetHeight, Rectangle targetRect,
          List<int> includedSourceIndicies = null, int bytesPerPixel = 4) // Assuming RGBA format by default
         {
-            // Create transformation matrices
-            Matrix3x2 sourceTransform = sourceBoundingBox.CreateTransformMatrix();
-            Matrix3x2 targetInverseTransform = targetBoundingBox.CreateInverseTransformMatrix();
 
-            var bounds_target = targetBoundingBox.GetBounds();
+            // Create transformation matrices
+            Matrix3x2 sourceTransform = sourceRect.CreateTransformMatrix();
+            Matrix3x2 targetInverseTransform = targetRect.CreateInverseTransformMatrix();
+
+            var bounds_target = targetRect.GetBounds();
       
             // Clamp to target image bo unds
             int startX = Math.Max((int)Math.Floor(bounds_target.Min.X), 0);
@@ -246,7 +250,41 @@ namespace Saket.Engine.Graphics
             }
         }
 
-            public void FillAllPixels(Color color)
+
+        public void FlipVertically()
+        {
+            // Calculate the number of bytes per row (width * bytes per pixel)
+            int stride = width * 4;
+            // Create a new byte array for the flipped image
+            byte[] flippedImage = new byte[data.Length];
+
+            // Loop through each row
+            for (int row = 0; row < height; row++)
+            {
+                // Find the position of the current row in the original image
+                int originalRowStart = row * stride;
+
+                // Find the position of the corresponding flipped row in the new image
+                int flippedRowStart = (height - 1 - row) * stride;
+
+                // Copy the row from the original image to the flipped image
+                Array.Copy(data, originalRowStart, flippedImage, flippedRowStart, stride);
+            }
+
+            data = flippedImage;
+        }
+        public void FlipRedBlue(byte[] data)
+        {
+            // convert from rgba to bgra
+            for (int i = 0; i < Width * Height; ++i)
+            {
+                byte temp = data[i * 4];
+                data[i * 4] = data[i * 4 + 2];
+                data[i * 4 + 2] = temp;
+            }
+        }
+
+        public void FillAllPixels(Color color)
         {
             for (int i = 0; i < data.Length; i+=4)
             {
@@ -296,25 +334,52 @@ namespace Saket.Engine.Graphics
         /// <param name="path"></param>
         public ImageTexture(string path, bool flipVertically = true)
         {
-            var stream = File.ReadAllBytes(path);
-
-            StbImage.stbi_set_flip_vertically_on_load(flipVertically ? 1 : 0);
             
-            ImageResult result = ImageResult.FromMemory(stream, StbImageSharp.ColorComponents.RedGreenBlueAlpha);
 
-            // convert from rgba to bgra
-            for (int i = 0; i < result.Width * result.Height; ++i)
+
+            string ext = Path.GetExtension(path);
+
+            if(ext == ".ase" || ext == ".aseprite")
             {
-                byte temp = result.Data[i * 4];
-                result.Data[i * 4] = result.Data[i * 4 + 2];
-                result.Data[i * 4 + 2] = temp;
-            }
+                using (var stream = new FileStream(path, FileMode.Open))
+                {
+                    var file = Aseprite.ReadFromStream(stream);
 
-            this.name = Path.GetFileNameWithoutExtension(path);
-            this.data = result.Data;
-            this.format = TextureFormat.BGRA8Unorm;
-            this.width = result.Width;
-            this.height = result.Height;
+                    this.width = file.Header.WidthInPixels;
+                    this.height = file.Header.HeightInPixels;
+                    this.format = TextureFormat.BGRA8Unorm;
+                    this.data = new byte[this.width*this.height*4];
+
+                    foreach (var chunk in file.Frames[0].Chunks)
+                    {
+                        if(chunk is Chunk_Cel cel) 
+                        {
+                            Vector2 Size = new Vector2(cel.WidthInPixels, cel.HeightInPixels);
+                            Vector2 HalfSize = new Vector2(cel.WidthInPixels, cel.HeightInPixels)/2f;
+                            Blit(
+                                cel.RawPixelData, cel.WidthInPixels, cel.HeightInPixels, new Rectangle(HalfSize, Size), 
+                                data, width, height, new Rectangle(new Vector2(cel.Xposition, cel.Yposition)+ HalfSize, Size));
+                        }
+                    }
+                    FlipVertically(); 
+                    FlipRedBlue(this.data);
+                }
+            }
+            else
+            {
+                var stream = File.ReadAllBytes(path);
+                StbImage.stbi_set_flip_vertically_on_load(flipVertically ? 1 : 0);
+
+                ImageResult result = ImageResult.FromMemory(stream, StbImageSharp.ColorComponents.RedGreenBlueAlpha);
+
+                this.name = Path.GetFileNameWithoutExtension(path);
+                this.data = result.Data;
+                this.format = TextureFormat.BGRA8Unorm;
+                this.width = result.Width;
+                this.height = result.Height;
+
+                FlipRedBlue(this.data);
+            }
         }
 
         /// <summary>
@@ -326,20 +391,15 @@ namespace Saket.Engine.Graphics
             StbImage.stbi_set_flip_vertically_on_load(flipVertically ? 1 : 0);
 
             ImageResult result = ImageResult.FromMemory(file, StbImageSharp.ColorComponents.RedGreenBlueAlpha);
-           
-            // convert from rgba to bgra
-            for (int i = 0; i < result.Width * result.Height; ++i)
-            {
-                byte temp = result.Data[i * 4];
-                result.Data[i * 4] = result.Data[i * 4 + 2];
-                result.Data[i * 4 + 2] = temp;
-            }
 
             this.name = name;
             this.data = result.Data;
             this.format = TextureFormat.BGRA8Unorm;
             this.width = result.Width;
             this.height = result.Height;
+
+            // convert from rgba to bgra
+            FlipRedBlue(this.data);
         }
 
         /// <summary>
@@ -353,8 +413,7 @@ namespace Saket.Engine.Graphics
 
             byte[] data = new byte[Data.Length];
 
-            // convert back from bgra to rgba
-            for (int i = 0; i < data.Length/4; ++i)
+            for (int i = 0; i < data.Length / 4; ++i)
             {
                 data[i * 4 + 0] = Data[i * 4 + 2];
                 data[i * 4 + 1] = Data[i * 4 + 1];
@@ -362,34 +421,78 @@ namespace Saket.Engine.Graphics
                 data[i * 4 + 3] = Data[i * 4 + 3];
             }
 
-            // TODO covert back to rgba
-            StbImageWriteSharp.StbImageWrite.stbi_flip_vertically_on_write(flipVertically ? 1 : 0);
-
-            using (Stream stream = File.OpenWrite(path))
+            if (ext == ".ase" || ext == ".aseprite")
             {
-                var w = new StbImageWriteSharp.ImageWriter();
-                switch (ext)
+                var file = new Aseprite();
+                file.Header.Frames = 1;
+                file.Header.WidthInPixels   = (ushort)width;
+                file.Header.HeightInPixels  = (ushort)height;
+                if (width > ushort.MaxValue || height > ushort.MaxValue)
+                    throw new Exception("File cannot be converted To .aseprite. Too large");
+                file.Header.PixelWidth = file.Header.PixelHeight = 1;
+                file.Header.Flags |= Header.Header_Flags.LayerOpacityHasValidValue;
+                file.Header.ColorDepth = Header.Header_ColorDepth.RGBA;
+               file.Frames = [
+                    new Frame(){
+                        Chunks = [
+                            new Chunk_ColorProfile(){
+                                ProfileType = Chunk_ColorProfile.Chunk_ColorProfile_ProfileType.sRGBProfile,
+                            },
+                            new Chunk_Layer(){
+                                Blendmode = Chunk_Layer.Chunk_Layer_Blendmode.Normal,
+                                LayerName = "Layer 0",
+                                LayerType = Chunk_Layer.Chunk_Layer_LayerType.Normal,
+                                Opacity = 255,
+                            },
+                            new Chunk_Cel(){
+                                CelType = Chunk_Cel.Chunk_Cel_CelType.RawImageData,
+                                WidthInPixels = (ushort)width,
+                                HeightInPixels = (ushort)height,
+                                Xposition = 0,
+                                Yposition = 0,
+                                RawPixelData = data
+                            }
+                        ]
+                    }
+                    ];
+
+                using (Stream stream = File.OpenWrite(path))
                 {
-                    case ".png":
-                        w.WritePng(data, (int)this.width, (int)this.height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream);
-                        break;
-                    case ".jpeg":
-                    case ".jpg":
-                        w.WriteJpg(data, (int)this.width, (int)this.height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream, 100);
-                        break;
-                    case ".bmp":
-                        w.WriteBmp(data, (int)this.width, (int)this.height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream);
-                        break;
-                    case ".tga":
-                        w.WriteTga(data, (int)this.width, (int)this.height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream);
-                        break;
-                    case ".hdr":
-                        w.WriteHdr(data, (int)this.width, (int)this.height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream);
-                        break;
-                    default:
-                        break;
+                    file.WriteToStream(stream);
                 }
             }
+            else
+            {
+                StbImageWriteSharp.StbImageWrite.stbi_flip_vertically_on_write(flipVertically ? 1 : 0);
+
+                using (Stream stream = File.OpenWrite(path))
+                {
+                    var w = new StbImageWriteSharp.ImageWriter();
+                    switch (ext)
+                    {
+                        case ".png":
+                            w.WritePng(data, (int)this.width, (int)this.height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream);
+                            break;
+                        case ".jpeg":
+                        case ".jpg":
+                            w.WriteJpg(data, (int)this.width, (int)this.height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream, 100);
+                            break;
+                        case ".bmp":
+                            w.WriteBmp(data, (int)this.width, (int)this.height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream);
+                            break;
+                        case ".tga":
+                            w.WriteTga(data, (int)this.width, (int)this.height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream);
+                            break;
+                        case ".hdr":
+                            w.WriteHdr(data, (int)this.width, (int)this.height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+
+           
         }
         #endregion
 

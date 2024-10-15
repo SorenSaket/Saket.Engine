@@ -7,6 +7,7 @@ using Saket.Serialization;
 using StbImageSharp;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Color = Saket.Engine.Graphics.Color;
@@ -573,7 +574,9 @@ public class Document_Image : Document
     public override void SaveToPath(string path)
     {
         var image_canvas = FlattenToImage();
+
         image_canvas.SaveToPath(path);
+
     }
 
     public override void LoadFromPath(string path)
@@ -596,9 +599,6 @@ public class Document_Image : Document
         ISerializer.ResizeList(layers, length, []);
         var span = (CollectionsMarshal.AsSpan(layers));
 
-        
-
-        // Todo QOI
         for (int i = 0; i < span.Length; i++)
         {
             if (serializer.IsReader)
