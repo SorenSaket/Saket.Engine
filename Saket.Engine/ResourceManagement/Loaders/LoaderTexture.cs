@@ -10,14 +10,14 @@ using Saket.Engine.Graphics;
 
 namespace Saket.Engine.ResourceManagement.Loaders
 {
-    public class LoaderTexture : ResourceLoader<Image>
+    public class LoaderTexture : ResourceLoader<ImageTexture>
     {
         public LoaderTexture() : base()
         {
             
         }
 
-        public override Image Load(string textureName, ResourceManager resourceManager)
+        public override ImageTexture Load(string textureName, ResourceManager resourceManager)
         {
             string path = "texture_" + textureName + ".png";
 
@@ -28,7 +28,7 @@ namespace Saket.Engine.ResourceManagement.Loaders
                     StbImage.stbi_set_flip_vertically_on_load(1);
                     ImageResult image = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
                     
-                    Image tex = new Image(image.Data, image.Width, image.Height);
+                    ImageTexture tex = new ImageTexture(image.Data, image.Width, image.Height);
                     return tex;
                 }
             }

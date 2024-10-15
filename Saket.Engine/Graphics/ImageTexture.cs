@@ -19,7 +19,7 @@ namespace Saket.Engine.Graphics
     // QOI image format
     // Image only supports internal format of bgraunorm8 since thats the only supported surface format anyways
 
-    public class Image : ISerializable
+    public class ImageTexture : ISerializable
     {
         #region Properties
         public string Name { get { return name; } set { name = value; } }
@@ -48,7 +48,7 @@ namespace Saket.Engine.Graphics
         internal Extent3D extendsTexture;
         #endregion
         
-        public Image()
+        public ImageTexture()
         {
             name = "texture_image";
             format = TextureFormat.BGRA8Unorm;
@@ -56,7 +56,7 @@ namespace Saket.Engine.Graphics
             height = 0;
             data = [];
         }
-        public Image(byte[] data, int width, int height, string name = "texture_image", TextureFormat format = TextureFormat.BGRA8Unorm)
+        public ImageTexture(byte[] data, int width, int height, string name = "texture_image", TextureFormat format = TextureFormat.BGRA8Unorm)
         {
             this.name = name;
             this.data = data;
@@ -65,7 +65,7 @@ namespace Saket.Engine.Graphics
             this.width = width;
             this.height = height;
         }
-        public Image(int width, int height, string name = "texture_image", TextureFormat format = TextureFormat.BGRA8Unorm)
+        public ImageTexture(int width, int height, string name = "texture_image", TextureFormat format = TextureFormat.BGRA8Unorm)
         {
             this.name = name;
             this.data = new byte[width*height*4];
@@ -294,7 +294,7 @@ namespace Saket.Engine.Graphics
         /// Load image from path
         /// </summary>
         /// <param name="path"></param>
-        public Image(string path, bool flipVertically = true)
+        public ImageTexture(string path, bool flipVertically = true)
         {
             var stream = File.ReadAllBytes(path);
 
@@ -321,7 +321,7 @@ namespace Saket.Engine.Graphics
         /// Load image from memory
         /// </summary>
         /// <param name="path"></param>
-        public Image(byte[] file, string name ="image",  bool flipVertically = true)
+        public ImageTexture(byte[] file, string name ="image",  bool flipVertically = true)
         {
             StbImage.stbi_set_flip_vertically_on_load(flipVertically ? 1 : 0);
 

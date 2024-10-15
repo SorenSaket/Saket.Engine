@@ -24,7 +24,8 @@
 	<!-- References -->
 
 	<ItemGroup>
-		<PackageReference Include="StbImageSharp" Version="2.27.14" />
+		<PackageReference Include="QoiSharp" Version="1.0.0" />
+		<PackageReference Include="StbImageSharp" Version="2.30.15" />
 		<PackageReference Include="StbImageWriteSharp" Version="1.16.7" />
 	</ItemGroup>
 

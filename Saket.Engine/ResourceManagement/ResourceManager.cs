@@ -51,7 +51,7 @@ namespace Saket.Engine
             // wtf
             if(typeof(T) == typeof(Shader))
                 name = "shader_" + asset_name;
-            else if (typeof(T) == typeof(Image))
+            else if (typeof(T) == typeof(ImageTexture))
                 name = "sheet_" + asset_name;
 
             // if the asset already exists

@@ -6,7 +6,7 @@ namespace Saket.Engine.Graphics
 {
     public class TextureAtlas
     {
-        public Image image;
+        public ImageTexture image;
         public List<Tile> tiles;
 
         Texture? gpuTexture;
@@ -17,13 +17,13 @@ namespace Saket.Engine.Graphics
         static BindGroupLayout? layout;
         BindGroup? bindgroup;
 
-        public TextureAtlas(Image image, int initialCapacity = 128)
+        public TextureAtlas(ImageTexture image, int initialCapacity = 128)
         {
             this.image = image;
             this.tiles = new List<Tile>(initialCapacity);
         }
 
-        public TextureAtlas(Image image, uint columns, uint rows)
+        public TextureAtlas(ImageTexture image, uint columns, uint rows)
         {
             this.image = image;
             this.tiles = new List<Tile>((int)(columns*rows));
