@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
@@ -20,8 +21,6 @@ using FLOAT = float;
 using DOUBLE = double;
 using QWORD = UInt64;
 using LONG64 = Int64;
-using static Saket.Engine.Formats.Aseprite.PaletteEntry;
-using static Saket.Engine.Formats.Aseprite.Header;
 
 public struct STRING
 {
@@ -74,6 +73,24 @@ public struct RECT
 
 #endregion
 
+#region Custom/Infered Types
+public struct Chunk_Palette_Old_Packet
+{
+    /// <summary>
+    /// Number of palette entries to skip from the last packet (start from 0)
+    /// </summary>
+    public BYTE SkipCountFromLastPacket;
+
+    public RGBColor[] Colors;
+}
+public struct RGBColor
+{
+    public BYTE Red;
+    public BYTE Blue;
+    public BYTE Green;
+}
+#endregion
+
 public struct Header
 {
     /// <summary>
@@ -81,7 +98,6 @@ public struct Header
     /// </summary>
     public enum Header_ColorDepth : WORD
     {
-        Undefined = 0,
         Indexed = 8,
         Grayscale = 16,
         RGBA = 32
@@ -89,7 +105,6 @@ public struct Header
     [Flags]
     public enum Header_Flags : DWORD
     {
-        Undefined = 0,
         LayerOpacityHasValidValue = 1,
     }
 
@@ -326,7 +341,107 @@ public struct ChunkHeader
         ChunkType = (ChunkType)reader.ReadInt16();
     }
 }
+/// <summary>
+/// Ignore this chunk if you find the new palette chunk (0x2019). Aseprite v1.1 saves both chunks (0x0004 and 0x2019) just for backward compatibility. Aseprite v1.3.5 writes this chunk if the palette doesn't have alpha channel and contains 256 colors or less (because this chunk is smaller), in other case the new palette chunk (0x2019) will be used (and the old one is not saved anymore).
+/// </summary>
+public struct Chunk_Palette_Old1 : IChunk
+{
+    public readonly ChunkType ChunkType => ChunkType.PaletteOld1;
+ 
+    public Chunk_Palette_Old_Packet[] Packets;
 
+    public void ReadFromStream(Stream stream)
+    {
+        using var reader = new BinaryReader(stream, System.Text.Encoding.UTF8, leaveOpen: true);
+
+        var numberOfPackets = reader.ReadUInt16();
+        Packets = new Chunk_Palette_Old_Packet[numberOfPackets];
+        for (int i = 0; i < Packets.Length; i++)
+        {
+            Packets[i].SkipCountFromLastPacket = reader.ReadByte();
+            BYTE count = reader.ReadByte();
+            if (count == 0)
+                count = BYTE.MaxValue;
+            Packets[i].Colors = new RGBColor[count];
+            for (int c = Packets[i].SkipCountFromLastPacket; c < count; c++)
+            {
+                Packets[i].Colors[c].Red = reader.ReadByte();
+                Packets[i].Colors[c].Blue = reader.ReadByte();
+                Packets[i].Colors[c].Green = reader.ReadByte();
+            }
+        }
+    }
+
+    public void WriteToStream(Stream stream)
+    {
+        using var writer = new BinaryWriter(stream, System.Text.Encoding.UTF8, leaveOpen: true);
+
+        writer.Write((WORD)Packets.Length);
+        for (int i = 0; i < Packets.Length; i++)
+        {
+            writer.Write(Packets[i].SkipCountFromLastPacket);
+            writer.Write((BYTE)Packets[i].Colors.Length);
+            for (int c = Packets[i].SkipCountFromLastPacket; c < Packets[i].Colors.Length; c++)
+            {
+                writer.Write(Packets[i].Colors[c].Red);
+                writer.Write(Packets[i].Colors[c].Blue);
+                writer.Write(Packets[i].Colors[c].Green);
+            }
+        }
+    }
+}
+/// <summary>
+/// Ignore this chunk if you find the new palette chunk (0x2019)
+/// </summary>
+public struct Chunk_Palette_Old2
+{
+    public readonly ChunkType ChunkType => ChunkType.PaletteOld2;
+
+    public Chunk_Palette_Old_Packet[] Packets;
+
+    public void ReadFromStream(Stream stream)
+    {
+        using var reader = new BinaryReader(stream, System.Text.Encoding.UTF8, leaveOpen: true);
+
+        var numberOfPackets = reader.ReadUInt16();
+        Packets = new Chunk_Palette_Old_Packet[numberOfPackets];
+        for (int i = 0; i < Packets.Length; i++)
+        {
+            Packets[i].SkipCountFromLastPacket = reader.ReadByte();
+            BYTE count = reader.ReadByte();
+            if (count == 0)
+                count = BYTE.MaxValue;
+            Packets[i].Colors = new RGBColor[count];
+            for (int c = Packets[i].SkipCountFromLastPacket; c < count; c++)
+            {
+                Packets[i].Colors[c].Red = reader.ReadByte();
+                Packets[i].Colors[c].Blue = reader.ReadByte();
+                Packets[i].Colors[c].Green = reader.ReadByte();
+            }
+        }
+    }
+
+    public void WriteToStream(Stream stream)
+    {
+        using var writer = new BinaryWriter(stream, System.Text.Encoding.UTF8, leaveOpen: true);
+
+        writer.Write((WORD)Packets.Length);
+        for (int i = 0; i < Packets.Length; i++)
+        {
+            writer.Write(Packets[i].SkipCountFromLastPacket);
+            writer.Write((BYTE)Packets[i].Colors.Length);
+            for (int c = Packets[i].SkipCountFromLastPacket; c < Packets[i].Colors.Length; c++)
+            {
+                writer.Write(Packets[i].Colors[c].Red);
+                writer.Write(Packets[i].Colors[c].Blue);
+                writer.Write(Packets[i].Colors[c].Green);
+            }
+        }
+    }
+}
+/// <summary>
+/// In the first frame should be a set of layer chunks to determine the entire layers layout:
+/// </summary>
 public struct Chunk_Layer : IChunk
 {
     public readonly ChunkType ChunkType => ChunkType.Layer;
@@ -371,11 +486,6 @@ public struct Chunk_Layer : IChunk
         Subtract = 17,
         Divide = 18,
     }
-
-
-    public ChunkHeader Header { get; set; }
-
-
     public Chunk_Layer_Flags Flags;
     public Chunk_Layer_LayerType LayerType;
     /// <summary>
@@ -436,7 +546,7 @@ public struct Chunk_Layer : IChunk
         writer.Write(DefaultLayerWidthInPixels);
         writer.Write(DefaultLayerHeightInPixels);
         writer.Write((WORD)Blendmode);
-        writer.Write((WORD)Opacity);
+        writer.Write(Opacity);
         writer.Write([0,0,0]);
         new STRING(LayerName).WriteToStream(stream);
 
@@ -444,7 +554,9 @@ public struct Chunk_Layer : IChunk
             writer.Write(TilesetIndex);
     }
 }
-
+/// <summary>
+/// This chunk determine where to put a cel in the specified layer/frame.
+/// </summary>
 public struct Chunk_Cel : IChunk
 {
     public readonly ChunkType ChunkType => ChunkType.Cel;
@@ -522,9 +634,7 @@ public struct Chunk_Cel : IChunk
                     WidthInPixels = reader.ReadUInt16();
                     HeightInPixels = reader.ReadUInt16();
                     int numberOfBytes = (int)WidthInPixels * (int)HeightInPixels * ((int)header_ColorDepth / 8);
-                    
-                    RawPixelData = new BYTE[WidthInPixels * HeightInPixels * ((int)header_ColorDepth / 8)];
-                    
+                    RawPixelData = new BYTE[numberOfBytes];
                     using (var compressedStream = new ZLibStream(stream, CompressionMode.Decompress, true))
                     {
                         compressedStream.ReadExactly(RawPixelData, 0, numberOfBytes);
@@ -532,7 +642,22 @@ public struct Chunk_Cel : IChunk
                 }
                 break;
             case Chunk_Cel_CelType.CompressedTilemap:
-                // TODO
+                {
+                    WidthInTiles = reader.ReadUInt16();
+                    HeightInTiles = reader.ReadUInt16();
+                    BitsPerTile = reader.ReadUInt16();
+                    BitmaskTileID = reader.ReadUInt32();
+                    BitmaskXFlip = reader.ReadUInt32();
+                    BitmaskYFlip = reader.ReadUInt32();
+                    BitmaskDiagonalFlip = reader.ReadUInt32();
+                    reader.ReadBytes(10);
+                    int numberOfBytes = (BitsPerTile / 8) * WidthInTiles * HeightInTiles;
+                    Tiles = new BYTE[numberOfBytes];
+                    using (var compressedStream = new ZLibStream(stream, CompressionMode.Decompress, true))
+                    {
+                        compressedStream.ReadExactly(Tiles, 0, numberOfBytes);
+                    }
+                }
                 break;
             default:
                 break;
@@ -574,14 +699,73 @@ public struct Chunk_Cel : IChunk
                 }
                 break;
             case Chunk_Cel_CelType.CompressedTilemap:
-                // TODO
+                writer.Write(WidthInTiles);
+                writer.Write(HeightInTiles);
+                writer.Write(BitsPerTile);
+                writer.Write(BitmaskTileID);
+                writer.Write(BitmaskXFlip);
+                writer.Write(BitmaskYFlip);
+                writer.Write(BitmaskDiagonalFlip);
+                writer.Write(BitmaskYFlip);
+                writer.Write([0,0,0,0,0,0,0,0,0,0]);
+                using (var compressedStream = new ZLibStream(stream, CompressionMode.Compress, true))
+                {
+                    compressedStream.Write(Tiles);
+                }
                 break;
             default:
                 break;
         }
     }
 }
+/// <summary>
+/// Adds extra information to the latest read cel.
+/// </summary>
+public struct Chunk_CelExtra : IChunk
+{
+    public readonly ChunkType ChunkType => ChunkType.CelExtra;
+    [Flags]
+    public enum Chunk_CelExtra_Flags : DWORD
+    {
+        PreciseBoundsAreSet = 1,
+    }
 
+    public Chunk_CelExtra_Flags Flags;
+    public float PreciseX;
+    public float PreciseY;
+    /// <summary>
+    /// Width of the cel in the sprite (scaled in real-time)
+    /// </summary>
+    public float Width;
+    public float Height;
+
+
+    public void ReadFromStream(Stream stream, Header.Header_ColorDepth header_ColorDepth)
+    {
+        using var reader = new BinaryReader(stream, System.Text.Encoding.UTF8, leaveOpen: true);
+
+        Flags = (Chunk_CelExtra_Flags)reader.ReadUInt32();
+
+        PreciseX = (float)reader.ReadInt32() / 65536.0f;
+        PreciseY = (float)reader.ReadInt32() / 65536.0f;
+        Width   = (float)reader.ReadInt32() / 65536.0f;
+        Height  = (float)reader.ReadInt32() / 65536.0f;
+    }
+
+    public void WriteToStream(Stream stream)
+    {
+        using var writer = new BinaryWriter(stream, System.Text.Encoding.UTF8, leaveOpen: true);
+
+        writer.Write((DWORD)(Flags));
+        writer.Write((int)(PreciseX * 65536));
+        writer.Write((int)(PreciseY * 65536));
+        writer.Write((int)(Width * 65536));
+        writer.Write((int)(Height * 65536));
+    }
+}
+/// <summary>
+/// Color profile for RGB or grayscale values.
+/// </summary>
 public struct Chunk_ColorProfile : IChunk
 {
     public readonly ChunkType ChunkType => ChunkType.ColorProfile;
@@ -646,72 +830,120 @@ public struct Chunk_ColorProfile : IChunk
         }
     }
 }
-
-public struct RGBColor
+/// <summary>
+/// A list of external files linked with this file can be found in the first frame. It might be used to reference external palettes, tilesets, or extensions that make use of extended properties.
+/// </summary>
+public struct Chunk_ExternalFiles : IChunk
 {
-    public BYTE Red;
-    public BYTE Blue;
-    public BYTE Green;
-}
-
-public struct Chunk_Palette_Old1 : IChunk
-{
-    public readonly ChunkType ChunkType => ChunkType.PaletteOld1;
-    public struct Chunk_Palette_Old1_Packet 
+    public readonly ChunkType ChunkType => ChunkType.ExternalFiles;
+    public enum Chunk_ExternalFiles_EntryType : BYTE
     {
-        /// <summary>
-        /// Number of palette entries to skip from the last packet (start from 0)
-        /// </summary>
-        public BYTE SkipCountFromLastPacket;
-        
-        public RGBColor[] Colors;
+        ExternalPalette = 0,
+        ExternalTileset = 1,
+        ExtensionNameForProperties = 2,
+        ExtensionNameForTileManagement = 3,
     }
-    public Chunk_Palette_Old1_Packet[] Packets;
-    
+
+    public struct Chunk_ExternalFiles_Entry
+    {
+        public DWORD EntryID;
+        public Chunk_ExternalFiles_EntryType Type;
+        /// <summary>
+        /// The extension ID must be a string like publisher/ExtensionName, for example, the Aseprite Attachment System uses aseprite/Attachment-System.
+        /// This string will be used in a future to automatically link to the extension URL in the Aseprite Store.
+        /// </summary>
+        public string ExternalFileNameOrExtensionID;
+    }
+
+    public Chunk_ExternalFiles_Entry[] Entires;
+
     public void ReadFromStream(Stream stream)
     {
         using var reader = new BinaryReader(stream, System.Text.Encoding.UTF8, leaveOpen: true);
 
-        var numberOfPackets = reader.ReadUInt16();
-        Packets = new Chunk_Palette_Old1_Packet[numberOfPackets];
-        for (int i = 0; i < Packets.Length; i++)
+        DWORD numberOfEntires = reader.ReadUInt32();
+        reader.ReadBytes(8);
+        Entires = new Chunk_ExternalFiles_Entry[numberOfEntires];
+        for (int i = 0; i < Entires.Length; i++)
         {
-            Packets[i].SkipCountFromLastPacket = reader.ReadByte();
-            BYTE count = reader.ReadByte();
-            if (count == 0)
-                count = BYTE.MaxValue;
-            Packets[i].Colors = new RGBColor[count];
-            for (int c = Packets[i].SkipCountFromLastPacket; c < count; c++)
-            {
-                Packets[i].Colors[c].Red = reader.ReadByte();
-                Packets[i].Colors[c].Blue = reader.ReadByte();
-                Packets[i].Colors[c].Green = reader.ReadByte();
-            }
+            Entires[i].EntryID = reader.ReadUInt32();
+            Entires[i].Type = (Chunk_ExternalFiles_EntryType)reader.ReadByte();
+            reader.ReadBytes(7);
+            STRING str = new();
+            str.ReadFromStream(stream);
+            Entires[i].ExternalFileNameOrExtensionID = str.ToString();
         }
+
     }
 
     public void WriteToStream(Stream stream)
     {
         using var writer = new BinaryWriter(stream, System.Text.Encoding.UTF8, leaveOpen: true);
 
-        writer.Write((WORD)Packets.Length);
-        for (int i = 0; i < Packets.Length; i++)
+        writer.Write((DWORD)Entires.Length);
+        writer.Write([0,0,0,0,0,0,0,0]);
+        for (int i = 0; i < Entires.Length; i++)
         {
-            writer.Write(Packets[i].SkipCountFromLastPacket);
-            writer.Write((BYTE)Packets[i].Colors.Length);
-            for (int c = Packets[i].SkipCountFromLastPacket; c < Packets[i].Colors.Length; c++)
-            {
-                writer.Write(Packets[i].Colors[c].Red);
-                writer.Write(Packets[i].Colors[c].Blue);
-                writer.Write(Packets[i].Colors[c].Green);
-            }
+            writer.Write(Entires[i].EntryID);
+            writer.Write((BYTE)Entires[i].Type);
+            writer.Write([0, 0, 0, 0, 0, 0, 0]);
+            STRING str = new(Entires[i].ExternalFileNameOrExtensionID);
+            str.WriteToStream(stream);
         }
     }
-}
-public struct Chunk_Palette_Old2
-{
 
 }
+/// <summary>
+/// After the tags chunk, you can write one user data chunk for each tag. E.g. if there are 10 tags, you can then write 10 user data chunks one for each tag.
+/// </summary>
+public struct Chunk_Tags : IChunk
+{
+    public readonly ChunkType ChunkType => ChunkType.Tags;
+    public enum Chunk_Tags_LoopAnimationDirection : BYTE
+    {
+        Forward = 0,
+        Reverse = 1,
+        PingPong = 2,
+        PingPong_Reverse = 3,
+    }
+
+    public struct Chunk_Tags_Entry
+    {
+        public WORD FromFrame;
+        public WORD ToFrame;
+        public Chunk_Tags_LoopAnimationDirection LoopAnimationDirection;
+        public WORD RepeatCount;
+        public RGBColor TagColor;
+        public STRING TagName;
+        /// <summary>
+        /// The extension ID must be a string like publisher/ExtensionName, for example, the Aseprite Attachment System uses aseprite/Attachment-System.
+        /// This string will be used in a future to automatically link to the extension URL in the Aseprite Store.
+        /// </summary>
+        public string ExternalFileNameOrExtensionID;
+    }
+
+    public Chunk_Tags_Entry[] Tags;
+
+    public void ReadFromStream(Stream stream)
+    {
+        using var reader = new BinaryReader(stream, System.Text.Encoding.UTF8, leaveOpen: true);
+
+        //TODO
+        throw new NotImplementedException();
+    }
+
+    public void WriteToStream(Stream stream)
+    {
+        using var writer = new BinaryWriter(stream, System.Text.Encoding.UTF8, leaveOpen: true);
+
+        throw new NotImplementedException();
+        //TODO
+    }
+
+}
+/// <summary>
+/// 
+/// </summary>
 public struct Chunk_Palette : IChunk
 {
     public readonly ChunkType ChunkType => ChunkType.Palette;
@@ -732,7 +964,7 @@ public struct Chunk_Palette : IChunk
         FirstColorIndexToChange = reader.ReadUInt32();
         LastColorIndexToChange = reader.ReadUInt32();
         reader.ReadBytes(8);
-        paletteEntries = new PaletteEntry[LastColorIndexToChange - FirstColorIndexToChange+1];
+        paletteEntries = new PaletteEntry[LastColorIndexToChange - FirstColorIndexToChange + 1];
         for (DWORD i = FirstColorIndexToChange; i <= LastColorIndexToChange; i++)
         {
             paletteEntries[i].ReadFromStream(stream);
@@ -741,17 +973,71 @@ public struct Chunk_Palette : IChunk
 
     public void WriteToStream(Stream stream)
     {
-        
+
     }
 }
+/// <summary>
+/// Specifies the user data (color/text/properties) to be associated with the last read chunk/object. E.g. If the last chunk we've read is a layer and then this chunk appears, this user data belongs to that layer, if we've read a cel, it belongs to that cel, etc. There are some special cases:
+/// <list type="number">
+/// <item>After a Tags chunk, there will be several user data chunks, one for each tag, you should associate the user data in the same order as the tags are in the Tags chunk. </item>
+/// <item>After the Tileset chunk, it could be followed by a user data chunk (empty or not) and then all the user data chunks of the tiles ordered by tile index, or it could be followed by none user data chunk (if the file was created in an older Aseprite version of if no tile has user data).</item>
+/// <item>In Aseprite v1.3 a sprite has associated user data, to consider this case there is an User Data Chunk at the first frame after the Palette Chunk.</item>
+/// </list>
+/// </summary>
+public struct Chunk_UserData : IChunk
+{
+    public readonly ChunkType ChunkType => ChunkType.UserData;
+    
+    public void ReadFromStream(Stream stream)
+    {
+        using var reader = new BinaryReader(stream, System.Text.Encoding.UTF8, leaveOpen: true);
+        throw new NotImplementedException();
+    }
 
+    public void WriteToStream(Stream stream)
+    {
+        throw new NotImplementedException();
+    }
+}
+/// <summary>
+/// 
+/// </summary>
+public struct Chunk_Slice : IChunk
+{
+    public readonly ChunkType ChunkType => ChunkType.Slice;
 
+    public void ReadFromStream(Stream stream)
+    {
+        using var reader = new BinaryReader(stream, System.Text.Encoding.UTF8, leaveOpen: true);
+        throw new NotImplementedException();
+    }
 
+    public void WriteToStream(Stream stream)
+    {
+        throw new NotImplementedException();
+    }
+}
+/// <summary>
+/// 
+/// </summary>
+public struct Chunk_Tileset : IChunk
+{
+    public readonly ChunkType ChunkType => ChunkType.Tileset;
+
+    public void ReadFromStream(Stream stream)
+    {
+        using var reader = new BinaryReader(stream, System.Text.Encoding.UTF8, leaveOpen: true);
+        throw new NotImplementedException();
+    }
+
+    public void WriteToStream(Stream stream)
+    {
+        throw new NotImplementedException();
+    }
+}
 #endregion
 
 #region Palette
-
-
 
 public struct PaletteEntry
 {
@@ -813,27 +1099,29 @@ public class Aseprite
     public Header Header;
     public Frame[] Frames;
 
-    public Palette palette;
-
-    public static Aseprite ReadFromStream(Stream stream)
+    public void ReadFromStream(Stream stream)
     {
-        Aseprite file = new Aseprite();
-        file.Header.ReadFromStream(stream);
+        Header.ReadFromStream(stream);
 
-        file.Frames = new Frame[file.Header.Frames];
-        for (int f = 0; f < file.Frames.Length; f++)
+        Frames = new Frame[Header.Frames];
+        for (int f = 0; f < Frames.Length; f++)
         {
-            file.Frames[f].Header.ReadFromStream(stream);
+            Frames[f].Header.ReadFromStream(stream);
 
-            uint numberOfChunks = file.Frames[f].Header.NumberOfChunks;
-            file.Frames[f].Chunks = new IChunk[numberOfChunks];
+            uint numberOfChunks = Frames[f].Header.NumberOfChunks;
+            Frames[f].Chunks = new IChunk[numberOfChunks];
 
             for (global::System.Int32 c = 0; c < numberOfChunks; c++)
             {
-                if (stream.Position == stream.Length)
-                    continue;
                 ChunkHeader chunkHeader = new();
                 chunkHeader.ReadFromStream(stream);
+
+
+                if (!Enum.IsDefined(chunkHeader.ChunkType))
+                {
+                    Debug.WriteLine("Chunk " + c + " is unkown ChunkType of " + chunkHeader.ChunkType);
+                    stream.Seek(chunkHeader.SizeInBytes - 6, SeekOrigin.Current);
+                }
 
                 switch (chunkHeader.ChunkType)
                 {
@@ -841,39 +1129,37 @@ public class Aseprite
                         {
                             var chunk = new Chunk_Palette_Old1();
                             chunk.ReadFromStream(stream);
-                            file.Frames[f].Chunks[c] = chunk;
+                            Frames[f].Chunks[c] = chunk;
                             break;
                         }
                     case ChunkType.Layer:
                         {
                             var chunk = new Chunk_Layer();
                             chunk.ReadFromStream(stream);
-                            file.Frames[f].Chunks[c] = chunk;
+                            Frames[f].Chunks[c] = chunk;
                             break;
                         }
                     case ChunkType.Cel:
                         {
                             var chunk = new Chunk_Cel();
-                            chunk.ReadFromStream(stream, file.Header.ColorDepth);
-                            file.Frames[f].Chunks[c] = chunk;
+                            chunk.ReadFromStream(stream, Header.ColorDepth);
+                            Frames[f].Chunks[c] = chunk;
                             break;
                         }
                     case ChunkType.ColorProfile:
                         {
                             var chunk = new Chunk_ColorProfile();
                             chunk.ReadFromStream(stream);
-                            file.Frames[f].Chunks[c] = chunk;
+                            Frames[f].Chunks[c] = chunk;
                             break;
                         }
                     case ChunkType.Palette:
                         {
                             var chunk = new Chunk_Palette();
                             chunk.ReadFromStream(stream);
-                            file.Frames[f].Chunks[c] = chunk;
+                            Frames[f].Chunks[c] = chunk;
                             break;
                         }
-                    
-
                     default:
                         // Skip the Chunk
                         stream.Seek(chunkHeader.SizeInBytes-6, SeekOrigin.Current);
@@ -881,10 +1167,7 @@ public class Aseprite
                 }
             }
         }
-
-        return file;
     }
-
 
     public void WriteToStream(Stream stream)
     {
@@ -909,11 +1192,13 @@ public class Aseprite
 
                 var position_chunkEnd = writer.BaseStream.Position;
                 var size_chunk =  position_chunkEnd - position_chunkStart;
-
+                Debug.Assert(size_chunk >= 6);
                 // To back to start to write header
                 writer.BaseStream.Seek(position_chunkStart, SeekOrigin.Begin);
                 writer.Write((DWORD)size_chunk);
-                writer.Write((WORD)Frames[f].Chunks[c].ChunkType);
+                WORD ChunkType = (WORD)Frames[f].Chunks[c].ChunkType;
+                writer.Write(ChunkType);
+
                 // Restore position
                 writer.BaseStream.Seek(position_chunkEnd, SeekOrigin.Begin);
             }
@@ -928,8 +1213,11 @@ public class Aseprite
         }
         var position_fileEnd = writer.BaseStream.Position;
         var size_file = position_fileEnd - position_fileStart;
+        if (size_file > DWORD.MaxValue)
+            throw new Exception("FileTooBig");
         writer.BaseStream.Seek(position_fileStart, SeekOrigin.Begin);
         writer.Write((DWORD)size_file);
         writer.BaseStream.Seek(position_fileEnd, SeekOrigin.Begin);
+        Debug.Assert(writer.BaseStream.Position == size_file);
     }
 }

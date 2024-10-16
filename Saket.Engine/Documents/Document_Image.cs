@@ -1,6 +1,7 @@
 ﻿using QoiSharp;
 using QoiSharp.Codec;
 using Saket.Engine;
+using Saket.Engine.Formats.Pyxel;
 using Saket.Engine.Graphics;
 using Saket.Engine.Types;
 using Saket.Serialization;
@@ -8,9 +9,14 @@ using StbImageSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Text.Json;
 using Color = Saket.Engine.Graphics.Color;
+using WebGpuSharp;
+using Saket.Engine.GeometryD2.Shapes;
 
 namespace Saket.Engine.Documents;
 
@@ -32,23 +38,73 @@ public struct ImageIndex
 
 public class Document_Image : Document
 {
+    public class Layer : ISerializable
+    {
+        public string name;
+        public int Width;
+        public int Height;
+        public byte[] Data;
+
+        public Layer()
+        {
+            name = "";
+            Data = [];
+        }
+
+        public byte this[int index]
+        {
+            get
+            {
+                
+                return Data[index];
+            }
+            set
+            {
+
+                Data[index] = value;
+            }
+        }
+
+        public void Serialize(ISerializer serializer)
+        {
+            serializer.Serialize(ref name);
+            serializer.Serialize(ref Width);
+            serializer.Serialize(ref Height);
+            if (serializer.IsReader)
+            {
+                byte[] data = [];
+                serializer.Serialize(ref data);
+                QoiImage decoded = QoiSharp.QoiDecoder.Decode(data);
+                Data = decoded.Data;
+            }
+            else
+            {
+                QoiImage image = new QoiImage(Data, Width, Height, Channels.RgbWithAlpha, ColorSpace.Linear);
+                byte[] encoded = QoiSharp.QoiEncoder.Encode(image);
+                serializer.Serialize(ref encoded);
+            }
+        }
+    }
+
     public int Width;
     public int Height;
 
-    public List<byte[]> layers;
+    public List<Layer> Layers;
+
+
 
     public Document_Image()
     {
         Width = 0;
         Height = 0;
-        layers = [];
+        Layers = [];
     }
 
     public Document_Image(int width, int height, string name)
     {
         Width = width;
         Height = height;
-        layers = [];
+        Layers = [];
     }
 
     #region Editing
@@ -62,11 +118,11 @@ public class Document_Image : Document
             return false;
 
 
-        for (int i = 0; i < layers.Count; i++)
+        for (int i = 0; i < Layers.Count; i++)
         {
             byte[] newData = new byte[newWidth * newHeight * 4];
-            ImageTexture.Blit(layers[i], Width, Height, newData, newWidth, newHeight, anchor);
-            layers[i] = newData;
+            ImageTexture.Blit(Layers[i].Data, Width, Height, newData, newWidth, newHeight, anchor);
+            Layers[i].Data = newData;
         }
 
         Width = newWidth;
@@ -85,20 +141,17 @@ public class Document_Image : Document
         throw new NotImplementedException();
     }
 
-
-
-
     public ImageTexture FlattenToImage()
     {
         ImageTexture img = new ImageTexture(Width,Height);
         if (Width <= 0 || Height <= 0)
             return img;
 
-        foreach (var layer in layers)
+        foreach (var layer in Layers)
         {
-            for (int i = 0; i < layer.Length; i++)
+            for (int i = 0; i < layer.Data.Length; i++)
             {
-                img.Data[i] = layer[i];
+                img.Data[i] = layer.Data[i];
             }
         }
         return img;
@@ -507,14 +560,14 @@ public class Document_Image : Document
     #region Indexing
     public Color GetPixel(ImageIndex position)
     {
-        var layer = layers[position.index_layer];
+        var layer = Layers[position.index_layer];
          
         int a = position.index_pixel * 4;
         return new Color(layer[a + 2], layer[a + 1], layer[a], layer[a + 3]);
     }
     public bool SetPixel(ImageIndex position, Color color)
     {
-        var layer = layers[position.index_layer];
+        var layer = Layers[position.index_layer];
 
         int a = position.index_pixel * 4;
         layer[a + 2] = color.R;
@@ -532,7 +585,7 @@ public class Document_Image : Document
     public bool IsValidIndex(ImageIndex pos)
     {
         return 
-            pos.index_layer.IsWithin(0, layers.Count) &&
+            pos.index_layer.IsWithin(0, Layers.Count) &&
             pos.index_pixel.IsWithin(0, (Width * Height));
     }
 
@@ -570,51 +623,165 @@ public class Document_Image : Document
     #endregion
 
     #region Saving And Loading
-    // TODO change to stream
+
     public override void SaveToPath(string path)
     {
-        var image_canvas = FlattenToImage();
+        string ext = Path.GetExtension(path);
 
-        image_canvas.SaveToPath(path);
+        if (ext == ".pyxel")
+        {
+            using FileStream stream = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+            using ZipArchive zipArchive = new ZipArchive(stream, ZipArchiveMode.Update);
+            {
+                ZipArchiveEntry? entry = zipArchive.GetEntry("docData.json");
 
+                PyxelDocData docData = new();
+
+                if (entry != null)
+                {
+                    using var stream_entry = entry.Open();
+                    docData = JsonSerializer.Deserialize<PyxelDocData>(stream_entry, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+                    stream_entry.Close();
+                    entry.Delete();
+                }
+
+                docData.name = this.Name;
+
+                var layerDocs = new Dictionary<string, PyxelDocData.Canvas.Layer>();
+                int count = 0;
+                foreach (var layer in Layers)
+                {
+                    var doc = new PyxelDocData.Canvas.Layer()
+                    {
+                        blendMode = "normal",
+                        alpha = 255,
+                        name = layer.name,
+                        type = "tile_layer",
+                        parentIndex = -1,
+                        tileRefs = []
+                    };
+
+                    layerDocs.Add(count.ToString(), doc);
+                    count++;
+                }
+
+                docData.canvas = new PyxelDocData.Canvas()
+                {
+                    width = this.Width,
+                    height = this.Height,
+                    tileWidth = this.Width,
+                    tileHeight = this.Height,
+                    numLayers = Layers.Count,
+                    layers = layerDocs
+                };
+
+                {
+                    entry = zipArchive.CreateEntry("docData.json");
+                    using var stream_entry = entry.Open();
+                    JsonSerializer.Serialize(stream_entry, docData, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, WriteIndented = true });
+                }
+            }
+            {
+                int count = 0;
+                foreach (var layer in Layers)
+                {
+                    string fileName = "layer" + count + ".png";
+                    // Delete previous image
+                    ZipArchiveEntry? entry = zipArchive.GetEntry(fileName);
+                    if (entry != null)
+                        entry.Delete();
+
+                    entry = zipArchive.CreateEntry(fileName);
+                    using var stream_entry = entry.Open();
+                    new StbImageWriteSharp.ImageWriter().WritePng(layer.Data, (int)layer.Width, (int)layer.Height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream_entry);
+
+                    count++;
+                }
+            }
+
+        }
+        else if (ext ==".ase" || ext == ".aseprite")
+        {
+
+        }
+        else
+        {
+            var image_canvas = FlattenToImage();
+            image_canvas.SaveToPath(path);
+        }
     }
 
     public override void LoadFromPath(string path)
     {
-        var image_canvas = new ImageTexture(path);
-        this.Width = (int)image_canvas.Width;
-        this.Height = (int)image_canvas.Height;
-        layers.Add([.. image_canvas.Data]);
+        string ext = Path.GetExtension(path);
+        if (ext == ".pyxel")
+        {
+            using var stream = new FileStream(path, FileMode.Open);
+
+            using ZipArchive zipArchive = new ZipArchive(stream, ZipArchiveMode.Read);
+
+
+            PyxelDocData docData = new();
+            {
+                ZipArchiveEntry? entry = zipArchive.GetEntry("docData.json") ?? throw new Exception("Failed to load");
+
+                using Stream entrystream = entry.Open();
+
+                docData = JsonSerializer.Deserialize<PyxelDocData>(entrystream, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+            }
+
+            this.Layers = [];
+
+
+            foreach (var layer in docData.canvas.layers)
+            {
+                this.Layers.Add(new Layer()
+                {
+                    Width = docData.canvas.width,
+                    Height = docData.canvas.height,
+                    name = layer.Value.name,
+                });
+            }
+
+            for (int i = 0; i < docData.canvas.numLayers; i++)
+            {
+                {
+                    ZipArchiveEntry? entry_layer = zipArchive.GetEntry("layer" + i + ".png") ?? throw new Exception("Failed to load");
+                    using Stream compressedStream = entry_layer.Open();
+                    // Uncompress it
+                    using MemoryStream uncompressedImagestream = new((int)entry_layer.Length);
+                    compressedStream.CopyTo(uncompressedImagestream);
+                    uncompressedImagestream.Seek(0, SeekOrigin.Begin);
+                    StbImage.stbi_set_flip_vertically_on_load(1);
+                    ImageResult result = ImageResult.FromStream(uncompressedImagestream, ColorComponents.RedGreenBlueAlpha);
+
+                    ImageTexture.FlipRedBlue(result.Data);
+                    this.Layers[i].Data = result.Data;
+                }
+            }
+
+            this.Width = docData.canvas.width;
+            this.Height = docData.canvas.height;
+
+        }
+        else if (ext == ".ase" || ext == ".aseprite")
+        {
+
+        }
+        else
+        {
+            var image_canvas = new ImageTexture(path);
+            this.Width = (int)image_canvas.Width;
+            this.Height = (int)image_canvas.Height;
+            Layers.Add(new() { Data = [.. image_canvas.Data], name = "Layer 0", Width = this.Width, Height = this.Height });
+        }
     }
 
     public override void Serialize(ISerializer serializer)
     {
         serializer.Serialize(ref Width);
-
         serializer.Serialize(ref Height);
-
-        int length = layers.Count;
-        serializer.Serialize(ref length);
-        // Length now contains the length of the dictionary
-        ISerializer.ResizeList(layers, length, []);
-        var span = (CollectionsMarshal.AsSpan(layers));
-
-        for (int i = 0; i < span.Length; i++)
-        {
-            if (serializer.IsReader)
-            {
-                byte[] data = [];
-                serializer.Serialize(ref data);
-                QoiImage decoded = QoiSharp.QoiDecoder.Decode(data);
-                span[i] = decoded.Data;
-            }
-            else
-            {
-                QoiImage image = new QoiImage(span[i], Width, Height, Channels.RgbWithAlpha, ColorSpace.Linear);
-                byte[] encoded = QoiSharp.QoiEncoder.Encode(image);
-                serializer.Serialize(ref encoded);
-            }
-        }
+        serializer.Serialize(ref Layers);
     }
     /// <summary>
     /// Load image from path

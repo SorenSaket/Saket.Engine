@@ -1,19 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
+using System.IO.Compression;
 using System.Numerics;
+using System.Text.Json;
 using Saket.Engine.Formats.Aseprite;
-using Saket.Engine.GeometryD2;
+using Saket.Engine.Formats.Pyxel;
 using Saket.Engine.GeometryD2.Shapes;
 using Saket.Engine.Types;
 using Saket.Serialization;
 using StbImageSharp;
-using StbImageWriteSharp;
 using WebGpuSharp;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Saket.Engine.Graphics
 {
@@ -90,6 +87,21 @@ namespace Saket.Engine.Graphics
             this.height = height;
         }
 
+        /// <summary>
+        /// Gets the palette of the image
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static HashSet<Color> GetUniqueColors(byte[] data)
+        {
+            HashSet<Color> result = new HashSet<Color>();
+            for (int i = 0; i < data.Length/4; i++)
+            {
+                result.Add(new Color(data[i], data[i + 1], data[i + 2], data[i + 3]));
+            }
+            return result;
+        }
+
         public void ClearData()
         {
             data = null;
@@ -97,7 +109,7 @@ namespace Saket.Engine.Graphics
 
 
         #region Pixel Maniuplation
-        public static void Blit(byte[] sourceImage, int sourceWidth, int sourceHeight, byte[] targetImage, int targetWidth, int targetHeight, Direction anchor)
+        public static void Blit(byte[] sourceImage, int sourceWidth, int sourceHeight, byte[] targetImage, int targetWidth, int targetHeight, Direction anchor = Direction.Undefined)
         {
             // Calculate aspect ratio
             float sourceAspect = (float)sourceWidth / sourceHeight;
@@ -251,7 +263,7 @@ namespace Saket.Engine.Graphics
         }
 
 
-        public void FlipVertically()
+        public static void FlipVertically(ref byte[] data, int width, int height)
         {
             // Calculate the number of bytes per row (width * bytes per pixel)
             int stride = width * 4;
@@ -273,10 +285,10 @@ namespace Saket.Engine.Graphics
 
             data = flippedImage;
         }
-        public void FlipRedBlue(byte[] data)
+        public static void FlipRedBlue(byte[] data)
         {
             // convert from rgba to bgra
-            for (int i = 0; i < Width * Height; ++i)
+            for (int i = 0; i < data.Length/4; ++i)
             {
                 byte temp = data[i * 4];
                 data[i * 4] = data[i * 4 + 2];
@@ -334,36 +346,81 @@ namespace Saket.Engine.Graphics
         /// <param name="path"></param>
         public ImageTexture(string path, bool flipVertically = true)
         {
-            
-
-
             string ext = Path.GetExtension(path);
 
-            if(ext == ".ase" || ext == ".aseprite")
+            if(ext == ".pyxel")
             {
-                using (var stream = new FileStream(path, FileMode.Open))
+                using var stream = new FileStream(path, FileMode.Open);
+
+                using ZipArchive zipArchive = new ZipArchive(stream, ZipArchiveMode.Read);
+
+
+                PyxelDocData docData = new();
                 {
-                    var file = Aseprite.ReadFromStream(stream);
+                    ZipArchiveEntry? entry = zipArchive.GetEntry("docData.json") ?? throw new Exception("Failed to load");
 
-                    this.width = file.Header.WidthInPixels;
-                    this.height = file.Header.HeightInPixels;
-                    this.format = TextureFormat.BGRA8Unorm;
-                    this.data = new byte[this.width*this.height*4];
+                    using Stream entrystream = entry.Open();
 
-                    foreach (var chunk in file.Frames[0].Chunks)
-                    {
-                        if(chunk is Chunk_Cel cel) 
-                        {
-                            Vector2 Size = new Vector2(cel.WidthInPixels, cel.HeightInPixels);
-                            Vector2 HalfSize = new Vector2(cel.WidthInPixels, cel.HeightInPixels)/2f;
-                            Blit(
-                                cel.RawPixelData, cel.WidthInPixels, cel.HeightInPixels, new Rectangle(HalfSize, Size), 
-                                data, width, height, new Rectangle(new Vector2(cel.Xposition, cel.Yposition)+ HalfSize, Size));
-                        }
-                    }
-                    FlipVertically(); 
-                    FlipRedBlue(this.data);
+                    docData = JsonSerializer.Deserialize<PyxelDocData>(entrystream, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
                 }
+
+                byte[] pixels = new byte[docData.canvas.width * docData.canvas.height * 4];
+                Rectangle rectBlit =
+                    new Rectangle(new Vector2(docData.canvas.width, docData.canvas.height) / 2f,
+                                new Vector2(docData.canvas.width, docData.canvas.height)
+                    );
+                for (int i = 0; i < docData.canvas.numLayers; i++)
+                {
+                    {
+                        ZipArchiveEntry? entry_layer = zipArchive.GetEntry("layer"+ i +".png") ?? throw new Exception("Failed to load");
+                        using Stream compressedStream = entry_layer.Open();
+                        // Uncompress it
+                        using MemoryStream uncompressedImagestream = new((int)entry_layer.Length);
+                        compressedStream.CopyTo(uncompressedImagestream);
+                        uncompressedImagestream.Seek(0, SeekOrigin.Begin);
+                        StbImage.stbi_set_flip_vertically_on_load(1);
+                        ImageResult result = ImageResult.FromStream(uncompressedImagestream, ColorComponents.RedGreenBlueAlpha);
+
+                        ImageTexture.Blit(
+                            result.Data, docData.canvas.width, docData.canvas.height, rectBlit,
+                            pixels, docData.canvas.width, docData.canvas.height, rectBlit);
+                    }
+                }
+               
+
+                {
+                    FlipRedBlue(pixels);
+                }
+               
+                this.width = docData.canvas.width;
+                this.height = docData.canvas.height;
+                this.format = TextureFormat.BGRA8Unorm;
+                this.data = pixels;
+            }
+            else if(ext == ".ase" || ext == ".aseprite")
+            {
+                using var stream = new FileStream(path, FileMode.Open);
+                var file = new Aseprite();
+                file.ReadFromStream(stream);
+
+                this.width = file.Header.WidthInPixels;
+                this.height = file.Header.HeightInPixels;
+                this.format = TextureFormat.BGRA8Unorm;
+                this.data = new byte[this.width * this.height * 4];
+
+                foreach (var chunk in file.Frames[0].Chunks)
+                {
+                    if (chunk is Chunk_Cel cel)
+                    {
+                        Vector2 Size = new Vector2(cel.WidthInPixels, cel.HeightInPixels);
+                        Vector2 HalfSize = new Vector2(cel.WidthInPixels, cel.HeightInPixels) / 2f;
+                        Blit(
+                            cel.RawPixelData, cel.WidthInPixels, cel.HeightInPixels, new Rectangle(HalfSize, Size),
+                            data, width, height, new Rectangle(new Vector2(cel.Xposition, cel.Yposition) + HalfSize, Size));
+                    }
+                }
+                FlipVertically(ref this.data, this.width, this.height);
+                FlipRedBlue(this.data);
             }
             else
             {
@@ -413,6 +470,7 @@ namespace Saket.Engine.Graphics
 
             byte[] data = new byte[Data.Length];
 
+            //Iterate all pixels image and switch r<->b
             for (int i = 0; i < data.Length / 4; ++i)
             {
                 data[i * 4 + 0] = Data[i * 4 + 2];
@@ -421,9 +479,73 @@ namespace Saket.Engine.Graphics
                 data[i * 4 + 3] = Data[i * 4 + 3];
             }
 
-            if (ext == ".ase" || ext == ".aseprite")
+            if(ext == ".pyxel")
             {
+                using FileStream stream = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+                using ZipArchive zipArchive = new ZipArchive(stream, ZipArchiveMode.Update);
+                {
+                    ZipArchiveEntry? entry = zipArchive.GetEntry("docData.json");
+
+                    PyxelDocData docData = new();
+                  
+                    if (entry != null)
+                    {
+                        using var stream_entry = entry.Open();
+                        docData = JsonSerializer.Deserialize<PyxelDocData>(stream_entry, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+                        stream_entry.Close();
+                        entry.Delete();
+                    }
+
+                    docData.name = this.name;
+                    docData.canvas = new PyxelDocData.Canvas()
+                    {
+                        width = this.width,
+                        height = this.height,
+                        tileWidth = this.width,
+                        tileHeight = this.height,
+                        numLayers = 1,
+                        layers = new Dictionary<string, PyxelDocData.Canvas.Layer>
+                        {
+                            {
+                                "0",
+                                new PyxelDocData.Canvas.Layer()
+                                {
+                                    blendMode = "normal",
+                                    alpha = 255,
+                                    name ="Layer 0",
+                                    type ="tile_layer",
+                                    parentIndex = -1,
+                                    tileRefs = []
+                                }
+                            }
+                        }
+                    };
+
+                    {
+                        entry = zipArchive.CreateEntry("docData.json");
+                        using var stream_entry = entry.Open();
+                        JsonSerializer.Serialize(stream_entry, docData, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, WriteIndented = true });
+                    }
+                }
+                {
+                    // Delete previous image
+                    ZipArchiveEntry? entry = zipArchive.GetEntry("layer0.png");
+                    if (entry != null)
+                        entry.Delete();
+
+                    entry = zipArchive.CreateEntry("layer0.png");
+                    using var stream_entry = entry.Open();
+                    StbImageWriteSharp.StbImageWrite.stbi_flip_vertically_on_write(flipVertically ? 1 : 0);
+                    new StbImageWriteSharp.ImageWriter().WritePng(data, (int)this.width, (int)this.height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream_entry);
+                    
+                }
+                
+            }
+            else if (ext == ".ase" || ext == ".aseprite")
+            {
+                FlipVertically(ref data);
                 var file = new Aseprite();
+
                 file.Header.Frames = 1;
                 file.Header.WidthInPixels   = (ushort)width;
                 file.Header.HeightInPixels  = (ushort)height;
@@ -432,7 +554,7 @@ namespace Saket.Engine.Graphics
                 file.Header.PixelWidth = file.Header.PixelHeight = 1;
                 file.Header.Flags |= Header.Header_Flags.LayerOpacityHasValidValue;
                 file.Header.ColorDepth = Header.Header_ColorDepth.RGBA;
-               file.Frames = [
+                file.Frames = [
                     new Frame(){
                         Chunks = [
                             new Chunk_ColorProfile(){
@@ -443,14 +565,16 @@ namespace Saket.Engine.Graphics
                                 LayerName = "Layer 0",
                                 LayerType = Chunk_Layer.Chunk_Layer_LayerType.Normal,
                                 Opacity = 255,
+                                Flags = Chunk_Layer.Chunk_Layer_Flags.Visible | Chunk_Layer.Chunk_Layer_Flags.Editable
                             },
                             new Chunk_Cel(){
-                                CelType = Chunk_Cel.Chunk_Cel_CelType.RawImageData,
+                                CelType = Chunk_Cel.Chunk_Cel_CelType.CompressedImage,
                                 WidthInPixels = (ushort)width,
                                 HeightInPixels = (ushort)height,
                                 Xposition = 0,
                                 Yposition = 0,
-                                RawPixelData = data
+                                RawPixelData = data,
+                                OpacityLevel = 255,
                             }
                         ]
                     }
@@ -491,8 +615,6 @@ namespace Saket.Engine.Graphics
                     }
                 }
             }
-
-           
         }
         #endregion
 

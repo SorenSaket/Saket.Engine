@@ -23,7 +23,7 @@ namespace Saket.Engine.Graphics
             this.tiles = new List<Tile>(initialCapacity);
         }
 
-        public TextureAtlas(ImageTexture image, uint columns, uint rows)
+        public TextureAtlas(ImageTexture image, int columns, int rows)
         {
             this.image = image;
             this.tiles = new List<Tile>((int)(columns*rows));

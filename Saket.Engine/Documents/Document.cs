@@ -8,9 +8,12 @@ namespace Saket.Engine.Documents;
 /// </summary>
 public abstract class Document : ISerializable
 {
-    public abstract void SaveToPath(string path);
+    public string? Name {  get; set; }
 
-    public abstract void LoadFromPath(string path);
+
+    public abstract void SaveToPath(string path_full);
+
+    public abstract void LoadFromPath(string path_full);
 
     public abstract void Serialize(ISerializer serializer);
 }
