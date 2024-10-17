@@ -10,3 +10,6 @@
 [submodule "ImGui.NET"]
 	path = ImGui.NET
 	url = https://github.com/ImGuiNET/ImGui.NET.git
+[submodule "PsdPlugin"]
+	path = PsdPlugin
+	url = https://github.com/PsdPlugin/PsdPlugin.git
