@@ -1,7 +1,7 @@
 ﻿using QoiSharp;
 using QoiSharp.Codec;
-using Saket.Engine;
 using Saket.Engine.Formats.Pyxel;
+using Saket.Engine.GeometryD2.Shapes;
 using Saket.Engine.Graphics;
 using Saket.Engine.Types;
 using Saket.Serialization;
@@ -11,12 +11,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Numerics;
-using System.Runtime.InteropServices;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Text.Json;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using Color = Saket.Engine.Graphics.Color;
-using WebGpuSharp;
-using Saket.Engine.GeometryD2.Shapes;
 
 namespace Saket.Engine.Documents;
 
@@ -36,6 +33,15 @@ public struct ImageIndex
     }
 }
 
+// TODO MOVE
+public enum Visibility
+{
+    Undefined   = 0,
+    Normal      = 1,
+    Solo        = 2,
+    Mute        = 3,
+}
+
 public class Document_Image : Document
 {
     public class Layer : ISerializable
@@ -45,10 +51,19 @@ public class Document_Image : Document
         public int Height;
         public byte[] Data;
 
+        public Visibility visibility_global;
+        public Visibility visibility_local;
+
+        public bool locked_global;
+        public bool locked_local;
+
         public Layer()
         {
             name = "";
             Data = [];
+
+            visibility_local = Visibility.Normal;
+            visibility_global = Visibility.Normal;
         }
 
         public byte this[int index]
@@ -91,8 +106,7 @@ public class Document_Image : Document
 
     public List<Layer> Layers;
 
-
-
+    #region Constructors
     public Document_Image()
     {
         Width = 0;
@@ -106,10 +120,11 @@ public class Document_Image : Document
         Height = height;
         Layers = [];
     }
+    #endregion
 
     #region Editing
 
-    public bool Resize(int newWidth, int newHeight, Direction anchor = Direction.Undefined)
+    public bool TryResize(int newWidth, int newHeight, Direction anchor = Direction.Undefined)
     {
         if (newWidth <= 0 || newHeight <= 0)
             return false;
@@ -131,9 +146,10 @@ public class Document_Image : Document
         return true;
     }
 
-    public bool Flatten()
+    public bool TryFlatten()
     {
         throw new NotImplementedException();
+        
     }
 
     public void FillAllPixels(Color color, int layer = 0)
@@ -155,6 +171,101 @@ public class Document_Image : Document
             }
         }
         return img;
+    }
+
+    public ImageTexture GetThumbnail()
+    {
+        int minDimension = Math.Min(Width, Height);
+
+        ImageTexture img = new ImageTexture(minDimension, minDimension);
+        
+        Rectangle rect_source = new Rectangle(
+            new Vector2(Width, Height) /2f, 
+            new Vector2(minDimension, minDimension));
+
+        Rectangle rect_target = new Rectangle(
+          new Vector2(minDimension, minDimension) / 2f,
+          new Vector2(minDimension, minDimension));
+
+        foreach (var layer in Layers)
+        {
+            ImageTexture.Blit(layer.Data, Width, Height, rect_source,
+                img.Data, img.width, img.height, rect_target);
+        }
+
+        return img;
+    }
+
+    #endregion
+
+    #region IEnumerable Selectors
+    public IEnumerable<int> Enumerator_FloodFill(Func<ImageIndex, bool> predicate, ImageIndex index_source, Direction dirs = Direction.Cardial)
+    {
+        HashSet<int> fill = [];
+
+        // Positions to search
+        Stack<int> positionsToSearch = new Stack<int>();
+        positionsToSearch.Push(index_source.index_pixel);
+
+        // Perform interative flood fill
+        while (positionsToSearch.Count > 0)
+        {
+            int p = positionsToSearch.Pop();
+
+            if (!IsValidIndex(new ImageIndex(p, index_source.index_layer)))
+                continue;
+
+            if (!fill.Contains(p) && predicate(new ImageIndex(p, index_source.index_layer))) // todo remove contains check
+            {
+                fill.Add(p);
+                yield return p;
+
+                foreach (var item in dirs.EnumerateFlags())
+                {
+                    if (item == Direction.Undefined)
+                        continue;
+
+                    if (ValidMove(p, item, Width, Height, out var index_new))
+                        positionsToSearch.Push(index_new);
+                }
+            }
+        }
+    }
+    public IEnumerable<int> Enumerator_GetSquareSelection(Vector2 min, Vector2 max)
+    {
+        min = min.Round();
+        max = max.Round();
+
+        Vector2 realMin = new Vector2(Math.Min(min.X, max.X), Math.Min(min.Y, max.Y));
+        Vector2 realMax = new Vector2(Math.Max(min.X, max.X), Math.Max(min.Y, max.Y));
+
+        realMin = Vector2.Max(realMin, Vector2.Zero);
+        realMax = Vector2.Min(realMax, new Vector2(Width, Height));
+
+        for (int y = (int)realMin.Y; y < (int)realMax.Y; y++)
+        {
+            for (int x = (int)realMin.X; x < (int)realMax.X; x++)
+            {
+                yield return (GetPixelIndex(x, y));
+            }
+        }
+    }
+    public IEnumerable<int> Enumerator_AllMatchingOnLayer(Func<ImageIndex, bool> predicate, int index_layer)
+    {
+        int size = Width * Height;
+        for (int i = 0; i < size; i++)
+        {
+            if (predicate(new ImageIndex(i, index_layer)))
+                yield return i;
+        }
+    }
+    public IEnumerable<int> Enumerator_AllPixels()
+    {
+        int size = Width * Height;
+        for (int i = 0; i < size; i++)
+        {
+            yield return i;
+        }
     }
 
     #endregion
@@ -218,81 +329,6 @@ public class Document_Image : Document
 
         return fill;
     }
-
-
-
-
-    public IEnumerable<int> Enumerator_FloodFill(Func<ImageIndex, bool> predicate, ImageIndex index_source, Direction dirs = Direction.Cardial)
-    {
-        HashSet<int> fill = [];
-
-        // Positions to search
-        Stack<int> positionsToSearch = new Stack<int>();
-        positionsToSearch.Push(index_source.index_pixel);
-
-        // Perform interative flood fill
-        while (positionsToSearch.Count > 0)
-        {
-            int p = positionsToSearch.Pop();
-
-            if (!IsValidIndex(new ImageIndex(p, index_source.index_layer)))
-                continue;
-
-            if (!fill.Contains(p) && predicate(new ImageIndex(p, index_source.index_layer))) // todo remove contains check
-            {
-                fill.Add(p);
-                yield return p;
-
-                foreach (var item in dirs.EnumerateFlags())
-                {
-                    if(item == Direction.Undefined)
-                        continue;
-
-                    if(ValidMove(p, item, Width, Height, out var index_new))
-                        positionsToSearch.Push(index_new);
-                }
-            }
-        }
-    }
-
-    public IEnumerable<int> Enumerator_GetSquareSelection(Vector2 min, Vector2 max)
-    {
-        min = min.Round();
-        max = max.Round();
-
-        Vector2 realMin = new Vector2(Math.Min(min.X, max.X), Math.Min(min.Y, max.Y));
-        Vector2 realMax = new Vector2(Math.Max(min.X, max.X), Math.Max(min.Y, max.Y));
-
-        realMin = Vector2.Max(realMin, Vector2.Zero);
-        realMax = Vector2.Min(realMax, new Vector2(Width,Height));
-
-        for (int y = (int)realMin.Y; y < (int)realMax.Y; y++)
-        {
-            for (int x = (int)realMin.X; x < (int)realMax.X; x++)
-            {
-                yield return (GetPixelIndex(x, y));
-            }
-        }
-    }
-    public IEnumerable<int> Enumerator_AllMatchingOnLayer(Func<ImageIndex, bool> predicate, int index_layer)
-    {
-        int size = Width * Height;
-        for (int i = 0; i < size; i++)
-        {
-            if (predicate(new ImageIndex(i, index_layer)))
-                yield return i;
-        }
-    }
-    public IEnumerable<int> Enumerator_AllPixels()
-    {
-        int size = Width * Height;
-        for (int i = 0; i < size; i++)
-        {
-            yield return i;
-        }
-    }
-
-
 
 
 
@@ -598,7 +634,10 @@ public class Document_Image : Document
     {
         return index_pixel.IsWithin(0, (Width * Height));
     }
-
+    public bool IsValidLayerIndex(int index_layer)
+    {
+        return index_layer.IsWithin(0, Layers.Count);
+    }
 
 
     /// <summary>
@@ -693,7 +732,18 @@ public class Document_Image : Document
 
                     entry = zipArchive.CreateEntry(fileName);
                     using var stream_entry = entry.Open();
-                    new StbImageWriteSharp.ImageWriter().WritePng(layer.Data, (int)layer.Width, (int)layer.Height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream_entry);
+
+                    var data_layer = new byte[layer.Data.Length];
+                    //Iterate all pixels image and switch r<->b
+                    for (int i = 0; i < data_layer.Length / 4; ++i)
+                    {
+                        data_layer[i * 4 + 0] = layer.Data[i * 4 + 2];
+                        data_layer[i * 4 + 1] = layer.Data[i * 4 + 1];
+                        data_layer[i * 4 + 2] = layer.Data[i * 4 + 0];
+                        data_layer[i * 4 + 3] = layer.Data[i * 4 + 3];
+                    }
+                    StbImageWriteSharp.StbImageWrite.stbi_flip_vertically_on_write(1);
+                    new StbImageWriteSharp.ImageWriter().WritePng(data_layer, (int)layer.Width, (int)layer.Height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream_entry);
 
                     count++;
                 }
@@ -733,15 +783,15 @@ public class Document_Image : Document
             this.Layers = [];
 
 
-            foreach (var layer in docData.canvas.layers)
+            for (int i = 0; i < docData.canvas.numLayers; i++)
             {
                 this.Layers.Add(new Layer()
                 {
                     Width = docData.canvas.width,
                     Height = docData.canvas.height,
-                    name = layer.Value.name,
+                    name = docData.canvas.layers[i.ToString()].name,
                 });
-            }
+            } 
 
             for (int i = 0; i < docData.canvas.numLayers; i++)
             {

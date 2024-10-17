@@ -4,6 +4,8 @@ using System.IO;
 using System.IO.Compression;
 using System.Numerics;
 using System.Text.Json;
+using QoiSharp.Codec;
+using QoiSharp;
 using Saket.Engine.Formats.Aseprite;
 using Saket.Engine.Formats.Pyxel;
 using Saket.Engine.GeometryD2.Shapes;
@@ -15,8 +17,6 @@ using WebGpuSharp;
 namespace Saket.Engine.Graphics
 {
     // TODO
-    // Convert width/height to int for easier use with c#. 
-    // QOI image format
     // Image only supports internal format of bgraunorm8 since thats the only supported surface format anyways
 
     public class ImageTexture : ISerializable
@@ -102,10 +102,36 @@ namespace Saket.Engine.Graphics
             return result;
         }
 
+        public static byte[] GetThumbnail(byte[] data, int width, int height, out int dimension)
+        {
+            dimension = Math.Min(width, height);
+
+            if(dimension == width && dimension == height)
+            {
+                return data;
+            }
+            Rectangle rect_source = new Rectangle(
+               new Vector2(width, height) / 2f,
+               new Vector2(dimension, dimension));
+
+            Rectangle rect_target = new Rectangle(
+              new Vector2(dimension, dimension) / 2f,
+              new Vector2(dimension, dimension));
+
+            var newData = new byte[width * height * 4];
+
+            ImageTexture.Blit(data, width, height, rect_source,
+              newData, dimension, dimension, rect_target);
+
+            return newData;
+        }
+
         public void ClearData()
         {
             data = null;
         }
+
+
 
 
         #region Pixel Maniuplation
@@ -443,7 +469,7 @@ namespace Saket.Engine.Graphics
         /// Load image from memory
         /// </summary>
         /// <param name="path"></param>
-        public ImageTexture(byte[] file, string name ="image",  bool flipVertically = true)
+        public ImageTexture(byte[] file, string name = "image",  bool flipVertically = true)
         {
             StbImage.stbi_set_flip_vertically_on_load(flipVertically ? 1 : 0);
 
@@ -543,7 +569,7 @@ namespace Saket.Engine.Graphics
             }
             else if (ext == ".ase" || ext == ".aseprite")
             {
-                FlipVertically(ref data);
+                FlipVertically(ref data, Width, Height);
                 var file = new Aseprite();
 
                 file.Header.Frames = 1;
@@ -687,7 +713,19 @@ namespace Saket.Engine.Graphics
             serializer.Serialize(ref format);
             serializer.Serialize(ref width);
             serializer.Serialize(ref height);
-            serializer.Serialize(ref data);
+            if (serializer.IsReader)
+            {
+                byte[] d = [];
+                serializer.Serialize(ref d);
+                QoiImage decoded = QoiSharp.QoiDecoder.Decode(d);
+                this.data = decoded.Data;
+            }
+            else
+            {
+                QoiImage image = new QoiImage(data, width, height, Channels.RgbWithAlpha, ColorSpace.Linear);
+                byte[] encoded = QoiSharp.QoiEncoder.Encode(image);
+                serializer.Serialize(ref encoded);
+            }
         }
 
         // This is basically video compression betweena a I-frame

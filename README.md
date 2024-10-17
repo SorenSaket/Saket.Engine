@@ -13,6 +13,9 @@ Since I'm still in the early stages I'm still unsure about the scope of the engi
 
 Currently it fully embraces .Net ecosystem. It for example is always using the newest version of .Net and is exclusively uses the built in numerics instead of a custom math library. That might however change in the future. Some modules might be made in C for true cross compatibility.
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/R5R712PU1U)
+
+
 ## Current Features
 
 - Fully Managed C# Entity Component System (ECS) System.
