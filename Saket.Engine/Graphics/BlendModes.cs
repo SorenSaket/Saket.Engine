@@ -88,7 +88,7 @@ public enum BlendMode
     /// Looks at the color information in each channel and brightens the base color to reflect the blend color by increasing the brightness. Blending with black produces no change.
     /// </summary>
     Addition ,
-
+    Invert,
     Overwrite,
 }
 
@@ -111,6 +111,7 @@ public class BlendModes
             case BlendMode.Divide: return DivideWithAlpha(source, dest);
             case BlendMode.HardLight: return HardLightWithAlpha(source, dest);
             case BlendMode.SoftLight: return SoftLightWithAlpha(source, dest);
+            case BlendMode.Invert: return InvertWithAlpha(source, dest);
             case BlendMode.Overwrite: return source;
             default: return NormalWithAlpha(source, dest);
         }
@@ -257,7 +258,22 @@ public class BlendModes
                                  : (Math.Sqrt(source.B / 255.0) * (2 * target.B - 255)) + 2 * source.B * (255 - target.B) / 255);
         return AlphaBlend(new Color(r, g, b, source.A), target);
     }
+    /// <summary>
+    /// Invert blend mode with alpha support.
+    /// </summary>
+    public static Color InvertWithAlpha(Color source, Color target)
+    {
+        // Invert the source RGB values
+        int invertedR = 255 - source.R;
+        int invertedG = 255 - source.G;
+        int invertedB = 255 - source.B;
 
+        // Create the inverted color
+        Color invertedSource = new Color(invertedR, invertedG, invertedB, source.A);
+
+        // Perform alpha blending between the inverted source and the target
+        return AlphaBlend(invertedSource, target);
+    }
     /// <summary>
     /// Performs alpha blending between the source and target colors.
     /// </summary>

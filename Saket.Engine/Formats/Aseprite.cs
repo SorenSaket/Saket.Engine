@@ -635,10 +635,12 @@ public struct Chunk_Cel : IChunk
                     HeightInPixels = reader.ReadUInt16();
                     int numberOfBytes = (int)WidthInPixels * (int)HeightInPixels * ((int)header_ColorDepth / 8);
                     RawPixelData = new BYTE[numberOfBytes];
+                    var positionbefore = stream.Position;
                     using (var compressedStream = new ZLibStream(stream, CompressionMode.Decompress, true))
                     {
                         compressedStream.ReadExactly(RawPixelData, 0, numberOfBytes);
                     }
+
                 }
                 break;
             case Chunk_Cel_CelType.CompressedTilemap:
@@ -1113,9 +1115,10 @@ public class Aseprite
 
             for (global::System.Int32 c = 0; c < numberOfChunks; c++)
             {
+                var pos = stream.Position;
                 ChunkHeader chunkHeader = new();
                 chunkHeader.ReadFromStream(stream);
-
+                var nextPos = pos + chunkHeader.SizeInBytes;
 
                 if (!Enum.IsDefined(chunkHeader.ChunkType))
                 {
@@ -1165,6 +1168,10 @@ public class Aseprite
                         stream.Seek(chunkHeader.SizeInBytes-6, SeekOrigin.Current);
                         break;
                 }
+
+                //Debug.Assert(nextPos == stream.Position);
+                // This is weird and nesserary. It's because compressed stream in cel reads further than it's supposed to
+                stream.Position = nextPos;
             }
         }
     }

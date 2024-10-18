@@ -1,5 +1,6 @@
 ﻿using QoiSharp;
 using QoiSharp.Codec;
+using Saket.Engine.Formats.Aseprite;
 using Saket.Engine.Formats.Pyxel;
 using Saket.Engine.GeometryD2.Shapes;
 using Saket.Engine.Graphics;
@@ -12,7 +13,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Numerics;
 using System.Text.Json;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using static Saket.Engine.Formats.Aseprite.Chunk_Layer;
 using Color = Saket.Engine.Graphics.Color;
 
 namespace Saket.Engine.Documents;
@@ -50,7 +51,7 @@ public class Document_Image : Document
         public int Width;
         public int Height;
         public BlendMode blend_mode;
-      
+
 
         public Visibility visibility_global;
         public Visibility visibility_local;
@@ -72,7 +73,7 @@ public class Document_Image : Document
         {
             get
             {
-                
+
                 return Data[index];
             }
             set
@@ -94,11 +95,11 @@ public class Document_Image : Document
                 byte[] data = [];
                 serializer.Serialize(ref data);
                 QoiImage decoded = QoiSharp.QoiDecoder.Decode(data);
-                Data = decoded.Data;
+                this.Data = decoded.Data;
             }
             else
             {
-                QoiImage image = new QoiImage(Data, Width, Height, Channels.RgbWithAlpha, ColorSpace.Linear);
+                QoiImage image = new QoiImage(this.Data, Width, Height, Channels.RgbWithAlpha, ColorSpace.Linear);
                 byte[] encoded = QoiSharp.QoiEncoder.Encode(image);
                 serializer.Serialize(ref encoded);
             }
@@ -168,7 +169,7 @@ public class Document_Image : Document
     public bool TryFlatten()
     {
         throw new NotImplementedException();
-        
+
     }
 
     public void FillAllPixels(Color color, int layer = 0)
@@ -178,16 +179,24 @@ public class Document_Image : Document
 
     public ImageTexture FlattenToImage()
     {
-        ImageTexture img = new ImageTexture(Width,Height);
+        ImageTexture img = new ImageTexture(Width, Height);
         if (Width <= 0 || Height <= 0)
             return img;
 
-        for (int i = Layers.Count-1; i >= 0; i--)
+        for (int i = 0; i < Layers.Count; i++)
         {
-            for (int j = 0; j < Layers[i].Data.Length; j++)
+            Blitter.Blit(new Blitter.BlitOp()
             {
-                img.Data[j] = Layers[i].Data[j];
-            }
+                sourceData = Layers[i].Data,
+                sourceWidth = Width,
+                sourceHeight = Height,
+                sourceRect = new Rectangle(new Vector2(Width, Height) / 2f, new Vector2(Width, Height)),
+                targetData = img.Data,
+                targetWidth = Width,
+                targetHeight = Height,
+                targetRect = new Rectangle(new Vector2(Width, Height) /2f, new Vector2(Width, Height)),
+                Sampler = Blitter.Sample_NearestNeighbor,
+            });
 
         }
         return img;
@@ -198,9 +207,9 @@ public class Document_Image : Document
         int minDimension = Math.Min(Width, Height);
 
         ImageTexture img = new ImageTexture(minDimension, minDimension);
-        
+
         Rectangle rect_source = new Rectangle(
-            new Vector2(Width, Height) /2f, 
+            new Vector2(Width, Height) / 2f,
             new Vector2(minDimension, minDimension));
 
         Rectangle rect_target = new Rectangle(
@@ -627,7 +636,7 @@ public class Document_Image : Document
     public Color GetPixel(ImageIndex position)
     {
         var layer = Layers[position.index_layer];
-         
+
         int a = position.index_pixel * 4;
         return new Color(layer[a + 2], layer[a + 1], layer[a], layer[a + 3]);
     }
@@ -650,7 +659,7 @@ public class Document_Image : Document
 
     public bool IsValidIndex(ImageIndex pos)
     {
-        return 
+        return
             pos.index_layer.IsWithin(0, Layers.Count) &&
             pos.index_pixel.IsWithin(0, (Width * Height));
     }
@@ -722,7 +731,7 @@ public class Document_Image : Document
                 {
                     var doc = new PyxelDocData.Canvas.Layer()
                     {
-                        blendMode = "normal",
+                        blendMode = BlendModeToPyxel(layer.blend_mode),
                         alpha = 255,
                         name = layer.name,
                         type = "tile_layer",
@@ -780,9 +789,53 @@ public class Document_Image : Document
             }
 
         }
-        else if (ext ==".ase" || ext == ".aseprite")
+        else if (ext == ".ase" || ext == ".aseprite")
         {
+            var file = new Aseprite();
+            file.Header.Frames = 1;
+            file.Header.WidthInPixels = (ushort)Width;
+            file.Header.HeightInPixels = (ushort)Height;
+            if (Width > ushort.MaxValue || Height > ushort.MaxValue)
+                throw new Exception("File cannot be converted To .aseprite. Too large");
+            file.Header.PixelWidth = file.Header.PixelHeight = 1;
+            file.Header.Flags |= Header.Header_Flags.LayerOpacityHasValidValue;
+            file.Header.ColorDepth = Header.Header_ColorDepth.RGBA;
 
+            IChunk[] chunks = new IChunk[1+Layers.Count*2];
+            chunks[0] = new Chunk_ColorProfile() {
+                ProfileType = Chunk_ColorProfile.Chunk_ColorProfile_ProfileType.sRGBProfile,
+            };
+            for (int i = 0; i < Layers.Count; i++)
+            {
+                int layerIndex = (Layers.Count - 1) - i;
+                chunks[1 + i * 2]= new Chunk_Layer()
+                {
+                    Blendmode = BlendModeToASE(Layers[layerIndex].blend_mode),
+                    LayerName = Layers[layerIndex].name,
+                    LayerType = Chunk_Layer.Chunk_Layer_LayerType.Normal,
+                    Opacity = 255,
+                    Flags = Chunk_Layer.Chunk_Layer_Flags.Visible | Chunk_Layer.Chunk_Layer_Flags.Editable
+                };
+                byte[] rawPIxels = (byte[])Layers[layerIndex].Data.Clone();
+                ImageTexture.FlipVertically(ref rawPIxels, Width, Height);
+                ImageTexture.FlipRedBlue(rawPIxels);
+                chunks[1 + i * 2 + 1] = new Chunk_Cel()
+                {
+                    CelType = Chunk_Cel.Chunk_Cel_CelType.CompressedImage,
+                    WidthInPixels = (ushort)Width,
+                    HeightInPixels = (ushort)Height,
+                    Xposition = 0,
+                    Yposition = 0,
+                    RawPixelData = rawPIxels,
+                    OpacityLevel = 255,
+                };
+            }
+            file.Frames = [new Frame() { Chunks = chunks }];
+
+            using (Stream stream = File.OpenWrite(path))
+            {
+                file.WriteToStream(stream);
+            }
         }
         else
         {
@@ -790,7 +843,6 @@ public class Document_Image : Document
             image_canvas.SaveToPath(path);
         }
     }
-
     public override void LoadFromPath(string path)
     {
         string ext = Path.GetExtension(path);
@@ -815,13 +867,19 @@ public class Document_Image : Document
 
             for (int i = 0; i < docData.canvas.numLayers; i++)
             {
-                this.Layers.Add(new Layer()
-                {
-                    Width = docData.canvas.width,
-                    Height = docData.canvas.height,
-                    name = docData.canvas.layers[i.ToString()].name,
-                });
-            } 
+                var layer = docData.canvas.layers[i.ToString()];
+                this.Layers.Add(
+                    new Layer()
+                    {
+                        Width = docData.canvas.width,
+                        Height = docData.canvas.height,
+                        name = layer.name,
+                    }
+                ); 
+                if (Document_Image.pyxelBlendmode.TryGet(layer.blendMode, out var blendmode)){
+                    Layers[i].blend_mode = blendmode;
+                }
+            }
 
             for (int i = 0; i < docData.canvas.numLayers; i++)
             {
@@ -846,6 +904,57 @@ public class Document_Image : Document
         }
         else if (ext == ".ase" || ext == ".aseprite")
         {
+            using var stream = new FileStream(path, FileMode.Open);
+            var file = new Aseprite();
+            file.ReadFromStream(stream);
+
+            this.Width = file.Header.WidthInPixels;
+            this.Height = file.Header.HeightInPixels;
+            int index = 0;
+            foreach (var chunk in file.Frames[0].Chunks)
+            {
+                if (chunk is Chunk_Layer layer)
+                {
+                    var newLayer = new Layer()
+                    {
+                        name = layer.LayerName,
+                        Width = this.Width,
+                        Height = this.Height,
+                        blend_mode = BlendMode.Normal,
+                        Data = new byte[this.Width* this.Height*4]
+                    };
+
+                    if(aseBlendmode.TryGet(layer.Blendmode, out var blendmode))
+                    {
+                        newLayer.blend_mode = blendmode;
+                    }
+                    this.Layers.Add(newLayer);
+                }
+                
+                if (chunk is Chunk_Cel cel)
+                {
+                    Vector2 Size = new Vector2(cel.WidthInPixels, cel.HeightInPixels);
+                    Vector2 HalfSize = new Vector2(cel.WidthInPixels, cel.HeightInPixels) / 2f;
+
+                    Blitter.Blit(new Blitter.BlitOp()
+                    {
+                        sourceData = cel.RawPixelData,
+                        sourceWidth = cel.WidthInPixels,
+                        sourceHeight = cel.HeightInPixels,
+                        sourceRect = new Rectangle(HalfSize, Size),
+                        targetData = Layers[index].Data,
+                        targetWidth = Width,
+                        targetHeight = Height,
+                        targetRect = new Rectangle(new Vector2(cel.Xposition, cel.Yposition) + HalfSize, Size),
+                        Sampler = Blitter.Sample_NearestNeighbor,
+                    }); 
+                    
+                    ImageTexture.FlipVertically(ref Layers[index].Data, this.Width, this.Height);
+                    ImageTexture.FlipRedBlue(Layers[index].Data);
+                    index++;
+                }
+            }
+            Layers.Reverse();
 
         }
         else
@@ -863,6 +972,63 @@ public class Document_Image : Document
         serializer.Serialize(ref Height);
         serializer.Serialize(ref Layers);
     }
+    
+    internal static BidirectionalDict.BiDictionary<BlendMode, string> pyxelBlendmode = new()
+    {
+        { BlendMode.Normal, "normal"},
+        { BlendMode.Multiply, "multiply"},
+        { BlendMode.Addition, "add"},
+        { BlendMode.Difference, "difference"},
+        { BlendMode.Darken, "darken"},
+        { BlendMode.Lighten, "lighten"},
+        { BlendMode.HardLight, "hardlight"},
+        { BlendMode.Invert, "invert"},
+        { BlendMode.Overlay, "overlay" },
+        { BlendMode.Screen, "screen"},
+        { BlendMode.Subtract, "subtract"},
+    };
+    internal static string BlendModeToPyxel(BlendMode blendmode)
+    {
+        if (pyxelBlendmode.TryGet(blendmode, out var str))
+        {
+            return str;
+        }
+        return "normal";
+    }
+
+
+    internal static BidirectionalDict.BiDictionary<BlendMode, Chunk_Layer_Blendmode> aseBlendmode = new()
+    {
+        { BlendMode.Normal,     Chunk_Layer_Blendmode.Normal},
+        { BlendMode.Multiply,   Chunk_Layer_Blendmode.Multiply},
+        { BlendMode.Screen,     Chunk_Layer_Blendmode.Screen},
+        { BlendMode.Overlay,    Chunk_Layer_Blendmode.Overlay},
+        { BlendMode.Darken,     Chunk_Layer_Blendmode.Darken},
+        { BlendMode.Lighten,    Chunk_Layer_Blendmode.Lighten},
+        { BlendMode.ColorDodge, Chunk_Layer_Blendmode.ColorDodge},
+        { BlendMode.ColorBurn,  Chunk_Layer_Blendmode.ColorBurn},
+        { BlendMode.HardLight,  Chunk_Layer_Blendmode.HardLight},
+        { BlendMode.Subtract,   Chunk_Layer_Blendmode.Subtract},
+        { BlendMode.Difference, Chunk_Layer_Blendmode.Difference},
+
+
+        { BlendMode.Addition,   Chunk_Layer_Blendmode.Addition},
+        { BlendMode.Subtract, Chunk_Layer_Blendmode.Subtract},
+        { BlendMode.Divide,   Chunk_Layer_Blendmode.Divide},
+    };
+
+    internal static Chunk_Layer_Blendmode BlendModeToASE(BlendMode blendmode)
+    {
+        if (aseBlendmode.TryGet(blendmode, out var str))
+        {
+            return str;
+        }
+        return Chunk_Layer_Blendmode.Normal;
+    }
+
+
+
+
     /// <summary>
     /// Load image from path
     /// </summary>
@@ -965,4 +1131,7 @@ public class Document_Image : Document
         }
     }*/
     #endregion
+
+
+
 }

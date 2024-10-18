@@ -293,9 +293,9 @@ namespace Saket.Engine.Graphics
                 this.Format = TextureFormat.BGRA8Unorm;
                 this.Data = new byte[this.Width * this.Height * 4];
 
-                foreach (var chunk in file.Frames[0].Chunks)
+                for (int i = 0; i < file.Frames[0].Chunks.Length; i++)
                 {
-                    if (chunk is Chunk_Cel cel)
+                    if (file.Frames[0].Chunks[i] is Chunk_Cel cel)
                     {
                         Vector2 Size = new Vector2(cel.WidthInPixels, cel.HeightInPixels);
                         Vector2 HalfSize = new Vector2(cel.WidthInPixels, cel.HeightInPixels) / 2f;
@@ -311,6 +311,7 @@ namespace Saket.Engine.Graphics
                             targetHeight = Height,
                             targetRect = new Rectangle(new Vector2(cel.Xposition, cel.Yposition) + HalfSize, Size),
                             Sampler = Blitter.Sample_NearestNeighbor,
+                            blendMode = BlendMode.Normal
                         });
                     }
                 }
@@ -334,26 +335,7 @@ namespace Saket.Engine.Graphics
             }
         }
 
-        /// <summary>
-        /// Load image from memory
-        /// </summary>
-        /// <param name="path"></param>
-        public ImageTexture(byte[] file, string name = "image",  bool flipVertically = true)
-        {
-            StbImage.stbi_set_flip_vertically_on_load(flipVertically ? 1 : 0);
-
-            ImageResult result = ImageResult.FromMemory(file, StbImageSharp.ColorComponents.RedGreenBlueAlpha);
-
-            this.Name = name;
-            this.Data = result.Data;
-            this.Format = TextureFormat.BGRA8Unorm;
-            this.Width = result.Width;
-            this.Height = result.Height;
-
-            // convert from rgba to bgra
-            FlipRedBlue(this.Data);
-        }
-
+        
         /// <summary>
         /// Save Image to path
         /// </summary>
