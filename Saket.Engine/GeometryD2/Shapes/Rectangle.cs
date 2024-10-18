@@ -19,7 +19,60 @@ public struct Rectangle : IShape, ISerializable
     /// Rotation angle in radias
     /// </summary>
     public float Rotation;
-    
+
+    public float X
+    {
+        get { return Position.X; }
+        set { Position.X = value; }
+    }
+    public float Y
+    {
+        get { return Position.Y; }
+        set { Position.Y = value; }
+    }
+    public float Width
+    {
+        get { return Size.X; }
+        set { Size.X = value; }
+    }
+    public float Height
+    {
+        get { return Size.Y; }
+        set { Size.Y = value; }
+    }
+
+    public readonly Vector2 TopLeft
+    {
+        get
+        {
+            return Position+new Vector2(-Size.X, Size.Y)/2f;
+        }
+    }
+    public readonly Vector2 TopRight
+    {
+        get
+        {
+            return Position + new Vector2(Size.X, Size.Y) / 2f;
+        }
+    }
+    public readonly Vector2 BottomLeft
+    {
+        get
+        {
+            return Position + new Vector2(-Size.X, -Size.Y) / 2f;
+        }
+    }
+    public readonly Vector2 BottomRight
+    {
+        get
+        {
+            return Position + new Vector2(Size.X, -Size.Y) / 2f;
+        }
+    }
+
+
+
+
     public Rectangle()
     {
         Position = Vector2.Zero;
@@ -32,6 +85,15 @@ public struct Rectangle : IShape, ISerializable
         Size = size;
         Rotation = rotation;
     }
+
+    public Rectangle(float position_X = 0, float position_Y = 0, float size_X =1, float size_Y = 1, float rotation = 0)
+    {
+        Position = new Vector2(position_X, position_Y);
+        Size = new Vector2(size_X, size_Y);
+        Rotation = rotation;
+    }
+
+
     public Rectangle(BoundingBox2D box)
     {
         Position = (box.Min + box.Max) / 2f;

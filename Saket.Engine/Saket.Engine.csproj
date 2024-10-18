@@ -27,6 +27,7 @@
 		<PackageReference Include="QoiSharp" Version="1.0.0" />
 		<PackageReference Include="StbImageSharp" Version="2.30.15" />
 		<PackageReference Include="StbImageWriteSharp" Version="1.16.7" />
+		<PackageReference Include="System.Drawing.Common" Version="8.0.10" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -69,6 +70,9 @@
 	<ItemGroup>
 	  <None Update="cimgui.dll">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="galefile.dll">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
 	</ItemGroup>
 </Project>

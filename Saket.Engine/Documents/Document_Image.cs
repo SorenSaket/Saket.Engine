@@ -12,7 +12,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Numerics;
 using System.Text.Json;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using Color = Saket.Engine.Graphics.Color;
 
 namespace Saket.Engine.Documents;
@@ -163,12 +162,13 @@ public class Document_Image : Document
         if (Width <= 0 || Height <= 0)
             return img;
 
-        foreach (var layer in Layers)
+        for (int i = Layers.Count-1; i >= 0; i--)
         {
-            for (int i = 0; i < layer.Data.Length; i++)
+            for (int j = 0; j < Layers[i].Data.Length; j++)
             {
-                img.Data[i] = layer.Data[i];
+                img.Data[j] = Layers[i].Data[j];
             }
+
         }
         return img;
     }
@@ -190,7 +190,7 @@ public class Document_Image : Document
         foreach (var layer in Layers)
         {
             ImageTexture.Blit(layer.Data, Width, Height, rect_source,
-                img.Data, img.width, img.height, rect_target);
+                img.Data, img.Width, img.Height, rect_target);
         }
 
         return img;

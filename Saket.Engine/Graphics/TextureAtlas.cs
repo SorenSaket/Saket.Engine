@@ -1,13 +1,13 @@
 ﻿using WebGpuSharp;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
+using Saket.Engine.GeometryD2.Shapes;
 
 namespace Saket.Engine.Graphics
 {
     public class TextureAtlas
     {
         public ImageTexture image;
-        public List<Tile> tiles;
+        public List<Rectangle> tiles;
 
         Texture? gpuTexture;
         TextureView? gpuTextureView;
@@ -20,13 +20,13 @@ namespace Saket.Engine.Graphics
         public TextureAtlas(ImageTexture image, int initialCapacity = 128)
         {
             this.image = image;
-            this.tiles = new List<Tile>(initialCapacity);
+            this.tiles = new List<Rectangle>(initialCapacity);
         }
 
         public TextureAtlas(ImageTexture image, int columns, int rows)
         {
             this.image = image;
-            this.tiles = new List<Tile>((int)(columns*rows));
+            this.tiles = new List<Rectangle>((int)(columns*rows));
             float w = 1f / (columns);
             float h = 1f / rows;
 
@@ -34,7 +34,7 @@ namespace Saket.Engine.Graphics
             {
                 for (int x = 0; x < columns; x++)
                 {
-                    tiles.Add(new Tile(w, h, (float)x / columns, (float)y / rows ));
+                    tiles.Add(new Rectangle(w, h, (float)x / columns, (float)y / rows ));
                 }
             }
         }
@@ -43,7 +43,7 @@ namespace Saket.Engine.Graphics
         {
             unsafe
             {
-                gpuBufferSize = (nuint)(sizeof(Tile) * tiles.Count);
+                gpuBufferSize = (nuint)(sizeof(Rectangle) * tiles.Count);
 
                 var buffer = device.CreateBuffer(
                     new WebGpuSharp.BufferDescriptor()

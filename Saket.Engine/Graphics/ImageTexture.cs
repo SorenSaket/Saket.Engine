@@ -22,12 +22,7 @@ namespace Saket.Engine.Graphics
     public class ImageTexture : ISerializable
     {
         #region Properties
-        public string Name { get { return name; } set { name = value; } }
-        public TextureFormat Format { get { return format; }  }
-        public int Width { get { return width; } }
-        public int Height { get { return height; } }
         public int PixelCount { get { return Width * Height; } }
-        public byte[] Data { get { return data; } }
 
 
         public int BytesPerPixel { get { return 4; } } // Todo do based of Textureformat
@@ -37,11 +32,11 @@ namespace Saket.Engine.Graphics
         #endregion
 
         #region Variables
-        internal string name;
-        internal TextureFormat format;
-        internal int width;
-        internal int height;
-        internal byte[] data;
+        public string Name;
+        public TextureFormat Format;
+        public int Width;
+        public int Height;
+        public byte[] Data;
 
         // GPU
         internal Texture? texture;
@@ -50,28 +45,28 @@ namespace Saket.Engine.Graphics
         
         public ImageTexture()
         {
-            name = "texture_image";
-            format = TextureFormat.BGRA8Unorm;
-            width = 0;
-            height = 0;
-            data = [];
+            Name = "texture_image";
+            Format = TextureFormat.BGRA8Unorm;
+            Width = 0;
+            Height = 0;
+            Data = [];
         }
         public ImageTexture(byte[] data, int width, int height, string name = "texture_image", TextureFormat format = TextureFormat.BGRA8Unorm)
         {
-            this.name = name;
-            this.data = data;
-            this.format = format;
+            this.Name = name;
+            this.Data = data;
+            this.Format = format;
 
-            this.width = width;
-            this.height = height;
+            this.Width = width;
+            this.Height = height;
         }
         public ImageTexture(int width, int height, string name = "texture_image", TextureFormat format = TextureFormat.BGRA8Unorm)
         {
-            this.name = name;
-            this.data = new byte[width*height*4];
-            this.format = format;
-            this.width = width;
-            this.height = height;
+            this.Name = name;
+            this.Data = new byte[width*height*4];
+            this.Format = format;
+            this.Width = width;
+            this.Height = height;
         }
 
         /// <summary>
@@ -82,9 +77,9 @@ namespace Saket.Engine.Graphics
         /// <param name="height"></param>
         public void Edit(byte[] data, int width, int height)
         {
-            this.data = data;
-            this.width = width;
-            this.height = height;
+            this.Data = data;
+            this.Width = width;
+            this.Height = height;
         }
 
         /// <summary>
@@ -128,7 +123,7 @@ namespace Saket.Engine.Graphics
 
         public void ClearData()
         {
-            data = null;
+            Data = null;
         }
 
 
@@ -324,22 +319,22 @@ namespace Saket.Engine.Graphics
 
         public void FillAllPixels(Color color)
         {
-            for (int i = 0; i < data.Length; i+=4)
+            for (int i = 0; i < Data.Length; i+=4)
             {
-                data[i + 2] = color.R;
-                data[i + 1] = color.G;
-                data[i] = color.B;
-                data[i + 3] = color.A;
+                Data[i + 2] = color.R;
+                Data[i + 1] = color.G;
+                Data[i] = color.B;
+                Data[i + 3] = color.A;
             }
         }
 
         public void SetPixel(int index, Color color)
         {
             int a = index * BytesPerPixel;
-            data[a + 2] = color.R;
-            data[a + 1] = color.G;
-            data[a] = color.B;
-            data[a + 3] = color.A;
+            Data[a + 2] = color.R;
+            Data[a + 1] = color.G;
+            Data[a] = color.B;
+            Data[a + 3] = color.A;
         }
 
         /// <summary>
@@ -350,17 +345,17 @@ namespace Saket.Engine.Graphics
         public Color GetPixel(int index)
         {
             int a = index * BytesPerPixel;
-            return new Color(data[a+2], data[a+1], data[a], data[a+3]); 
+            return new Color(Data[a+2], Data[a+1], Data[a], Data[a+3]); 
         }
 
         public Vector2 GetPixelPosition(int index)
         {
-            return new Vector2(index % width, index / height);
+            return new Vector2(index % Width, index / Height);
         }
 
         public bool WithinBounds(int index)
         {
-            return index >= 0 && index < (width*height);
+            return index >= 0 && index < (Width*Height);
         }
 
         #endregion
@@ -418,10 +413,10 @@ namespace Saket.Engine.Graphics
                     FlipRedBlue(pixels);
                 }
                
-                this.width = docData.canvas.width;
-                this.height = docData.canvas.height;
-                this.format = TextureFormat.BGRA8Unorm;
-                this.data = pixels;
+                this.Width = docData.canvas.width;
+                this.Height = docData.canvas.height;
+                this.Format = TextureFormat.BGRA8Unorm;
+                this.Data = pixels;
             }
             else if(ext == ".ase" || ext == ".aseprite")
             {
@@ -429,10 +424,10 @@ namespace Saket.Engine.Graphics
                 var file = new Aseprite();
                 file.ReadFromStream(stream);
 
-                this.width = file.Header.WidthInPixels;
-                this.height = file.Header.HeightInPixels;
-                this.format = TextureFormat.BGRA8Unorm;
-                this.data = new byte[this.width * this.height * 4];
+                this.Width = file.Header.WidthInPixels;
+                this.Height = file.Header.HeightInPixels;
+                this.Format = TextureFormat.BGRA8Unorm;
+                this.Data = new byte[this.Width * this.Height * 4];
 
                 foreach (var chunk in file.Frames[0].Chunks)
                 {
@@ -442,11 +437,11 @@ namespace Saket.Engine.Graphics
                         Vector2 HalfSize = new Vector2(cel.WidthInPixels, cel.HeightInPixels) / 2f;
                         Blit(
                             cel.RawPixelData, cel.WidthInPixels, cel.HeightInPixels, new Rectangle(HalfSize, Size),
-                            data, width, height, new Rectangle(new Vector2(cel.Xposition, cel.Yposition) + HalfSize, Size));
+                            Data, Width, Height, new Rectangle(new Vector2(cel.Xposition, cel.Yposition) + HalfSize, Size));
                     }
                 }
-                FlipVertically(ref this.data, this.width, this.height);
-                FlipRedBlue(this.data);
+                FlipVertically(ref this.Data, this.Width, this.Height);
+                FlipRedBlue(this.Data);
             }
             else
             {
@@ -455,13 +450,13 @@ namespace Saket.Engine.Graphics
 
                 ImageResult result = ImageResult.FromMemory(stream, StbImageSharp.ColorComponents.RedGreenBlueAlpha);
 
-                this.name = Path.GetFileNameWithoutExtension(path);
-                this.data = result.Data;
-                this.format = TextureFormat.BGRA8Unorm;
-                this.width = result.Width;
-                this.height = result.Height;
+                this.Name = Path.GetFileNameWithoutExtension(path);
+                this.Data = result.Data;
+                this.Format = TextureFormat.BGRA8Unorm;
+                this.Width = result.Width;
+                this.Height = result.Height;
 
-                FlipRedBlue(this.data);
+                FlipRedBlue(this.Data);
             }
         }
 
@@ -475,14 +470,14 @@ namespace Saket.Engine.Graphics
 
             ImageResult result = ImageResult.FromMemory(file, StbImageSharp.ColorComponents.RedGreenBlueAlpha);
 
-            this.name = name;
-            this.data = result.Data;
-            this.format = TextureFormat.BGRA8Unorm;
-            this.width = result.Width;
-            this.height = result.Height;
+            this.Name = name;
+            this.Data = result.Data;
+            this.Format = TextureFormat.BGRA8Unorm;
+            this.Width = result.Width;
+            this.Height = result.Height;
 
             // convert from rgba to bgra
-            FlipRedBlue(this.data);
+            FlipRedBlue(this.Data);
         }
 
         /// <summary>
@@ -522,13 +517,13 @@ namespace Saket.Engine.Graphics
                         entry.Delete();
                     }
 
-                    docData.name = this.name;
+                    docData.name = this.Name;
                     docData.canvas = new PyxelDocData.Canvas()
                     {
-                        width = this.width,
-                        height = this.height,
-                        tileWidth = this.width,
-                        tileHeight = this.height,
+                        width = this.Width,
+                        height = this.Height,
+                        tileWidth = this.Width,
+                        tileHeight = this.Height,
                         numLayers = 1,
                         layers = new Dictionary<string, PyxelDocData.Canvas.Layer>
                         {
@@ -562,7 +557,7 @@ namespace Saket.Engine.Graphics
                     entry = zipArchive.CreateEntry("layer0.png");
                     using var stream_entry = entry.Open();
                     StbImageWriteSharp.StbImageWrite.stbi_flip_vertically_on_write(flipVertically ? 1 : 0);
-                    new StbImageWriteSharp.ImageWriter().WritePng(data, (int)this.width, (int)this.height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream_entry);
+                    new StbImageWriteSharp.ImageWriter().WritePng(data, (int)this.Width, (int)this.Height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream_entry);
                     
                 }
                 
@@ -573,9 +568,9 @@ namespace Saket.Engine.Graphics
                 var file = new Aseprite();
 
                 file.Header.Frames = 1;
-                file.Header.WidthInPixels   = (ushort)width;
-                file.Header.HeightInPixels  = (ushort)height;
-                if (width > ushort.MaxValue || height > ushort.MaxValue)
+                file.Header.WidthInPixels   = (ushort)Width;
+                file.Header.HeightInPixels  = (ushort)Height;
+                if (Width > ushort.MaxValue || Height > ushort.MaxValue)
                     throw new Exception("File cannot be converted To .aseprite. Too large");
                 file.Header.PixelWidth = file.Header.PixelHeight = 1;
                 file.Header.Flags |= Header.Header_Flags.LayerOpacityHasValidValue;
@@ -595,8 +590,8 @@ namespace Saket.Engine.Graphics
                             },
                             new Chunk_Cel(){
                                 CelType = Chunk_Cel.Chunk_Cel_CelType.CompressedImage,
-                                WidthInPixels = (ushort)width,
-                                HeightInPixels = (ushort)height,
+                                WidthInPixels = (ushort)Width,
+                                HeightInPixels = (ushort)Height,
                                 Xposition = 0,
                                 Yposition = 0,
                                 RawPixelData = data,
@@ -621,20 +616,20 @@ namespace Saket.Engine.Graphics
                     switch (ext)
                     {
                         case ".png":
-                            w.WritePng(data, (int)this.width, (int)this.height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream);
+                            w.WritePng(data, (int)this.Width, (int)this.Height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream);
                             break;
                         case ".jpeg":
                         case ".jpg":
-                            w.WriteJpg(data, (int)this.width, (int)this.height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream, 100);
+                            w.WriteJpg(data, (int)this.Width, (int)this.Height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream, 100);
                             break;
                         case ".bmp":
-                            w.WriteBmp(data, (int)this.width, (int)this.height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream);
+                            w.WriteBmp(data, (int)this.Width, (int)this.Height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream);
                             break;
                         case ".tga":
-                            w.WriteTga(data, (int)this.width, (int)this.height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream);
+                            w.WriteTga(data, (int)this.Width, (int)this.Height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream);
                             break;
                         case ".hdr":
-                            w.WriteHdr(data, (int)this.width, (int)this.height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream);
+                            w.WriteHdr(data, (int)this.Width, (int)this.Height, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream);
                             break;
                         default:
                             break;
@@ -649,21 +644,21 @@ namespace Saket.Engine.Graphics
         {
             if(texture != null)
             {
-                throw new Exception("Image " + name + " already exsists on gpu");
+                throw new Exception("Image " + Name + " already exsists on gpu");
             }
-            this.extendsTexture = new Extent3D((uint)width, (uint)height, 1);
+            this.extendsTexture = new Extent3D((uint)Width, (uint)Height, 1);
 
             Texture tex = graphics.device.CreateTexture(new TextureDescriptor()
             {
                 Dimension = TextureDimension.D2,
-                Format = format,
+                Format = Format,
                 Size = extendsTexture,
-                ViewFormats = [format],
-                Label = name,
+                ViewFormats = [Format],
+                Label = Name,
                 Usage = TextureUsage.CopyDst | TextureUsage.CopySrc | TextureUsage.RenderAttachment | TextureUsage.TextureBinding,
                 SampleCount = 1,
                 MipLevelCount = 1,
-            }) ?? throw new Exception("Texture Creation for image " + name + " failed");
+            }) ?? throw new Exception("Texture Creation for image " + Name + " failed");
 
             this.texture = tex;
 
@@ -672,12 +667,12 @@ namespace Saket.Engine.Graphics
 
         public void GPUWriteTexture(GraphicsContext graphics)
         {
-            if(this.extendsTexture.Width != width || this.extendsTexture.Height != height)
+            if(this.extendsTexture.Width != Width || this.extendsTexture.Height != Height)
             {
                 // The texture requires resizing
                 throw new Exception("");
             }
-            if(this.data == null)
+            if(this.Data == null)
             {
                 throw new Exception("Data is null, cannot upload to gpu");
             }
@@ -688,7 +683,7 @@ namespace Saket.Engine.Graphics
                 {
                     Texture = texture ?? throw new ArgumentNullException(nameof(texture)),
                 },
-                data,
+                Data,
                 new TextureDataLayout()
                 { 
                     // TODO get layout from format
@@ -709,20 +704,20 @@ namespace Saket.Engine.Graphics
         #region Serialization
         public void Serialize(ISerializer serializer)
         {
-            serializer.Serialize(ref name);
-            serializer.Serialize(ref format);
-            serializer.Serialize(ref width);
-            serializer.Serialize(ref height);
+            serializer.Serialize(ref Name);
+            serializer.Serialize(ref Format);
+            serializer.Serialize(ref Width);
+            serializer.Serialize(ref Height);
             if (serializer.IsReader)
             {
                 byte[] d = [];
                 serializer.Serialize(ref d);
                 QoiImage decoded = QoiSharp.QoiDecoder.Decode(d);
-                this.data = decoded.Data;
+                this.Data = decoded.Data;
             }
             else
             {
-                QoiImage image = new QoiImage(data, width, height, Channels.RgbWithAlpha, ColorSpace.Linear);
+                QoiImage image = new QoiImage(Data, Width, Height, Channels.RgbWithAlpha, ColorSpace.Linear);
                 byte[] encoded = QoiSharp.QoiEncoder.Encode(image);
                 serializer.Serialize(ref encoded);
             }

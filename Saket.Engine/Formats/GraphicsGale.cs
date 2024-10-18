@@ -18,11 +18,13 @@
 */
 using System;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
-namespace Saket.Engine.Formats.GraphicsGale;
 
+
+namespace Saket.Engine.Formats.GraphicsGale;
 
 #region Enums
 public enum ERROR_CODE

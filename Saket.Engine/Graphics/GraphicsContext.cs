@@ -222,7 +222,7 @@ namespace Saket.Engine.Graphics
             return new TextureGroup(gputex, gputexview, sampler);
         }
 
-        public TextureGroup UploadToGpuFromData(ImageTexture image, Sampler? sampler = null)
+        public TextureGroup UploadImageTextureToGPU(ImageTexture image, Sampler? sampler = null)
         {
             if (image.IsUploadedToGPU)
             {
@@ -231,12 +231,10 @@ namespace Saket.Engine.Graphics
             
             image.GPUCreateTexture(this);
             image.GPUWriteTexture(this);
-           
             
-
             TextureViewDescriptor textureViewDescriptor = new()
             {
-                Label = "TextureView_" + image.name,
+                Label = "TextureView_" + image.Name,
                 Format = applicationpreferredFormat,
                 Dimension = TextureViewDimension.D2,
                 BaseMipLevel = 0,
