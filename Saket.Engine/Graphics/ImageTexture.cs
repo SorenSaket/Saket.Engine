@@ -115,8 +115,18 @@ namespace Saket.Engine.Graphics
 
             var newData = new byte[width * height * 4];
 
-            ImageTexture.Blit(data, width, height, rect_source,
-              newData, dimension, dimension, rect_target);
+            Blitter.Blit(new Blitter.BlitOp()
+            {
+                sourceData = data,
+                sourceWidth = width,
+                sourceHeight = height,
+                sourceRect = rect_source,
+                targetData = newData,
+                targetWidth = dimension,
+                targetHeight = dimension,
+                targetRect = rect_target,
+                Sampler = Blitter.Sample_Bilinear,
+            });
 
             return newData;
         }
@@ -130,159 +140,6 @@ namespace Saket.Engine.Graphics
 
 
         #region Pixel Maniuplation
-        public static void Blit(byte[] sourceImage, int sourceWidth, int sourceHeight, byte[] targetImage, int targetWidth, int targetHeight, Direction anchor = Direction.Undefined)
-        {
-            // Calculate aspect ratio
-            float sourceAspect = (float)sourceWidth / sourceHeight;
-            float targetAspect = (float)targetWidth / targetHeight;
-
-            // Calculate new dimensions to preserve aspect ratio
-            int newWidth, newHeight;
-            if (sourceAspect > targetAspect)
-            {
-                newWidth = targetWidth;
-                newHeight = (int)(targetWidth / sourceAspect);
-            }
-            else
-            {
-                newWidth = (int)(targetHeight * sourceAspect);
-                newHeight = targetHeight;
-            }
-
-            // Calculate anchor position
-            int xPos, yPos;
-            switch (anchor)
-            {
-                case Direction.NW:
-                    xPos = 0;
-                    yPos = 0;
-                    break;
-                case Direction.N:
-                    xPos = (targetWidth - sourceWidth) / 2;
-                    yPos = 0;
-                    break;
-                case Direction.NE:
-                    xPos = targetWidth - sourceWidth;
-                    yPos = 0;
-                    break;
-                case Direction.W:
-                    xPos = 0;
-                    yPos = (targetHeight - sourceHeight) / 2;
-                    break;
-                case Direction.Undefined:
-                    xPos = (targetWidth - sourceWidth) / 2;
-                    yPos = (targetHeight - sourceHeight) / 2;
-                    break;
-                case Direction.E:
-                    xPos = targetWidth - sourceWidth;
-                    yPos = (targetHeight - sourceHeight) / 2;
-                    break;
-                case Direction.SW:
-                    xPos = 0;
-                    yPos = targetHeight - sourceHeight;
-                    break;
-                case Direction.S:
-                    xPos = (targetWidth - sourceWidth) / 2;
-                    yPos = targetHeight - sourceHeight;
-                    break;
-                case Direction.SE:
-                    xPos = targetWidth - sourceWidth;
-                    yPos = targetHeight - sourceHeight;
-                    break;
-                default:
-                    xPos = 0;
-                    yPos = 0;
-                    break;
-            }
-            // Blit the source image onto the target image without resizing
-            for (int y = 0; y < sourceHeight; y++)
-            {
-                for (int x = 0; x < sourceWidth; x++)
-                {
-                    // Make sure the target position is within bounds
-                    int targetX = xPos + x;
-                    int targetY = yPos + y;
-
-                    if (targetX >= 0 && targetX < targetWidth && targetY >= 0 && targetY < targetHeight)
-                    {
-                        // Calculate the source and target pixel indices (assuming RGBA format, 4 bytes per pixel)
-                        int sourceIndex = (y * sourceWidth + x) * 4;
-                        int targetIndex = (targetY * targetWidth + targetX) * 4;
-
-                        // Copy RGBA pixel from source to target
-                        targetImage[targetIndex] = sourceImage[sourceIndex];         // R
-                        targetImage[targetIndex + 1] = sourceImage[sourceIndex + 1]; // G
-                        targetImage[targetIndex + 2] = sourceImage[sourceIndex + 2]; // B
-                        targetImage[targetIndex + 3] = sourceImage[sourceIndex + 3]; // A
-                    }
-                }
-            }
-        }
-
-    
-
-        public static void Blit(
-        byte[] sourceData, int sourceWidth, int sourceHeight, Rectangle sourceRect,
-        byte[] targetData, int targetWidth, int targetHeight, Rectangle targetRect,
-         List<int> includedSourceIndicies = null, int bytesPerPixel = 4) // Assuming RGBA format by default
-        {
-
-            // Create transformation matrices
-            Matrix3x2 sourceTransform = sourceRect.CreateTransformMatrix();
-            Matrix3x2 targetInverseTransform = targetRect.CreateInverseTransformMatrix();
-
-            var bounds_target = targetRect.GetBounds();
-      
-            // Clamp to target image bo unds
-            int startX = Math.Max((int)Math.Floor(bounds_target.Min.X), 0);
-            int endX = Math.Min((int)Math.Ceiling(bounds_target.Max.X), targetWidth-1);
-            int startY = Math.Max((int)Math.Floor(bounds_target.Min.Y), 0);
-            int endY = Math.Min((int)Math.Ceiling(bounds_target.Max.Y), targetHeight-1);
-
-            // Iterate over the pixels within the bounding box
-            for (int y_t = startY; y_t <= endY; y_t++)
-            {
-                for (int x_t = startX; x_t <= endX; x_t++)
-                {
-                    Vector2 targetPixel = new Vector2(x_t, y_t);
-
-                    // Transform the pixel to the rectangle's local space
-                    Vector2 localPos = Vector2.Transform(targetPixel, targetInverseTransform);
-
-                    // Check if the local position is within the rectangle
-                    if (Math.Abs(localPos.X) <= 1 && Math.Abs(localPos.Y) <= 1)
-                    {
-                        // Map local position from target to source space
-                        // First, map from [-1, 1] to source rectangle's local space
-                        Vector2 sourceLocalPos = localPos;
-
-                        // Transform local position to source pixel position
-                        Vector2 sourcePixel = Vector2.Transform(sourceLocalPos, sourceTransform);
-
-                        // Nearest neighbor sampling
-                        int x_s_int = (int)Math.Round(sourcePixel.X);
-                        int y_s_int = (int)Math.Round(sourcePixel.Y);
-
-                        // Check bounds in the source image
-                        if (x_s_int >= 0 && x_s_int < sourceWidth && y_s_int >= 0 && y_s_int < sourceHeight)
-                        {
-                            int sourceIndex = (y_s_int * sourceWidth + x_s_int) * bytesPerPixel;
-
-                            // If we are excluding a pixel or is alpha = 0
-                            if (includedSourceIndicies != null && !includedSourceIndicies.Contains((y_s_int * sourceWidth + x_s_int)))
-                                continue;
-                            if (sourceData[sourceIndex + 3] == 0)
-                                continue;
-
-                            int targetIndex = (y_t * targetWidth + x_t) * bytesPerPixel;
-                            // Copy pixel data
-                            Array.Copy(sourceData, sourceIndex, targetData, targetIndex, bytesPerPixel);
-                        }
-                    }
-                }
-            }
-        }
-
 
         public static void FlipVertically(ref byte[] data, int width, int height)
         {
@@ -386,10 +243,7 @@ namespace Saket.Engine.Graphics
                 }
 
                 byte[] pixels = new byte[docData.canvas.width * docData.canvas.height * 4];
-                Rectangle rectBlit =
-                    new Rectangle(new Vector2(docData.canvas.width, docData.canvas.height) / 2f,
-                                new Vector2(docData.canvas.width, docData.canvas.height)
-                    );
+               
                 for (int i = 0; i < docData.canvas.numLayers; i++)
                 {
                     {
@@ -402,9 +256,19 @@ namespace Saket.Engine.Graphics
                         StbImage.stbi_set_flip_vertically_on_load(1);
                         ImageResult result = ImageResult.FromStream(uncompressedImagestream, ColorComponents.RedGreenBlueAlpha);
 
-                        ImageTexture.Blit(
-                            result.Data, docData.canvas.width, docData.canvas.height, rectBlit,
-                            pixels, docData.canvas.width, docData.canvas.height, rectBlit);
+                        Blitter.Blit(new Blitter.BlitOp()
+                        {
+                            sourceData = result.Data,
+                            sourceWidth = docData.canvas.width,
+                            sourceHeight = docData.canvas.height,
+                            sourceRect = new Rectangle(new Vector2(docData.canvas.width, docData.canvas.height)/2f, new Vector2(docData.canvas.width, docData.canvas.height)),
+                            targetData = pixels,
+                            targetWidth = docData.canvas.width,
+                            targetHeight = docData.canvas.height,
+                            targetRect = new Rectangle(new Vector2(docData.canvas.width, docData.canvas.height) / 2f, new Vector2(docData.canvas.width, docData.canvas.height)),
+                            Sampler = Blitter.Sample_NearestNeighbor,
+                        });
+
                     }
                 }
                
@@ -435,9 +299,19 @@ namespace Saket.Engine.Graphics
                     {
                         Vector2 Size = new Vector2(cel.WidthInPixels, cel.HeightInPixels);
                         Vector2 HalfSize = new Vector2(cel.WidthInPixels, cel.HeightInPixels) / 2f;
-                        Blit(
-                            cel.RawPixelData, cel.WidthInPixels, cel.HeightInPixels, new Rectangle(HalfSize, Size),
-                            Data, Width, Height, new Rectangle(new Vector2(cel.Xposition, cel.Yposition) + HalfSize, Size));
+
+                        Blitter.Blit(new Blitter.BlitOp()
+                        {
+                            sourceData = cel.RawPixelData,
+                            sourceWidth = cel.WidthInPixels,
+                            sourceHeight = cel.HeightInPixels,
+                            sourceRect = new Rectangle(HalfSize, Size),
+                            targetData = Data,
+                            targetWidth = Width,
+                            targetHeight = Height,
+                            targetRect = new Rectangle(new Vector2(cel.Xposition, cel.Yposition) + HalfSize, Size),
+                            Sampler = Blitter.Sample_NearestNeighbor,
+                        });
                     }
                 }
                 FlipVertically(ref this.Data, this.Width, this.Height);

@@ -12,6 +12,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Numerics;
 using System.Text.Json;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using Color = Saket.Engine.Graphics.Color;
 
 namespace Saket.Engine.Documents;
@@ -135,8 +136,23 @@ public class Document_Image : Document
         for (int i = 0; i < Layers.Count; i++)
         {
             byte[] newData = new byte[newWidth * newHeight * 4];
-            ImageTexture.Blit(Layers[i].Data, Width, Height, newData, newWidth, newHeight, anchor);
+
+            Blitter.Blit(new Blitter.BlitOp()
+            {
+                sourceData = Layers[i].Data,
+                sourceWidth = Width,
+                sourceHeight = Height,
+                sourceRect = new Rectangle(new Vector2(Width, Height) / 2f, new Vector2(newWidth, newWidth)),
+                targetData = newData,
+                targetWidth = newWidth,
+                targetHeight = newHeight,
+                targetRect = new Rectangle(new Vector2(newWidth, newHeight) / 2f, new Vector2(newWidth, newHeight)),
+                Sampler = Blitter.Sample_NearestNeighbor,
+            });
+
             Layers[i].Data = newData;
+            Layers[i].Width = newWidth;
+            Layers[i].Height = newHeight;
         }
 
         Width = newWidth;
@@ -189,8 +205,18 @@ public class Document_Image : Document
 
         foreach (var layer in Layers)
         {
-            ImageTexture.Blit(layer.Data, Width, Height, rect_source,
-                img.Data, img.Width, img.Height, rect_target);
+            Blitter.Blit(new Blitter.BlitOp()
+            {
+                sourceData = layer.Data,
+                sourceWidth = Width,
+                sourceHeight = Height,
+                sourceRect = rect_source,
+                targetData = img.Data,
+                targetWidth = img.Width,
+                targetHeight = img.Height,
+                targetRect = rect_target,
+                Sampler = Blitter.Sample_Bilinear,
+            });
         }
 
         return img;
