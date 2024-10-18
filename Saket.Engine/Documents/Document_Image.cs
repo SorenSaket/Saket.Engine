@@ -49,7 +49,8 @@ public class Document_Image : Document
         public string name;
         public int Width;
         public int Height;
-        public byte[] Data;
+        public BlendMode blend_mode;
+      
 
         public Visibility visibility_global;
         public Visibility visibility_local;
@@ -57,6 +58,7 @@ public class Document_Image : Document
         public bool locked_global;
         public bool locked_local;
 
+        public byte[] Data;
         public Layer()
         {
             name = "";
@@ -85,6 +87,8 @@ public class Document_Image : Document
             serializer.Serialize(ref name);
             serializer.Serialize(ref Width);
             serializer.Serialize(ref Height);
+            serializer.Serialize(ref blend_mode);
+
             if (serializer.IsReader)
             {
                 byte[] data = [];

@@ -115,11 +115,14 @@ public class Blitter
 
                         // Sample the pixel using the provided Sampler function
                         Color sampledColor = op.Sampler(sampleOp);
+                        // TODO Speed up by just passing a span?
+                        Color targetColor = new Color(op.targetData[targetIndex + 0], op.targetData[targetIndex + 1], op.targetData[targetIndex + 2], op.targetData[targetIndex + 3]);
                         // Copy sampled color to target image
-                        op.targetData[targetIndex + 0] = sampledColor.R; // Red
-                        op.targetData[targetIndex + 1] = sampledColor.G; // Green
-                        op.targetData[targetIndex + 2] = sampledColor.B; // Blue
-                        op.targetData[targetIndex + 3] = sampledColor.A; // Alpha
+                        var result = BlendModes.Blend(sampledColor, targetColor, op.blendMode);
+                        op.targetData[targetIndex + 0] = result.R; // Red
+                        op.targetData[targetIndex + 1] = result.G; // Green
+                        op.targetData[targetIndex + 2] = result.B; // Blue
+                        op.targetData[targetIndex + 3] = result.A; // Alpha
                     }
                 }
             }

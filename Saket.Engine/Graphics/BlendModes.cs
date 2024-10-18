@@ -88,6 +88,8 @@ public enum BlendMode
     /// Looks at the color information in each channel and brightens the base color to reflect the blend color by increasing the brightness. Blending with black produces no change.
     /// </summary>
     Addition ,
+
+    Overwrite,
 }
 
 public class BlendModes
@@ -96,23 +98,186 @@ public class BlendModes
     {
         switch (blendMode)
         {
-            case BlendMode.Normal: return Normal(source, dest);
-            case BlendMode.Multiply: return Multiply(source, dest);
-            case BlendMode.Screen: return Screen(source, dest);
-            case BlendMode.Overlay: return Overlay(source, dest);
-            case BlendMode.Darken: return Darken(source, dest);
-            case BlendMode.Lighten: return Lighten(source, dest);
-            case BlendMode.Difference: return Difference(source, dest);
-            case BlendMode.Exclusion: return Exclusion(source, dest);
-            case BlendMode.Addition: return Additive(source, dest);
-            case BlendMode.Subtract: return Subtract(source, dest);
-            case BlendMode.Divide: return Divide(source, dest);
-            case BlendMode.HardLight: return HardLight(source, dest);
-            case BlendMode.SoftLight: return SoftLight(source, dest);
-            default: throw new ArgumentException("Invalid blend mode.");
+            case BlendMode.Normal: return NormalWithAlpha(source, dest);
+            case BlendMode.Multiply: return MultiplyWithAlpha(source, dest);
+            case BlendMode.Screen: return ScreenWithAlpha(source, dest);
+            case BlendMode.Overlay: return OverlayWithAlpha(source, dest);
+            case BlendMode.Darken: return DarkenWithAlpha(source, dest);
+            case BlendMode.Lighten: return LightenWithAlpha(source, dest);
+            case BlendMode.Difference: return DifferenceWithAlpha(source, dest);
+            case BlendMode.Exclusion: return ExclusionWithAlpha(source, dest);
+            case BlendMode.Addition: return AdditiveWithAlpha(source, dest);
+            case BlendMode.Subtract: return SubtractWithAlpha(source, dest);
+            case BlendMode.Divide: return DivideWithAlpha(source, dest);
+            case BlendMode.HardLight: return HardLightWithAlpha(source, dest);
+            case BlendMode.SoftLight: return SoftLightWithAlpha(source, dest);
+            case BlendMode.Overwrite: return source;
+            default: return NormalWithAlpha(source, dest);
         }
     }
+    /// <summary>
+    /// Normal blend mode with alpha support.
+    /// </summary>
+    public static Color NormalWithAlpha(Color source, Color target)
+    {
+        return AlphaBlend(source, target);
+    }
 
+    /// <summary>
+    /// Multiply blend mode with alpha support.
+    /// </summary>
+    public static Color MultiplyWithAlpha(Color source, Color target)
+    {
+        int r = (source.R * target.R) / 255;
+        int g = (source.G * target.G) / 255;
+        int b = (source.B * target.B) / 255;
+        return AlphaBlend(new Color(r, g, b, source.A), target);
+    }
+
+    /// <summary>
+    /// Screen blend mode with alpha support.
+    /// </summary>
+    public static Color ScreenWithAlpha(Color source, Color target)
+    {
+        int r = 255 - ((255 - source.R) * (255 - target.R)) / 255;
+        int g = 255 - ((255 - source.G) * (255 - target.G)) / 255;
+        int b = 255 - ((255 - source.B) * (255 - target.B)) / 255;
+        return AlphaBlend(new Color(r, g, b, source.A), target);
+    }
+
+    /// <summary>
+    /// Overlay blend mode with alpha support.
+    /// </summary>
+    public static Color OverlayWithAlpha(Color source, Color target)
+    {
+        int r = (target.R < 128) ? (2 * source.R * target.R) / 255 : 255 - (2 * (255 - source.R) * (255 - target.R)) / 255;
+        int g = (target.G < 128) ? (2 * source.G * target.G) / 255 : 255 - (2 * (255 - source.G) * (255 - target.G)) / 255;
+        int b = (target.B < 128) ? (2 * source.B * target.B) / 255 : 255 - (2 * (255 - source.B) * (255 - target.B)) / 255;
+        return AlphaBlend(new Color(r, g, b, source.A), target);
+    }
+
+    /// <summary>
+    /// Darken blend mode with alpha support.
+    /// </summary>
+    public static Color DarkenWithAlpha(Color source, Color target)
+    {
+        int r = Math.Min(source.R, target.R);
+        int g = Math.Min(source.G, target.G);
+        int b = Math.Min(source.B, target.B);
+        return AlphaBlend(new Color(r, g, b, source.A), target);
+    }
+
+    /// <summary>
+    /// Lighten blend mode with alpha support.
+    /// </summary>
+    public static Color LightenWithAlpha(Color source, Color target)
+    {
+        int r = Math.Max(source.R, target.R);
+        int g = Math.Max(source.G, target.G);
+        int b = Math.Max(source.B, target.B);
+        return AlphaBlend(new Color(r, g, b, source.A), target);
+    }
+
+    /// <summary>
+    /// Difference blend mode with alpha support.
+    /// </summary>
+    public static Color DifferenceWithAlpha(Color source, Color target)
+    {
+        int r = Math.Abs(source.R - target.R);
+        int g = Math.Abs(source.G - target.G);
+        int b = Math.Abs(source.B - target.B);
+        return AlphaBlend(new Color(r, g, b, source.A), target);
+    }
+
+    /// <summary>
+    /// Exclusion blend mode with alpha support.
+    /// </summary>
+    public static Color ExclusionWithAlpha(Color source, Color target)
+    {
+        int r = source.R + target.R - 2 * source.R * target.R / 255;
+        int g = source.G + target.G - 2 * source.G * target.G / 255;
+        int b = source.B + target.B - 2 * source.B * target.B / 255;
+        return AlphaBlend(new Color(r, g, b, source.A), target);
+    }
+
+    /// <summary>
+    /// Additive blend mode with alpha support.
+    /// </summary>
+    public static Color AdditiveWithAlpha(Color source, Color target)
+    {
+        int r = Math.Min(255, source.R + target.R);
+        int g = Math.Min(255, source.G + target.G);
+        int b = Math.Min(255, source.B + target.B);
+        return AlphaBlend(new Color(r, g, b, source.A), target);
+    }
+
+    /// <summary>
+    /// Subtract blend mode with alpha support.
+    /// </summary>
+    public static Color SubtractWithAlpha(Color source, Color target)
+    {
+        int r = Math.Max(0, source.R - target.R);
+        int g = Math.Max(0, source.G - target.G);
+        int b = Math.Max(0, source.B - target.B);
+        return AlphaBlend(new Color(r, g, b, source.A), target);
+    }
+
+    /// <summary>
+    /// Divide blend mode with alpha support.
+    /// </summary>
+    public static Color DivideWithAlpha(Color source, Color target)
+    {
+        int r = target.R == 0 ? 255 : Math.Min(255, (source.R * 255) / target.R);
+        int g = target.G == 0 ? 255 : Math.Min(255, (source.G * 255) / target.G);
+        int b = target.B == 0 ? 255 : Math.Min(255, (source.B * 255) / target.B);
+        return AlphaBlend(new Color(r, g, b, source.A), target);
+    }
+
+    /// <summary>
+    /// Hard light blend mode with alpha support.
+    /// </summary>
+    public static Color HardLightWithAlpha(Color source, Color target)
+    {
+        int r = (source.R < 128) ? (2 * source.R * target.R) / 255 : 255 - (2 * (255 - source.R) * (255 - target.R)) / 255;
+        int g = (source.G < 128) ? (2 * source.G * target.G) / 255 : 255 - (2 * (255 - source.G) * (255 - target.G)) / 255;
+        int b = (source.B < 128) ? (2 * source.B * target.B) / 255 : 255 - (2 * (255 - source.B) * (255 - target.B)) / 255;
+        return AlphaBlend(new Color(r, g, b, source.A), target);
+    }
+
+    /// <summary>
+    /// Soft light blend mode with alpha support.
+    /// </summary>
+    public static Color SoftLightWithAlpha(Color source, Color target)
+    {
+        int r = (int)((target.R < 128) ? (2 * source.R * target.R / 255) + (source.R * source.R * (255 - 2 * target.R) / 255) / 255
+                                 : (Math.Sqrt(source.R / 255.0) * (2 * target.R - 255)) + 2 * source.R * (255 - target.R) / 255);
+        int g = (int)((target.G < 128) ? (2 * source.G * target.G / 255) + (source.G * source.G * (255 - 2 * target.G) / 255) / 255
+                                 : (Math.Sqrt(source.G / 255.0) * (2 * target.G - 255)) + 2 * source.G * (255 - target.G) / 255);
+        int b = (int)((target.B < 128) ? (2 * source.B * target.B / 255) + (source.B * source.B * (255 - 2 * target.B) / 255) / 255
+                                 : (Math.Sqrt(source.B / 255.0) * (2 * target.B - 255)) + 2 * source.B * (255 - target.B) / 255);
+        return AlphaBlend(new Color(r, g, b, source.A), target);
+    }
+
+    /// <summary>
+    /// Performs alpha blending between the source and target colors.
+    /// </summary>
+    private static Color AlphaBlend(Color source, Color target)
+    {
+        float srcAlpha = source.A / 255f; // Normalize source alpha [0, 1]
+        float invAlpha = 1f - srcAlpha;
+
+        // Blend each color channel
+        int r = (int)((source.R * srcAlpha) + (target.R * invAlpha));
+        int g = (int)((source.G * srcAlpha) + (target.G * invAlpha));
+        int b = (int)((source.B * srcAlpha) + (target.B * invAlpha));
+
+        // Calculate resulting alpha
+        int a = (int)((source.A * srcAlpha) + (target.A * invAlpha));
+
+        return new Color(r, g, b, a);
+    }
+
+    #region Without ALpha
     // Normal blend mode
     public static Color Normal(Color source, Color dest)
     {
@@ -229,4 +394,5 @@ public class BlendModes
                                : (Math.Sqrt(source.B / 255.0) * (2 * dest.B - 255)) + 2 * source.B * (255 - dest.B) / 255);
         return new Color(r, g, b, source.A);
     }
+    #endregion
 }
